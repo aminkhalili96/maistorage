@@ -225,4 +225,6 @@ Important note:
 - the slide-ready benchmark artifacts used a capped benchmark subset:
   - 9 source ids covering all golden questions
   - max 12 chunks per source id
-- the refreshed RAGAS bundle at [20260316-030114](/Users/amin/dev/maistorage/data/evals/results/20260316-030114) used `gemini-2.5-flash` for the RAGAS answer/judge path because the workspace hit the daily Gemini 3.1 Pro quota during regeneration; the main app still targets `gemini-3.1-pro-preview`
+- the latest successful authored-reference RAGAS bundle is [20260316-030114](/Users/amin/dev/maistorage/data/evals/results/20260316-030114), which used `gemini-2.5-flash` for the RAGAS answer/judge path because Gemini 3.1 Pro quota was exhausted during regeneration
+- a direct Gemini 3.1 Pro RAGAS rerun was attempted later and failed with `429 ResourceExhausted`; that failed attempt is recorded in [20260315-195514](/Users/amin/dev/maistorage/data/evals/results/20260315-195514)
+- the main app still targets `gemini-3.1-pro-preview`

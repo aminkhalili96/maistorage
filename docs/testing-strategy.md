@@ -176,7 +176,8 @@ Important interpretation:
 - the refreshed RAGAS profile is stronger:
   - faithfulness, context precision, and context recall are all high
   - answer relevancy remains the weakest score and should still be presented honestly
-- the latest RAGAS rerun used `gemini-2.5-flash` for the evaluation path because Gemini 3.1 Pro hit its daily quota during regeneration
+- the latest successful RAGAS rerun used `gemini-2.5-flash` for the evaluation path because Gemini 3.1 Pro hit its daily quota during regeneration
+- a later direct rerun on `gemini-3.1-pro-preview` failed with `429 ResourceExhausted`, so the saved successful RAGAS scores still come from the 2.5 Flash evaluation path
 
 ## Presentation Framing
 

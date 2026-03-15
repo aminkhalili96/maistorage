@@ -9,6 +9,10 @@ Latest supplemental artifact bundle for model comparison and improved RAGAS:
 
 - [20260316-030114](/Users/amin/dev/maistorage/data/evals/results/20260316-030114)
 
+Latest Gemini 3.1 Pro RAGAS rerun attempt:
+
+- [20260315-195514](/Users/amin/dev/maistorage/data/evals/results/20260315-195514)
+
 ## What Was Run
 
 - backend tests: `25 passed, 1 skipped`
@@ -50,11 +54,13 @@ Interpretation:
 - authored reference answers materially improved the grounding signal versus the earlier proxy-based run
 - answer grounding is now strong, while answer relevancy is still the weakest score
 - this is a better benchmark story, but still small enough that it should be presented as an interview eval set rather than a production-quality QA corpus
-- the refreshed run used `gemini-2.5-flash` for the answer/judge path because the workspace hit the daily Gemini 3.1 Pro quota during regeneration
+- the latest successful run used `gemini-2.5-flash` for the answer/judge path because the workspace hit the daily Gemini 3.1 Pro quota during regeneration
+- a direct rerun on `gemini-3.1-pro-preview` was attempted later and failed with `429 ResourceExhausted` before any score rows were produced
 
 Artifact:
 
 - [ragas.json](/Users/amin/dev/maistorage/data/evals/results/20260316-030114/ragas.json)
+- [failed Gemini 3.1 Pro rerun](/Users/amin/dev/maistorage/data/evals/results/20260315-195514/ragas.json)
 
 ### Embedding models
 

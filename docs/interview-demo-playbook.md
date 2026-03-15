@@ -186,7 +186,8 @@ Talk about limitations directly:
 - preview model availability can vary by account
 - the refreshed RAGAS run improved materially once keyword-proxy ground truth was replaced with authored reference answers
 - answer relevancy is still the weakest RAGAS metric, so there is still room to improve how directly some answers address the question
-- the refreshed RAGAS run used `gemini-2.5-flash` for the eval path because the workspace hit the daily Gemini 3.1 Pro quota during regeneration
+- the latest successful RAGAS run used `gemini-2.5-flash` for the eval path because the workspace hit the daily Gemini 3.1 Pro quota during regeneration
+- a later direct rerun on `gemini-3.1-pro-preview` failed with `429 ResourceExhausted`, so the saved successful RAGAS artifact remains the 2.5 Flash run
 
 Concrete next steps:
 

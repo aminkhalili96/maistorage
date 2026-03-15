@@ -256,7 +256,8 @@ Most useful measured results from that artifact bundle:
   - `context_precision = 0.8667`
   - `context_recall = 0.8`
   - the refreshed run uses authored reference answers
-  - the refreshed run used `gemini-2.5-flash` for the eval path after Gemini 3.1 Pro hit its daily quota during regeneration
+  - the latest successful run used `gemini-2.5-flash` for the eval path after Gemini 3.1 Pro hit its daily quota during regeneration
+  - a later direct rerun on `gemini-3.1-pro-preview` failed with `429 ResourceExhausted`, so the saved successful RAGAS evidence is still the 2.5 Flash run
 
 Not yet live-verified in this workspace:
 
