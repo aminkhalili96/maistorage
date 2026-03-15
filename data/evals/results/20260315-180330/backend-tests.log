@@ -1,0 +1,17 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0
+rootdir: /Users/amin/dev/maistorage
+plugins: anyio-4.12.1, asyncio-0.26.0, langsmith-0.7.17
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 25 items
+
+backend/tests/test_agent_flow.py ....                                    [ 16%]
+backend/tests/test_api.py ...                                            [ 28%]
+backend/tests/test_chunking.py .....                                     [ 48%]
+backend/tests/test_config.py .                                           [ 52%]
+backend/tests/test_evaluation_runtime.py ..                              [ 60%]
+backend/tests/test_ingestion.py ..                                       [ 68%]
+backend/tests/test_metrics.py ...                                        [ 80%]
+backend/tests/test_retrieval.py .....                                    [100%]
+
+======================== 25 passed in 142.13s (0:02:22) ========================

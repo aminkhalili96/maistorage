@@ -1,0 +1,322 @@
+{
+  "snapshot_id": "20260315",
+  "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+  "sources": {
+    "cuda-programming-guide": {
+      "title": "CUDA C++ Programming Guide",
+      "source_url": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/",
+      "pdf_url": "https://docs.nvidia.com/cuda/cuda-programming-guide/pdf/cuda-programming-guide.pdf",
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "5b121d5a525199e9ec5bf4e9333f774c7cb758fa8b4eb410351fe46e947bfc6f",
+      "pdf_hash": "adac9b9de572a967c0eed9baea217dc6b4c0aabc5f9a8fd87fde03e8d510bbc0",
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/",
+        "page-1.html": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/",
+        "page-2.html": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/"
+      }
+    },
+    "cuda-best-practices": {
+      "title": "CUDA C++ Best Practices Guide",
+      "source_url": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
+      "pdf_url": "https://docs.nvidia.com/cuda/pdf/CUDA_C_Best_Practices_Guide.pdf",
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "18d0b28ef279ac39edadb5653ddd0a849bb979b407aea6a4fa5a150582557f50",
+      "pdf_hash": "a8882cf37673dbfaa08b14b90d221768f2345020b53e70c954d51ff695e84599",
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
+        "page-1.html": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
+        "page-2.html": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/"
+      }
+    },
+    "dl-performance": {
+      "title": "NVIDIA Deep Learning Performance",
+      "source_url": "https://docs.nvidia.com/deeplearning/performance/index.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "f0ccc2bafae2226b857a0f755ea933ada386d6307597d04c3afa50843340db95",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/deeplearning/performance/index.html",
+        "page-1.html": "https://docs.nvidia.com/deeplearning/performance/",
+        "page-2.html": "https://docs.nvidia.com/deeplearning/performance/"
+      }
+    },
+    "nccl": {
+      "title": "NCCL Documentation",
+      "source_url": "https://docs.nvidia.com/deeplearning/nccl/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "f30e14efd8e3008cc3ba6854f3ecbc03336604219a9b76ddde552769cec1d2de",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/deeplearning/nccl/",
+        "page-1.html": "https://docs.nvidia.com/deeplearning/nccl/",
+        "page-2.html": "https://docs.nvidia.com/deeplearning/nccl/"
+      }
+    },
+    "nsight-compute": {
+      "title": "Nsight Compute Profiling Guide",
+      "source_url": "https://docs.nvidia.com/nsight-compute/2022.3/ProfilingGuide/index.html",
+      "pdf_url": "https://docs.nvidia.com/nsight-compute/pdf/ProfilingGuide.pdf",
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "14fb26624a218cd8c8075f7f9972a53d8832865a5d1d466b3c85df7448931901",
+      "pdf_hash": "1eb730c1e9329808fa88a6cda9a0f786b5a282ddf2ee264a6c4232b486ed6b9a",
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/nsight-compute/2022.3/ProfilingGuide/index.html",
+        "page-1.html": "https://docs.nvidia.com/nsight-compute/",
+        "page-2.html": "https://docs.nvidia.com/nsight-compute/"
+      }
+    },
+    "cuda-install": {
+      "title": "CUDA Installation Guide for Linux",
+      "source_url": "https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "c072b276feb260442d8dc95efc83f2977c950f61b54ffd92a7e722eacc13a2c5",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html",
+        "page-1.html": "https://docs.nvidia.com/datacenter/tesla/",
+        "page-2.html": "https://docs.nvidia.com/datacenter/tesla/"
+      }
+    },
+    "container-toolkit": {
+      "title": "NVIDIA Container Toolkit",
+      "source_url": "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "e0c3c07ac6cd3780c31572af657dc835f5c8673dc80b32b8dd75bbc64bcfdad4",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/",
+        "page-1.html": "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/",
+        "page-2.html": "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/"
+      }
+    },
+    "gpu-operator": {
+      "title": "NVIDIA GPU Operator",
+      "source_url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "a80a7f3ba9823fac6c0b9db08312c748ef14a2370ea519df2eee918e96b92146",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/",
+        "page-1.html": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/",
+        "page-2.html": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/"
+      }
+    },
+    "gpudirect-storage": {
+      "title": "GPUDirect Storage Overview Guide",
+      "source_url": "https://docs.nvidia.com/gpudirect-storage/overview-guide/index.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "b4e2cbe2258564c7029f6eb6d7778af2322670a4916da8ec0cb4febc618f4841",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/gpudirect-storage/overview-guide/index.html",
+        "page-1.html": "https://docs.nvidia.com/gpudirect-storage/",
+        "page-2.html": "https://docs.nvidia.com/gpudirect-storage/"
+      }
+    },
+    "dcgm": {
+      "title": "Data Center GPU Manager User Guide",
+      "source_url": "https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/index.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "4d2571d809d2d9dfcc9b2c95696f741269256f526b9d0becd11daec5da026825",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/index.html",
+        "page-1.html": "https://docs.nvidia.com/datacenter/dcgm/",
+        "page-2.html": "https://docs.nvidia.com/datacenter/dcgm/"
+      }
+    },
+    "fabric-manager": {
+      "title": "Fabric Manager User Guide",
+      "source_url": "https://docs.nvidia.com/hgx-platforms/fabric-manager-user-guide/index.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "1f8a4b4ee5f2ef94897ce9303ef2f4594f95710323bc91540ec4510459d751f6",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/hgx-platforms/fabric-manager-user-guide/index.html",
+        "page-1.html": "https://docs.nvidia.com/hgx-platforms/fabric-manager-user-guide/",
+        "page-2.html": "https://docs.nvidia.com/hgx-platforms/fabric-manager-user-guide/"
+      }
+    },
+    "dgx-basepod": {
+      "title": "DGX BasePOD Deployment Guide",
+      "source_url": "https://docs.nvidia.com/dgx-basepod/deployment-guide-dgx-basepod/latest/index.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "441e42f0a87e51acc6203fee9d24d15bc084fb62e5f3517f2060ab98e29d5e60",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/dgx-basepod/deployment-guide-dgx-basepod/latest/index.html",
+        "page-1.html": "https://docs.nvidia.com/dgx-basepod/",
+        "page-2.html": "https://docs.nvidia.com/dgx-basepod/"
+      }
+    },
+    "cudnn": {
+      "title": "cuDNN Documentation",
+      "source_url": "https://docs.nvidia.com/deeplearning/cudnn/latest/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "683f70a5fb3393389095b5dd6927b202bea9e724257a83f0d00678bd2dfb9458",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/deeplearning/cudnn/latest/",
+        "page-1.html": "https://docs.nvidia.com/deeplearning/cudnn/",
+        "page-2.html": "https://docs.nvidia.com/deeplearning/cudnn/"
+      }
+    },
+    "cublas": {
+      "title": "cuBLAS Documentation",
+      "source_url": "https://docs.nvidia.com/cuda/cublas/",
+      "pdf_url": "https://docs.nvidia.com/cuda/pdf/CUBLAS_Library.pdf",
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "d0155bf9f3403ade9f5b34f552cfa91b99948b4198de498b883fb5b0a16d4dd1",
+      "pdf_hash": "474cc77bf9cea9253bf51a487cc5f5c3ddb712615a6ed8479d6585e8455595cc",
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/cuda/cublas/",
+        "page-1.html": "https://docs.nvidia.com/cuda/cublas/",
+        "page-2.html": "https://docs.nvidia.com/cuda/cublas/"
+      }
+    },
+    "megatron-core": {
+      "title": "Megatron Core Documentation",
+      "source_url": "https://docs.nvidia.com/megatron-core/index.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "1c6bc682cae4ec6e43ce2863ed5007cf3f6f0de9ac86ec8e8a4d86c3176a7370",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/megatron-core/index.html",
+        "page-1.html": "https://docs.nvidia.com/megatron-core/",
+        "page-2.html": "https://docs.nvidia.com/megatron-core/"
+      }
+    },
+    "nemo-performance": {
+      "title": "NeMo Performance Guide",
+      "source_url": "https://docs.nvidia.com/nemo-framework/user-guide/latest/performance/performance-guide.html",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "ce9fd565631ca5181a38cc279597c66664aadb770dbdae1cb1c25eaca32ecdb6",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/nemo-framework/user-guide/latest/performance/performance-guide.html",
+        "page-1.html": "https://docs.nvidia.com/nemo-framework/",
+        "page-2.html": "https://docs.nvidia.com/nemo-framework/"
+      }
+    },
+    "transformer-engine": {
+      "title": "Transformer Engine User Guide",
+      "source_url": "https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "01855e93d60006cdfb76a0f554a8b44a349b6ea7d7f2cefb94b58cb46e2eaecc",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/",
+        "page-1.html": "https://docs.nvidia.com/deeplearning/transformer-engine/",
+        "page-2.html": "https://docs.nvidia.com/deeplearning/transformer-engine/"
+      }
+    },
+    "h100": {
+      "title": "NVIDIA H100",
+      "source_url": "https://www.nvidia.com/en-us/data-center/h100/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "5437a242645fb1b0ad578534ada426b9bdc2118f6da3285834112a84658c4008",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://www.nvidia.com/en-us/data-center/h100/",
+        "page-1.html": "https://www.nvidia.com/en-us/data-center/h100/",
+        "page-2.html": "https://www.nvidia.com/en-us/data-center/h100/"
+      }
+    },
+    "h200": {
+      "title": "NVIDIA H200",
+      "source_url": "https://www.nvidia.com/en-us/data-center/h200/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "3b19159aa8f496e2fc41444040ff5f4b82f2c34bfb732eac56ab0f4cedf3db1c",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://www.nvidia.com/en-us/data-center/h200/",
+        "page-1.html": "https://www.nvidia.com/en-us/data-center/h200/",
+        "page-2.html": "https://www.nvidia.com/en-us/data-center/h200/"
+      }
+    },
+    "a100": {
+      "title": "NVIDIA A100",
+      "source_url": "https://www.nvidia.com/en-us/data-center/a100/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "e53d7e0caaf1c9ca880b85673040bc2f419d07c7cdeef25f9b57e93d7120d79f",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://www.nvidia.com/en-us/data-center/a100/",
+        "page-1.html": "https://www.nvidia.com/en-us/data-center/a100/",
+        "page-2.html": "https://www.nvidia.com/en-us/data-center/a100/"
+      }
+    },
+    "l40s": {
+      "title": "NVIDIA L40S",
+      "source_url": "https://www.nvidia.com/en-us/data-center/l40s/",
+      "pdf_url": null,
+      "retrieved_at": "2026-03-15T13:52:27.202946+00:00",
+      "snapshot_id": "20260315",
+      "content_hash": "64afbf4be68f29af09f97aa71d7864e60089f3879201068d053f0c7d7c2ca562",
+      "pdf_hash": null,
+      "doc_version": null,
+      "local_url_map": {
+        "root.html": "https://www.nvidia.com/en-us/data-center/l40s/",
+        "page-1.html": "https://www.nvidia.com/en-us/data-center/l40s/",
+        "page-2.html": "https://www.nvidia.com/en-us/data-center/l40s/"
+      }
+    }
+  },
+  "errors": []
+}

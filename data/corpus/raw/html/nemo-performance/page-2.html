@@ -1,0 +1,2379 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Performance &#8212; Megatron Bridge</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/nvidia-sphinx-theme.css?v=933278ad" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+
+    <script src="_static/documentation_options.js?v=e259d695"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'performance-summary';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = '../versions1.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.3.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+
+    <link rel="icon" href="_static/favicon.png"/>
+
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Performance Tuning Guide" href="performance-guide.html" />
+    <link rel="prev" title="Parallelisms Guide" href="parallelisms.html" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+
+
+    <script src="https://assets.adobedtm.com/5d4962a43b79/c1061d2c5e7b/launch-191c2462b890.min.js" ></script>
+    
+
+
+  </head>
+
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/nvidia-logo-horiz-rgb-blk-for-screen.svg" class="logo__image only-light" alt="Megatron Bridge - Home"/>
+    <img src="_static/nvidia-logo-horiz-rgb-wht-for-screen.svg" class="logo__image only-dark pst-js-only" alt="Megatron Bridge - Home"/>
+  
+  
+    <p class="title logo__title">Megatron Bridge</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+
+
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NVIDIA-NeMo/Megatron-Bridge/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/nvidia-logo-horiz-rgb-blk-for-screen.svg" class="logo__image only-light" alt="Megatron Bridge - Home"/>
+    <img src="_static/nvidia-logo-horiz-rgb-wht-for-screen.svg" class="logo__image only-dark pst-js-only" alt="Megatron Bridge - Home"/>
+  
+  
+    <p class="title logo__title">Megatron Bridge</p>
+  
+</a>
+
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+
+
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/NVIDIA-NeMo/Megatron-Bridge/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Table of Contents">
+  <p class="bd-links__title" role="heading" aria-level="1">Table of Contents</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="parallelisms.html">Parallelisms Guide</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance-guide.html">Performance Tuning Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recipe-usage.html">Using Recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nemo2-migration-guide.html">NeMo 2.0 to Megatron Bridge Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="megatron-lm-to-megatron-bridge.html">Megatron-LM to Megatron Bridge Guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Bridge with 🤗 Hugging Face</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bridge-guide.html">Get Started with 🤗 Hugging Face Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bridge-tech-details.html">Megatron Bridge Conversion Technical Details</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Supported Models</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="models/llm/index.html">Large Language Models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/deepseek-v2.html">DeepSeek V2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/deepseek-v3.html">DeepSeek V3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/gemma2.html">Gemma 2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/gemma3.html">Gemma 3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/glm45.html">GLM 4.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/gpt-oss.html">GPT OSS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/llama3.html">Llama 3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/llama-nemotron.html">Llama Nemotron</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/mistral.html">Mistral</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/moonlight.html">Moonlight</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/nemotron3.html">Nemotron 3 Nano</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/nemotronh.html">Nemotron H and Nemotron Nano v2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/olmoe.html">OLMoE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/llm/qwen.html">Qwen</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="models/vlm/index.html">Vision Language Models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="models/vlm/gemma3-vl.html">Gemma 3 VL (Vision-Language)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/vlm/glm-45v.html">GLM-4.5V</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/vlm/ministral3.html">Ministral 3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/vlm/nemotron-nano-v2-vl.html">Nemotron Nano V2 VL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/vlm/qwen2.5-vl.html">Qwen2.5-VL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/vlm/qwen3-vl.html">Qwen3-VL</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Training and Customization</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="training/config-container-overview.html">Configuration Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/entry-points.html">Training Entry Points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/training-loop-settings.html">Training Loop Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/optimizer-scheduler.html">Optimizer and Scheduler Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/logging.html">Logging and Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/profiling.html">Profiling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/checkpointing.html">Checkpointing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/resiliency.html">Resiliency</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/communication-overlap.html">Communication Overlap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/attention-optimizations.html">Attention Optimizations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/activation-recomputation.html">Activation Recomputation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/cpu-offloading.html">CPU Offloading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/peft.html">Parameter-Efficient Fine-Tuning (PEFT)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/packed-sequences.html">Packed Sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/multi-token-prediction.html">Multi-Token Prediction (MTP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/distillation.html">Knowledge Distillation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/callbacks.html">Callbacks</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="adding-new-models.html">Contribute a New Model to Megatron Bridge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bridge-rl-integration.html">Adapting Megatron Bridge in Reinforcement Learning Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation Development</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="apidocs/bridge/bridge.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="apidocs/bridge/bridge.training.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.mlm_compat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.mlm_compat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.tokenizers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.tokenizers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.post_training.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.post_training</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.losses.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.losses</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.callbacks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.callbacks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.inprocess_restart.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.inprocess_restart</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.profiling.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.profiling</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.flex_dispatcher_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.flex_dispatcher_backend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.eval.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.eval</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.model_load_save.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.model_load_save</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.comm_overlap.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.comm_overlap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.pretrain.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.pretrain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.distill.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.distill</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.setup.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.setup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.state.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.llava_step.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.llava_step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.train.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.train</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.tensor_inspect.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.tensor_inspect</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.nvrx_straggler.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.nvrx_straggler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.vlm_step.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.vlm_step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.initialize.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.initialize</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.optim.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.optim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.mixed_precision.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.mixed_precision</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.finetune.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.finetune</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.gpt_step.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.gpt_step</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.forward_step_func_types.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.forward_step_func_types</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.checkpointing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.checkpointing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.training.fault_tolerance.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.training.fault_tolerance</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="apidocs/bridge/bridge.peft.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.dora_layers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.dora_layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.lora.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.lora</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.dora.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.dora</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.module_matcher.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.module_matcher</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.adapter_wrapper.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.adapter_wrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.lora_layers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.lora_layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.canonical_lora.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.canonical_lora</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.walk_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.walk_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.peft.recompute.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.peft.recompute</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="apidocs/bridge/bridge.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.vocab_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.vocab_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.common_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.common_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.yaml_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.yaml_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.import_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.import_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.fusions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.fusions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.instantiate_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.instantiate_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.decorators.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.decorators</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.utils.slurm_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.utils.slurm_utils</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="apidocs/bridge/bridge.recipes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.qwen_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.qwen_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.qwen.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.qwen</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.gpt.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.gpt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.gemma.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.gemma</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.glm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.glm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.deepseek.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.deepseek</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.olmoe.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.olmoe</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.gemma3_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.gemma3_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.glm_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.glm_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.moonlight.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.moonlight</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.nemotronh.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.nemotronh</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.nemotron_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.nemotron_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.gpt_oss.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.gpt_oss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.llama.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.llama</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.ministral3.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.ministral3</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.recipes.run_plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.recipes.run_plugins</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="apidocs/bridge/bridge.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.datasets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.datasets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.hf_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.hf_processors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.builders.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.builders</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.vlm_datasets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.vlm_datasets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.iterator_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.iterator_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.finetuning.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.finetuning</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.loaders.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.loaders</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.data.samplers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.data.samplers</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="apidocs/bridge/bridge.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.qwen_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.qwen_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.mamba.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.mamba</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.qwen.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.qwen</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.gemma.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.gemma</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.gemma_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.gemma_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.glm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.glm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.deepseek.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.deepseek</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.llama_nemotron.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.llama_nemotron</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.olmoe.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.olmoe</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.conversion.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.conversion</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.nemotron.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.nemotron</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.mistral.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.mistral</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.decorators.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.decorators</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.glm_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.glm_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.nemotronh.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.nemotronh</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.nemotron_vl.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.nemotron_vl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.hf_pretrained.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.hf_pretrained</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.gpt_oss.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.gpt_oss</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.kimi.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.kimi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.llama.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.llama</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.ministral3.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.ministral3</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.model_provider.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.model_provider</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.gpt_full_te_layer_autocast_spec.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.gpt_full_te_layer_autocast_spec</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.transformer_config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.transformer_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.distillation_provider.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.distillation_provider</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.gpt_provider.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.gpt_provider</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="apidocs/bridge/bridge.models.t5_provider.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.models.t5_provider</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="apidocs/bridge/bridge.package_info.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bridge.package_info</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Releases</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="releases/software-versions.html">Software Component Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases/known-issues.html">Known Issues</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Directory Readme Files</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="README.html">Megatron Bridge Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/README.html">Supported Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/llm/README.html">Large Language Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models/vlm/README.html">Vision Language Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases/README.html">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training/README.html">Training and Customization</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Performance</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="performance">
+<h1>Performance<a class="headerlink" href="#performance" title="Link to this heading">#</a></h1>
+<p>As part of the NVIDIA NeMo Framework, Megatron Bridge, provides optimal performance for training advanced generative AI models by incorporating the most recent training techniques, such as model parallelization, optimized attention mechanisms, and more, to achieve high training throughput.</p>
+<p>This page provides performance benchmarks for large language models using Megatron-Bridge across different GPU systems and configurations.</p>
+<section id="nomenclature">
+<h2>Nomenclature<a class="headerlink" href="#nomenclature" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>GBS</strong>: Global Batch Size</p></li>
+<li><p><strong>MBS</strong>: Micro Batch Size</p></li>
+<li><p><strong>FSDP</strong>: Fully Sharded Data Parallel</p>
+<ul>
+<li><p>FSDP = 1: use FSDP</p></li>
+<li><p>FSDP = 0: use DDP (Distributed Data Parallel)</p></li>
+</ul>
+</li>
+<li><p><strong>TP</strong>: Tensor Parallel Size</p></li>
+<li><p><strong>PP</strong>: Pipeline Parallel Size</p></li>
+<li><p><strong>CP</strong>: Context Parallel Size</p></li>
+<li><p><strong>VP</strong>: Virtual Pipeline Parallel Size</p></li>
+<li><p><strong>EP</strong>: Expert Parallel Size</p></li>
+<li><p><strong>GA</strong>: Number of Gradient Accumulations</p></li>
+</ul>
+</section>
+<section id="performance-metrics">
+<h2>Performance Metrics<a class="headerlink" href="#performance-metrics" title="Link to this heading">#</a></h2>
+<p>Performance is measured using:</p>
+<ul class="simple">
+<li><p><strong>Tokens/sec/GPU</strong>: Throughput per GPU</p></li>
+<li><p><strong>Model TFLOP/sec/GPU</strong>: Model floating-point operations per second per GPU</p></li>
+</ul>
+</section>
+<section id="performance-summary-for-large-language-models">
+<h2>Performance Summary for Large Language Models<a class="headerlink" href="#performance-summary-for-large-language-models" title="Link to this heading">#</a></h2>
+<p>Below are performance benchmarks for various large language models organized by release version. These results were obtained using performance recipes available <a class="reference external" href="https://github.com/NVIDIA-NeMo/Megatron-Bridge/tree/main/scripts/performance">here</a>.</p>
+<p>The performance data includes:</p>
+<ul class="simple">
+<li><p><strong>Pre-training Performance</strong>: Throughput metrics for various model sizes and architectures</p></li>
+<li><p><strong>System Configurations</strong>: Results across different GPU systems (DGX-GB300, DGX-GB200, DGX-B300, DGX-B200, DGX-H100)</p></li>
+<li><p><strong>Precision Options</strong>: Performance comparisons between different precision modes (BF16, FP8, MXFP8)</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="nemo-container">
+<h2>26.02 NeMo Container<a class="headerlink" href="#nemo-container" title="Link to this heading">#</a></h2>
+<section id="pre-training-performance">
+<h3>Pre-Training Performance<a class="headerlink" href="#pre-training-performance" title="Link to this heading">#</a></h3>
+<section id="system-dgx-gb300">
+<h4>System: DGX-GB300<a class="headerlink" href="#system-dgx-gb300" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>FP8</p></td>
+<td><p>256</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>64</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>5003</p></td>
+<td><p>2248</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>MXFP8</p></td>
+<td><p>256</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+<td><p>n/a</p></td>
+<td><p>4596</p></td>
+<td><p>2064</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>NVFP4</p></td>
+<td><p>256</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+<td><p>n/a</p></td>
+<td><p>6798</p></td>
+<td><p>3056</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>FP8</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>n/a</p></td>
+<td><p>988</p></td>
+<td><p>2495</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>4</p></td>
+<td><p>n/a</p></td>
+<td><p>931</p></td>
+<td><p>2349</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>NVFP4</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>n/a</p></td>
+<td><p>1333</p></td>
+<td><p>3365</p></td>
+</tr>
+<tr class="row-even"><td><p>DeepSeekV3</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>4096</p></td>
+<td><p>2</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>32</p></td>
+<td><p>4612</p></td>
+<td><p>1199</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>1280</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>64</p></td>
+<td><p>19412</p></td>
+<td><p>527</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>8</p></td>
+<td><p>MXFP8</p></td>
+<td><p>512</p></td>
+<td><p>8</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>30376</p></td>
+<td><p>699</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>8192</p></td>
+<td><p>2</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>32</p></td>
+<td><p>6583</p></td>
+<td><p>974</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="system-dgx-gb200">
+<h4>System: DGX-GB200<a class="headerlink" href="#system-dgx-gb200" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>FP8</p></td>
+<td><p>256</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>64</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>n/a</p></td>
+<td><p>4040</p></td>
+<td><p>1815</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>MXFP8</p></td>
+<td><p>256</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+<td><p>n/a</p></td>
+<td><p>3613</p></td>
+<td><p>1623</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>NVFP4</p></td>
+<td><p>256</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+<td><p>n/a</p></td>
+<td><p>4458</p></td>
+<td><p>2004</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>FP8</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>n/a</p></td>
+<td><p>793</p></td>
+<td><p>2004</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>n/a</p></td>
+<td><p>786</p></td>
+<td><p>1983</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>NVFP4</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>n/a</p></td>
+<td><p>1076</p></td>
+<td><p>2716</p></td>
+</tr>
+<tr class="row-even"><td><p>DeepSeekV3</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>4096</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>64</p></td>
+<td><p>3955</p></td>
+<td><p>1028</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>1280</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>64</p></td>
+<td><p>15784</p></td>
+<td><p>428</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>8</p></td>
+<td><p>MXFP8</p></td>
+<td><p>512</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>26084</p></td>
+<td><p>600</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>32</p></td>
+<td><p>5448</p></td>
+<td><p>806</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="system-dgx-b300">
+<h4>System: DGX-B300<a class="headerlink" href="#system-dgx-b300" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DeepSeekV3</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>4096</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>2983</p></td>
+<td><p>776</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>1280</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>64</p></td>
+<td><p>8359</p></td>
+<td><p>228</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>8</p></td>
+<td><p>MXFP8</p></td>
+<td><p>512</p></td>
+<td><p>8</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>29521</p></td>
+<td><p>679</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>2691</p></td>
+<td><p>399</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="system-dgx-b200">
+<h4>System: DGX-B200<a class="headerlink" href="#system-dgx-b200" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DeepSeekV3</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>4096</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>2689</p></td>
+<td><p>699</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>1280</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>64</p></td>
+<td><p>8047</p></td>
+<td><p>219</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>8</p></td>
+<td><p>MXFP8</p></td>
+<td><p>512</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>9691</p></td>
+<td><p>223</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>MXFP8</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>3805</p></td>
+<td><p>563</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="system-dgx-h100">
+<h4>System: DGX-H100<a class="headerlink" href="#system-dgx-h100" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>FP8</p></td>
+<td><p>256</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+<td><p>n/a</p></td>
+<td><p>1621</p></td>
+<td><p>728</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3.1_405B</p></td>
+<td><p>1024</p></td>
+<td><p>FP8</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>n/a</p></td>
+<td><p>311</p></td>
+<td><p>784</p></td>
+</tr>
+<tr class="row-even"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>1280</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>8</p></td>
+<td><p>5993</p></td>
+<td><p>163</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>16</p></td>
+<td><p>FP8</p></td>
+<td><p>1024</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>12</p></td>
+<td><p>8</p></td>
+<td><p>5113</p></td>
+<td><p>118</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>FP8</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>32</p></td>
+<td><p>1633</p></td>
+<td><p>242</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>In MoE training benchmarks, we force-balance the token distribution among experts and all benchmarks are token-dropless.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id1">
+<h2>25.11 NeMo Container<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<section id="id2">
+<h3>Pre-Training Performance<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<section id="id3">
+<h4>System: DGX-GB300<a class="headerlink" href="#id3" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>GA</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_8B</p></td>
+<td><p>8</p></td>
+<td><p>FP8-CS (FP8-MX)</p></td>
+<td><p>128</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>37556 (36108)</p></td>
+<td><p>1933 (1858)</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>256</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>4520</p></td>
+<td><p>2030</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>192</p></td>
+<td><p>999</p></td>
+<td><p>2522</p></td>
+</tr>
+<tr class="row-odd"><td><p>DeepSeekV3 (w/o MTP)</p></td>
+<td><p>256</p></td>
+<td><p>BF16</p></td>
+<td><p>4096</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>32</p></td>
+<td><p>32</p></td>
+<td><p>3848</p></td>
+<td><p>961</p></td>
+</tr>
+<tr class="row-even"><td><p>DeepSeekV3 (w/o MTP)</p></td>
+<td><p>256</p></td>
+<td><p>FP8-MX</p></td>
+<td><p>4096</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>32</p></td>
+<td><p>32</p></td>
+<td><p>4357</p></td>
+<td><p>1088</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>1280</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>64</p></td>
+<td><p>10</p></td>
+<td><p>18347</p></td>
+<td><p>565</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>8</p></td>
+<td><p>FP8-MX</p></td>
+<td><p>512</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>16</p></td>
+<td><p>28934</p></td>
+<td><p>666</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>BF16</p></td>
+<td><p>8192</p></td>
+<td><p>2</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>12</p></td>
+<td><p>16</p></td>
+<td><p>32</p></td>
+<td><p>6131</p></td>
+<td><p>907</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id4">
+<h4>System: DGX-GB200<a class="headerlink" href="#id4" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>GA</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_8B</p></td>
+<td><p>8</p></td>
+<td><p>FP8-CS (FP8-MX)</p></td>
+<td><p>128</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>31508 (29789)</p></td>
+<td><p>1622 (1533)</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>256</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>4312</p></td>
+<td><p>1937</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3.1_405B</p></td>
+<td><p>256</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>1536</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>384</p></td>
+<td><p>813</p></td>
+<td><p>2053</p></td>
+</tr>
+<tr class="row-odd"><td><p>DeepSeekV3 (w/o MTP)</p></td>
+<td><p>256</p></td>
+<td><p>BF16</p></td>
+<td><p>4096</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>64</p></td>
+<td><p>64</p></td>
+<td><p>3139</p></td>
+<td><p>782</p></td>
+</tr>
+<tr class="row-even"><td><p>DeepSeekV3 (w/o MTP)</p></td>
+<td><p>256</p></td>
+<td><p>FP8-MX</p></td>
+<td><p>4096</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>32</p></td>
+<td><p>128</p></td>
+<td><p>4018</p></td>
+<td><p>1003</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>1280</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>64</p></td>
+<td><p>20</p></td>
+<td><p>15876</p></td>
+<td><p>488</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>8</p></td>
+<td><p>FP8-MX</p></td>
+<td><p>512</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>16</p></td>
+<td><p>23766</p></td>
+<td><p>547</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>BF16</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>3</p></td>
+<td><p>32</p></td>
+<td><p>256</p></td>
+<td><p>4916</p></td>
+<td><p>728</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id5">
+<h4>System: DGX-B200<a class="headerlink" href="#id5" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>GA</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_8B</p></td>
+<td><p>8</p></td>
+<td><p>FP8-CS (FP8-MX)</p></td>
+<td><p>128</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>30624 (29521)</p></td>
+<td><p>1576 (1519)</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3.1_405B</p></td>
+<td><p>128</p></td>
+<td><p>FP8-CS (FP8-MX)</p></td>
+<td><p>64</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>32</p></td>
+<td><p>661 (624)</p></td>
+<td><p>1667 (1576)</p></td>
+</tr>
+<tr class="row-even"><td><p>DeepSeekV3 (w/ MTP)</p></td>
+<td><p>256</p></td>
+<td><p>FP8-MX</p></td>
+<td><p>2048</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>128</p></td>
+<td><p>2139</p></td>
+<td><p>557</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>512</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>8213</p></td>
+<td><p>223</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>8</p></td>
+<td><p>FP8-MX</p></td>
+<td><p>512</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>64</p></td>
+<td><p>9299</p></td>
+<td><p>214</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>64</p></td>
+<td><p>FP8-MX</p></td>
+<td><p>1024</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>128</p></td>
+<td><p>3269</p></td>
+<td><p>484</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id6">
+<h4>System: DGX-H100<a class="headerlink" href="#id6" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>GA</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_8B</p></td>
+<td><p>8</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>128</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>1</p></td>
+<td><p>16</p></td>
+<td><p>14451</p></td>
+<td><p>744</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>128</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+<td><p>1</p></td>
+<td><p>64</p></td>
+<td><p>1602</p></td>
+<td><p>719</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3.1_405B</p></td>
+<td><p>1024</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>512</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>64</p></td>
+<td><p>292</p></td>
+<td><p>737</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPT OSS 120B</p></td>
+<td><p>64</p></td>
+<td><p>BF16</p></td>
+<td><p>512</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>5630</p></td>
+<td><p>153</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B</p></td>
+<td><p>16</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>512</p></td>
+<td><p>2</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>24</p></td>
+<td><p>8</p></td>
+<td><p>32</p></td>
+<td><p>5275</p></td>
+<td><p>121</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B</p></td>
+<td><p>256</p></td>
+<td><p>FP8-CS</p></td>
+<td><p>2048</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>32</p></td>
+<td><p>128</p></td>
+<td><p>1575</p></td>
+<td><p>233</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>The numbers in normal parentheses indicate the use of different quantization granularities: In case of GB200 and B200 systems, 32×32 for both weights and activations. For H100 system, 128×128 for weights and 1×128 for activations, which match those used in the original DeepSeekV3 pre-training.</p></li>
+<li><p>In MoE training benchmarks, we force-balance the token distribution among experts and all benchmarks are token-dropless.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id7">
+<h2>25.09 NeMo Container<a class="headerlink" href="#id7" title="Link to this heading">#</a></h2>
+<section id="id8">
+<h3>Pre-Training Performance<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<section id="id9">
+<h4>System: DGX-GB200<a class="headerlink" href="#id9" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>GA</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_8B</p></td>
+<td><p>8</p></td>
+<td><p>128</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>31357 (29925)</p></td>
+<td><p>1614 (1540)</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>128</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>1 (0)</p></td>
+<td><p>1 (2)</p></td>
+<td><p>1 (4)</p></td>
+<td><p>1</p></td>
+<td><p>1 (5)</p></td>
+<td><p>1</p></td>
+<td><p>1 (16)</p></td>
+<td><p>3986 (3546)</p></td>
+<td><p>1791 (1593)</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3.1_405B</p></td>
+<td><p>128</p></td>
+<td><p>64</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>1 (0)</p></td>
+<td><p>2 (4)</p></td>
+<td><p>1 (8)</p></td>
+<td><p>1 (2)</p></td>
+<td><p>1 (8)</p></td>
+<td><p>1</p></td>
+<td><p>1 (32)</p></td>
+<td><p>729 (578)</p></td>
+<td><p>1840 (1458)</p></td>
+</tr>
+<tr class="row-odd"><td><p>DeepSeekV3 (tokendrop)</p></td>
+<td><p>256</p></td>
+<td><p>2048</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>4 (8)</p></td>
+<td><p>1</p></td>
+<td><p>4 (2)</p></td>
+<td><p>64</p></td>
+<td><p>32 (64)</p></td>
+<td><p>3454 (2835)</p></td>
+<td><p>899 (738)</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B (tokendrop)</p></td>
+<td><p>8</p></td>
+<td><p>512</p></td>
+<td><p>4</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>16</p></td>
+<td><p>22775 (23723)</p></td>
+<td><p>524 (546)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B (tokendrop)</p></td>
+<td><p>64</p></td>
+<td><p>1024</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>64</p></td>
+<td><p>32</p></td>
+<td><p>4452 (4416)</p></td>
+<td><p>659 (654)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id10">
+<h4>System: DGX-B200<a class="headerlink" href="#id10" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>GA</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_8B</p></td>
+<td><p>8</p></td>
+<td><p>128</p></td>
+<td><p>2</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>29994 (29388)</p></td>
+<td><p>1544 (1513)</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3.1_405B</p></td>
+<td><p>128</p></td>
+<td><p>64</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>32</p></td>
+<td><p>664 (622)</p></td>
+<td><p>1676 (1569)</p></td>
+</tr>
+<tr class="row-even"><td><p>DeepSeekV3 (tokendrop)</p></td>
+<td><p>256</p></td>
+<td><p>2048</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>128</p></td>
+<td><p>2265 (2159)</p></td>
+<td><p>589 (562)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_30B_a3B (tokendrop)</p></td>
+<td><p>8</p></td>
+<td><p>512</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>64</p></td>
+<td><p>18066</p></td>
+<td><p>416</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_235B_a22B (tokendrop)</p></td>
+<td><p>64</p></td>
+<td><p>1024</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>128</p></td>
+<td><p>4104 (4275)</p></td>
+<td><p>607 (633)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id11">
+<h4>System: DGX-H100<a class="headerlink" href="#id11" title="Link to this heading">#</a></h4>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>#-GPUs</p></th>
+<th class="head"><p>GBS</p></th>
+<th class="head"><p>MBS</p></th>
+<th class="head"><p>Sequence Length</p></th>
+<th class="head"><p>FSDP</p></th>
+<th class="head"><p>TP</p></th>
+<th class="head"><p>PP</p></th>
+<th class="head"><p>CP</p></th>
+<th class="head"><p>VP</p></th>
+<th class="head"><p>EP</p></th>
+<th class="head"><p>GA</p></th>
+<th class="head"><p>Tokens / sec / GPU</p></th>
+<th class="head"><p>Model TFLOP / sec / GPU</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LLAMA3_8B</p></td>
+<td><p>8</p></td>
+<td><p>128</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+<td><p>n/a</p></td>
+<td><p>1</p></td>
+<td><p>16</p></td>
+<td><p>14079</p></td>
+<td><p>725</p></td>
+</tr>
+<tr class="row-odd"><td><p>LLAMA3_70B</p></td>
+<td><p>64</p></td>
+<td><p>128</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>5</p></td>
+<td><p>1</p></td>
+<td><p>64</p></td>
+<td><p>1619</p></td>
+<td><p>727</p></td>
+</tr>
+<tr class="row-even"><td><p>LLAMA3.1_405B</p></td>
+<td><p>1024</p></td>
+<td><p>512</p></td>
+<td><p>1</p></td>
+<td><p>8192</p></td>
+<td><p>0</p></td>
+<td><p>8</p></td>
+<td><p>8</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>64</p></td>
+<td><p>302</p></td>
+<td><p>763</p></td>
+</tr>
+<tr class="row-odd"><td><p>DeepSeekV3 (dropless)</p></td>
+<td><p>1024</p></td>
+<td><p>8192</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>64</p></td>
+<td><p>128</p></td>
+<td><p>1297</p></td>
+<td><p>338 (330)</p></td>
+</tr>
+<tr class="row-even"><td><p>Qwen3_30B_a3B (tokendrop)</p></td>
+<td><p>16</p></td>
+<td><p>512</p></td>
+<td><p>2</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+<td><p>24</p></td>
+<td><p>8</p></td>
+<td><p>32</p></td>
+<td><p>10494</p></td>
+<td><p>241</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qwen3_235B_a22B (tokendrop)</p></td>
+<td><p>256</p></td>
+<td><p>2048</p></td>
+<td><p>1</p></td>
+<td><p>4096</p></td>
+<td><p>0</p></td>
+<td><p>2</p></td>
+<td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>32</p></td>
+<td><p>128</p></td>
+<td><p>1204</p></td>
+<td><p>178</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>The numbers in parentheses indicate the use of different quantization granularities: In case of GB200 and B200 systems, 32×32 for both weights and activations. For H100 system, 128×128 for weights and 1×128 for activations, which match those used in the original DeepSeekV3 pre-training.</p></li>
+<li><p>In token-dropless MoE training benchmarks, we force-balance the token distribution among experts.</p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="parallelisms.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Parallelisms Guide</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="performance-guide.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Performance Tuning Guide</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+
+
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nomenclature">Nomenclature</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-metrics">Performance Metrics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-summary-for-large-language-models">Performance Summary for Large Language Models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nemo-container">26.02 NeMo Container</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-training-performance">Pre-Training Performance</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#system-dgx-gb300">System: DGX-GB300</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#system-dgx-gb200">System: DGX-GB200</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#system-dgx-b300">System: DGX-B300</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#system-dgx-b200">System: DGX-B200</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#system-dgx-h100">System: DGX-H100</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">25.11 NeMo Container</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Pre-Training Performance</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">System: DGX-GB300</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">System: DGX-GB200</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">System: DGX-B200</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">System: DGX-H100</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">25.09 NeMo Container</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Pre-Training Performance</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">System: DGX-GB200</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">System: DGX-B200</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">System: DGX-H100</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+<a class="footer-brand logo" href="https://www.nvidia.com">
+  <img src="_static/nvidia-logo-horiz-rgb-1c-blk-for-screen.svg" class="logo__image only-light" alt="NVIDIA"/>
+  <img src="_static/nvidia-logo-horiz-rgb-1c-wht-for-screen.svg" class="logo__image only-dark" alt="NVIDIA"/>
+</a></div>
+      
+        <div class="footer-item">
+
+<div class="footer-links">
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/">Privacy Policy</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/privacy-center/">Your Privacy Choices</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/terms-of-service/">Terms of Service</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/accessibility/">Accessibility</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/company-policies/">Corporate Policies</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/product-security/">Product Security</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/contact/">Contact</a>
+  
+  
+  
+</div>
+</div>
+      
+        <div class="footer-item">
+
+
+
+
+  <p class="copyright">
+    
+      Copyright © 2026, NVIDIA Corporation.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+<div class="extra_footer">
+  
+  
+    <script type="text/javascript">if (typeof _satellite !== "undefined") {_satellite.pageBottom();}</script>
+    
+  
+</div></div>
+      
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+  </body>
+</html>

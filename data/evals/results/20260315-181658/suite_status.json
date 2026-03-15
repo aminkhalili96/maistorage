@@ -1,0 +1,13 @@
+{
+  "run_at": "2026-03-15T18:16:58.947385+00:00",
+  "backend_tests": {
+    "exit_code": 0,
+    "latency_ms": 0.0,
+    "log_path": "/Users/amin/dev/maistorage/data/evals/results/20260315-181658/backend-tests.log"
+  },
+  "frontend_build": {
+    "exit_code": 0,
+    "latency_ms": 0.0,
+    "log_path": "/Users/amin/dev/maistorage/data/evals/results/20260315-181658/frontend-build.log"
+  }
+}

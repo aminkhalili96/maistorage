@@ -1,0 +1,110 @@
+{
+  "experiment": "ragas",
+  "metadata": {
+    "config_name": "gemini-embedding-001-3072",
+    "snapshot_id": "20260315",
+    "question_set": "/Users/amin/dev/maistorage/data/evals/golden_questions.json",
+    "source_ids": [
+      "a100",
+      "container-toolkit",
+      "cuda-install",
+      "dl-performance",
+      "fabric-manager",
+      "gpudirect-storage",
+      "h100",
+      "l40s",
+      "nccl"
+    ],
+    "source_count": 9,
+    "chunk_count": 101,
+    "run_at": "2026-03-15T19:11:46.298716+00:00",
+    "notes": "RAGAS run with authored reference answers. The project answer path stays on gemini-3.1-pro-preview, but this evaluation used gemini-2.5-flash for answer generation and judge steps to stay within Gemini 3.1 Pro daily quota."
+  },
+  "result": {
+    "status": "ok",
+    "summary": {
+      "answer_relevancy": 0.3804,
+      "context_precision": 0.8667,
+      "context_recall": 0.8,
+      "faithfulness": 0.9103
+    },
+    "question_count": 5,
+    "scores": [
+      {
+        "user_input": "Why is 4-GPU training scaling poorly?",
+        "retrieved_contexts": [
+          "Poor multi-GPU scaling is often caused by collective communication overhead, topology limits, or imbalance between computation and all-reduce time. As GPU count increases, the communication path and the ratio between compute work and synchronization become more important.",
+          "Mixed precision usually improves training throughput when Tensor Cores are active and the workload has enough matrix math. Accuracy risks are typically managed with loss scaling or BF16, and the main tradeoff is balancing speed against numerical stability for sensitive models.",
+          "High GPU utilization does not always mean efficient training. A job can still be limited by memory traffic, launch overhead, input pipeline delays, or communication. The practical diagnosis is to identify whether the workload is compute-bound, memory-bound, or blocked outside the device.",
+          "NVLink and NVSwitch fabrics help reduce communication bottlenecks for tightly coupled multi-GPU workloads, but they still require correct system configuration, compatible drivers, and healthy topology discovery. Fabric management issues can degrade scaling even when compute kernels are efficient."
+        ],
+        "response": "Poor 4-GPU training scaling can be attributed to several factors related to multi-GPU communication and system configuration. [1]\n\nOne primary cause is collective communication overhead [1]. As the number of GPUs increases, the communication path and the ratio between compute work and synchronization become more important [1]. Other contributing factors include topology limits or an imbalance between computation and all-reduce time [1].\n\nEven when using technologies like NVLink and NVSwitch fabrics, which are designed to reduce communication bottlenecks for tightly coupled multi-GPU workloads, scaling can still be degraded [4]. This can happen due to incorrect system configuration, incompatible drivers, or issues with healthy topology discovery [4]. Fabric management problems can also hinder scaling, even if the compute kernels themselves are efficient [4].\n\nThe provided context discusses general multi-GPU scaling issues and does not offer specific reasons unique to exactly 4-GPU training versus other GPU counts. Therefore, the evidence is somewhat general regarding the \"4-GPU\" aspect, though directly applicable to multi-GPU scaling problems. [4]",
+        "reference": "Multi-GPU scaling usually degrades when communication overhead starts to dominate each step. The first things to check are the all-reduce pattern, the interconnect and topology between GPUs, and whether NCCL or the fabric is forcing traffic onto a slower path than expected.",
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9867019894283474,
+        "context_precision": 0.7499999999625,
+        "context_recall": 1.0
+      },
+      {
+        "user_input": "When should I use mixed precision training?",
+        "retrieved_contexts": [
+          "Mixed precision usually improves training throughput when Tensor Cores are active and the workload has enough matrix math. Accuracy risks are typically managed with loss scaling or BF16, and the main tradeoff is balancing speed against numerical stability for sensitive models.",
+          "Large-model training often needs combinations of data, tensor, and pipeline parallelism. The right strategy depends on model size, memory limits, and communication cost, so topology and collective performance become part of the design decision.",
+          "High GPU utilization does not always mean efficient training. A job can still be limited by memory traffic, launch overhead, input pipeline delays, or communication. The practical diagnosis is to identify whether the workload is compute-bound, memory-bound, or blocked outside the device."
+        ],
+        "response": "You should consider using mixed precision training when your workload has enough matrix math and Tensor Cores are active, as it usually improves training throughput under these conditions [1].\n\nWhen using mixed precision, accuracy risks are typically managed with loss scaling or BF16 [1]. The main tradeoff to consider is balancing speed against numerical stability, especially for sensitive models [1].\n\nThe provided context offers specific conditions for throughput improvement and risk management for mixed precision training [1]. However, the evidence is incomplete regarding other potential factors for deciding when to use mixed precision, such as specific model architectures, dataset characteristics, or detailed hardware considerations beyond the activation of Tensor Cores.",
+        "reference": "Use mixed precision when the model and hardware can benefit from Tensor Core math without sacrificing convergence. The common pattern is FP16 or BF16 for most compute, while keeping numerically sensitive values in higher precision and using loss scaling when FP16 underflow is a risk.",
+        "faithfulness": 0.6923076923076923,
+        "answer_relevancy": 0.0,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      },
+      {
+        "user_input": "Why is GPU utilization high but throughput low?",
+        "retrieved_contexts": [
+          "High GPU utilization does not always mean efficient training. A job can still be limited by memory traffic, launch overhead, input pipeline delays, or communication. The practical diagnosis is to identify whether the workload is compute-bound, memory-bound, or blocked outside the device.",
+          "Mixed precision usually improves training throughput when Tensor Cores are active and the workload has enough matrix math. Accuracy risks are typically managed with loss scaling or BF16, and the main tradeoff is balancing speed against numerical stability for sensitive models.",
+          "Large-model training often needs combinations of data, tensor, and pipeline parallelism. The right strategy depends on model size, memory limits, and communication cost, so topology and collective performance become part of the design decision."
+        ],
+        "response": "High GPU utilization does not always mean efficient training [1]. A job can still experience low throughput despite high utilization due to several limiting factors:\n*   **Memory traffic** The workload can be limited by the rate at which data is moved to and from memory [1].\n*   **Launch overhead** Delays can occur due to the overhead associated with launching GPU kernels [1].\n*   **Input pipeline delays** The GPU may be waiting for data from the input pipeline, leading to stalls [1].\n*   **Communication** Inefficiencies can arise from communication between GPUs or nodes, especially in large-model training where communication cost is a significant design consideration [1, 3].\n\nThe practical diagnosis for such scenarios involves identifying whether the workload is compute-bound, memory-bound, or blocked outside the device [1].\n\nRegarding mixed precision training, the context states that it \"usually improves training throughput when Tensor Cores are active and the workload has enough matrix math\" [2]. While mixed precision can enhance throughput, the provided context does not explicitly state that the *absence* of mixed precision is a direct cause for high GPU utilization *coupled with* low throughput. Therefore, the evidence is weak or incomplete to directly attribute this specific discrepancy to the lack of mixed precision.",
+        "reference": "High utilization does not guarantee high training throughput because the GPU can still be stalled on memory, launch overhead, or input delivery. A common diagnosis path is to check whether kernels are memory-bound, whether the input pipeline or storage path is starving the device, and whether launch and synchronization overhead are reducing useful work per step.",
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9154059172988654,
+        "context_precision": 0.9999999999,
+        "context_recall": 1.0
+      },
+      {
+        "user_input": "What NVIDIA stack is needed to deploy training workloads on Linux?",
+        "retrieved_contexts": [
+          "A standard Linux deployment path for NVIDIA training workloads includes validated GPU drivers, a compatible CUDA toolkit, container runtime support when needed, and version alignment across operating system, driver, and libraries. Driver and CUDA mismatches are a common source of runtime failure.",
+          "GPU-enabled containers need a host driver stack plus the NVIDIA container runtime so workloads can access devices and libraries safely. In practice, containerized AI stacks reduce environment drift and make cluster deployment more repeatable.",
+          "High GPU utilization does not always mean efficient training. A job can still be limited by memory traffic, launch overhead, input pipeline delays, or communication. The practical diagnosis is to identify whether the workload is compute-bound, memory-bound, or blocked outside the device.",
+          "For Kubernetes environments, the GPU Operator simplifies deployment of drivers, device plugins, monitoring, and supporting components. It is useful when the target solution needs repeatable GPU cluster operations instead of manual host-by-host setup."
+        ],
+        "response": "To deploy training workloads on Linux, the NVIDIA stack generally includes several key components. [1]\n\nA standard Linux deployment path for NVIDIA training workloads requires validated GPU drivers and a compatible CUDA toolkit [1]. Container runtime support is also needed when deploying containerized workloads [1]. Crucially, version alignment across the operating system, driver, and libraries is essential to prevent runtime failures [1].\n\nFor GPU-enabled containers, a host driver stack and the NVIDIA container runtime are necessary to allow workloads safe access to devices and libraries [2]. Containerized AI stacks can help reduce environment drift and make cluster deployment more repeatable [2].\n\nIn Kubernetes environments, the NVIDIA GPU Operator simplifies the deployment of drivers, device plugins, monitoring, and other supporting components [4]. This is particularly useful for repeatable GPU cluster operations, as opposed to manual host-by-host setup [4].\n\nThe provided context outlines the core NVIDIA infrastructure components for deploying training workloads on Linux. However, it does not specify particular versions of GPU drivers or CUDA toolkits, nor does it detail the full scope of \"supporting components\" mentioned for the GPU Operator [4]. The evidence is therefore incomplete regarding specific versioning or a comprehensive list of all potential sub-components within the broader NVIDIA AI stack.",
+        "reference": "A minimal Linux training stack needs a compatible NVIDIA driver, the CUDA runtime or toolkit that matches that driver, and the NVIDIA container stack when workloads run in containers. In practice that means validating the host driver first, then installing CUDA user-space components and the NVIDIA Container Toolkit or operator path that exposes GPUs to the runtime.",
+        "faithfulness": 0.92,
+        "answer_relevancy": 0.0,
+        "context_precision": 0.99999999995,
+        "context_recall": 1.0
+      },
+      {
+        "user_input": "For a client fine-tuning a 7B model on-prem, what hardware should we consider?",
+        "retrieved_contexts": [
+          "A standard Linux deployment path for NVIDIA training workloads includes validated GPU drivers, a compatible CUDA toolkit, container runtime support when needed, and version alignment across operating system, driver, and libraries. Driver and CUDA mismatches are a common source of runtime failure.",
+          "H100-class systems are a strong fit when the client prioritizes large-scale training throughput, newer precision support, and dense multi-GPU performance. The tradeoff is higher infrastructure cost and supporting power, cooling, and networking requirements.",
+          "A100-class systems remain relevant for many training and inference deployments when the client wants mature ecosystem support and strong performance without moving to the newest platform. Final selection depends on workload scale, budget, and availability.",
+          "GPU-enabled containers need a host driver stack plus the NVIDIA container runtime so workloads can access devices and libraries safely. In practice, containerized AI stacks reduce environment drift and make cluster deployment more repeatable."
+        ],
+        "response": "For a client fine-tuning a 7B model on-prem, both H100-class and A100-class systems should be considered, though the evidence is weak for a definitive choice without more information on workload scale, budget, and availability. [1]\n\n**Hardware Considerations:** [2]\n\n*   **H100-class systems** are a strong fit when the client prioritizes large-scale training throughput, newer precision support, and dense multi-GPU performance [2]. However, this comes with the tradeoff of higher infrastructure cost and supporting power, cooling, and networking requirements [2].\n*   **A100-class systems** remain relevant for many training and inference deployments when the client wants mature ecosystem support and strong performance without moving to the newest platform [3]. The final selection between these options depends on workload scale, budget, and availability [3].\n\n**Software Stack Considerations (Essential for Hardware Deployment):** [4]\n\nRegardless of the chosen hardware, a robust software stack is critical for on-premise deployment: [4]\n\n*   A standard Linux deployment path for NVIDIA training workloads includes validated GPU drivers, a compatible CUDA toolkit, and container runtime support when needed [1].\n*   Version alignment across the operating system, driver, and libraries is crucial, as mismatches are a common source of runtime failure [1].\n*   GPU-enabled containers require a host driver stack plus the NVIDIA container runtime to safely access devices and libraries [4]. Containerized AI stacks can help reduce environment drift and make cluster deployment more repeatable [4].",
+        "reference": "Hardware selection for a 7B fine-tune should balance memory headroom, throughput targets, and budget. H100-class systems are strongest when you need the highest training throughput or larger multi-GPU scaling, A100 remains a strong enterprise training option, and L40S can be attractive when cost and mixed training-inference usage matter more than peak large-scale training performance.",
+        "faithfulness": 0.9393939393939394,
+        "answer_relevancy": 0.0,
+        "context_precision": 0.5833333333041666,
+        "context_recall": 0.0
+      }
+    ]
+  },
+  "ragas_generation_model": "gemini-2.5-flash",
+  "ragas_evaluator_model": "gemini-2.5-flash"
+}

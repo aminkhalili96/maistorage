@@ -1,0 +1,14 @@
+[
+  {
+    "name": "gemini-embedding-001-3072",
+    "embedder_provider": "google",
+    "gemini_embedding_model": "gemini-embedding-001",
+    "gemini_embedding_dimensions": 3072
+  },
+  {
+    "name": "gemini-embedding-001-1536",
+    "embedder_provider": "google",
+    "gemini_embedding_model": "gemini-embedding-001",
+    "gemini_embedding_dimensions": 1536
+  }
+]

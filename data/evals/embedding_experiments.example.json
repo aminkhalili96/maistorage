@@ -1,0 +1,24 @@
+[
+  {
+    "name": "gemini-embedding-001-3072",
+    "embedder_provider": "google",
+    "gemini_embedding_model": "gemini-embedding-001",
+    "gemini_embedding_dimensions": 3072
+  },
+  {
+    "name": "multilingual-e5-large-1024",
+    "embedder_provider": "pinecone",
+    "embedder_model": "multilingual-e5-large",
+    "pinecone_embedding_dimensions": 1024,
+    "pinecone_document_task_type": "passage",
+    "pinecone_query_task_type": "query"
+  },
+  {
+    "name": "llama-text-embed-v2-1024",
+    "embedder_provider": "pinecone",
+    "embedder_model": "llama-text-embed-v2",
+    "pinecone_embedding_dimensions": 1024,
+    "pinecone_document_task_type": "passage",
+    "pinecone_query_task_type": "query"
+  }
+]

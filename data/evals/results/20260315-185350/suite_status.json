@@ -1,0 +1,13 @@
+{
+  "run_at": "2026-03-15T18:53:50.918642+00:00",
+  "backend_tests": {
+    "exit_code": "skipped",
+    "latency_ms": 0.0,
+    "log_path": ""
+  },
+  "frontend_build": {
+    "exit_code": "skipped",
+    "latency_ms": 0.0,
+    "log_path": ""
+  }
+}

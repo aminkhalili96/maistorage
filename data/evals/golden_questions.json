@@ -1,0 +1,37 @@
+[
+  {
+    "question": "Why is 4-GPU training scaling poorly?",
+    "query_class": "distributed_multi_gpu",
+    "expected_sources": ["nccl", "fabric-manager"],
+    "expected_terms": ["all-reduce", "communication", "nvlink"],
+    "reference_answer": "Multi-GPU scaling usually degrades when communication overhead starts to dominate each step. The first things to check are the all-reduce pattern, the interconnect and topology between GPUs, and whether NCCL or the fabric is forcing traffic onto a slower path than expected."
+  },
+  {
+    "question": "When should I use mixed precision training?",
+    "query_class": "training_optimization",
+    "expected_sources": ["dl-performance"],
+    "expected_terms": ["tensor cores", "loss scaling", "bf16"],
+    "reference_answer": "Use mixed precision when the model and hardware can benefit from Tensor Core math without sacrificing convergence. The common pattern is FP16 or BF16 for most compute, while keeping numerically sensitive values in higher precision and using loss scaling when FP16 underflow is a risk."
+  },
+  {
+    "question": "Why is GPU utilization high but throughput low?",
+    "query_class": "training_optimization",
+    "expected_sources": ["dl-performance", "gpudirect-storage"],
+    "expected_terms": ["memory-bound", "input pipeline", "launch overhead"],
+    "reference_answer": "High utilization does not guarantee high training throughput because the GPU can still be stalled on memory, launch overhead, or input delivery. A common diagnosis path is to check whether kernels are memory-bound, whether the input pipeline or storage path is starving the device, and whether launch and synchronization overhead are reducing useful work per step."
+  },
+  {
+    "question": "What NVIDIA stack is needed to deploy training workloads on Linux?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["cuda-install", "container-toolkit"],
+    "expected_terms": ["driver", "cuda", "container runtime"],
+    "reference_answer": "A minimal Linux training stack needs a compatible NVIDIA driver, the CUDA runtime or toolkit that matches that driver, and the NVIDIA container stack when workloads run in containers. In practice that means validating the host driver first, then installing CUDA user-space components and the NVIDIA Container Toolkit or operator path that exposes GPUs to the runtime."
+  },
+  {
+    "question": "For a client fine-tuning a 7B model on-prem, what hardware should we consider?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["h100", "a100", "l40s"],
+    "expected_terms": ["throughput", "budget", "multi-gpu"],
+    "reference_answer": "Hardware selection for a 7B fine-tune should balance memory headroom, throughput targets, and budget. H100-class systems are strongest when you need the highest training throughput or larger multi-GPU scaling, A100 remains a strong enterprise training option, and L40S can be attractive when cost and mixed training-inference usage matter more than peak large-scale training performance."
+  }
+]

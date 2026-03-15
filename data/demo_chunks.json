@@ -1,0 +1,147 @@
+[
+  {
+    "id": "demo-mixed-precision",
+    "source_id": "dl-performance",
+    "title": "Mixed Precision Training Overview",
+    "url": "https://docs.nvidia.com/deeplearning/performance/mixed-precision-training/index.html",
+    "section_path": "Overview",
+    "doc_family": "core",
+    "doc_type": "html",
+    "product_tags": ["mixed-precision", "tensor-cores", "training"],
+    "updated_at": "2026-03-15",
+    "content": "Mixed precision usually improves training throughput when Tensor Cores are active and the workload has enough matrix math. Accuracy risks are typically managed with loss scaling or BF16, and the main tradeoff is balancing speed against numerical stability for sensitive models."
+  },
+  {
+    "id": "demo-gpu-bottleneck",
+    "source_id": "dl-performance",
+    "title": "GPU Performance Background",
+    "url": "https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html",
+    "section_path": "Compute versus Memory",
+    "doc_family": "core",
+    "doc_type": "html",
+    "product_tags": ["performance", "memory", "compute"],
+    "updated_at": "2026-03-15",
+    "content": "High GPU utilization does not always mean efficient training. A job can still be limited by memory traffic, launch overhead, input pipeline delays, or communication. The practical diagnosis is to identify whether the workload is compute-bound, memory-bound, or blocked outside the device."
+  },
+  {
+    "id": "demo-nccl-scaling",
+    "source_id": "nccl",
+    "title": "NCCL Collective Performance",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/",
+    "section_path": "Collectives",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "product_tags": ["nccl", "all-reduce", "multi-gpu"],
+    "updated_at": "2026-03-15",
+    "content": "Poor multi-GPU scaling is often caused by collective communication overhead, topology limits, or imbalance between computation and all-reduce time. As GPU count increases, the communication path and the ratio between compute work and synchronization become more important."
+  },
+  {
+    "id": "demo-nvlink-fabric",
+    "source_id": "fabric-manager",
+    "title": "NVLink and Fabric Considerations",
+    "url": "https://docs.nvidia.com/hgx-platforms/fabric-manager-user-guide/index.html",
+    "section_path": "Fabric Management",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "product_tags": ["nvlink", "nvswitch", "fabric"],
+    "updated_at": "2026-03-15",
+    "content": "NVLink and NVSwitch fabrics help reduce communication bottlenecks for tightly coupled multi-GPU workloads, but they still require correct system configuration, compatible drivers, and healthy topology discovery. Fabric management issues can degrade scaling even when compute kernels are efficient."
+  },
+  {
+    "id": "demo-linux-stack",
+    "source_id": "cuda-install",
+    "title": "Linux Deployment Stack",
+    "url": "https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html",
+    "section_path": "Installation Flow",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": ["linux", "drivers", "cuda"],
+    "updated_at": "2026-03-15",
+    "content": "A standard Linux deployment path for NVIDIA training workloads includes validated GPU drivers, a compatible CUDA toolkit, container runtime support when needed, and version alignment across operating system, driver, and libraries. Driver and CUDA mismatches are a common source of runtime failure."
+  },
+  {
+    "id": "demo-container-runtime",
+    "source_id": "container-toolkit",
+    "title": "Container Runtime for GPU Workloads",
+    "url": "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/",
+    "section_path": "Runtime Setup",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": ["containers", "docker", "runtime"],
+    "updated_at": "2026-03-15",
+    "content": "GPU-enabled containers need a host driver stack plus the NVIDIA container runtime so workloads can access devices and libraries safely. In practice, containerized AI stacks reduce environment drift and make cluster deployment more repeatable."
+  },
+  {
+    "id": "demo-gpu-operator",
+    "source_id": "gpu-operator",
+    "title": "Kubernetes GPU Operations",
+    "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/",
+    "section_path": "Operator Responsibilities",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": ["kubernetes", "operator", "deployment"],
+    "updated_at": "2026-03-15",
+    "content": "For Kubernetes environments, the GPU Operator simplifies deployment of drivers, device plugins, monitoring, and supporting components. It is useful when the target solution needs repeatable GPU cluster operations instead of manual host-by-host setup."
+  },
+  {
+    "id": "demo-storage",
+    "source_id": "gpudirect-storage",
+    "title": "Storage Throughput Considerations",
+    "url": "https://docs.nvidia.com/gpudirect-storage/overview-guide/index.html",
+    "section_path": "Why Storage Matters",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": ["storage", "io", "throughput"],
+    "updated_at": "2026-03-15",
+    "content": "If the input pipeline cannot feed the GPUs fast enough, utilization may look unstable and end-to-end throughput suffers. Storage path design matters for large datasets, especially when many workers load data concurrently."
+  },
+  {
+    "id": "demo-h100",
+    "source_id": "h100",
+    "title": "H100 Positioning",
+    "url": "https://www.nvidia.com/en-us/data-center/h100/",
+    "section_path": "Product Positioning",
+    "doc_family": "hardware",
+    "doc_type": "product",
+    "product_tags": ["h100", "training", "sizing"],
+    "updated_at": "2026-03-15",
+    "content": "H100-class systems are a strong fit when the client prioritizes large-scale training throughput, newer precision support, and dense multi-GPU performance. The tradeoff is higher infrastructure cost and supporting power, cooling, and networking requirements."
+  },
+  {
+    "id": "demo-a100",
+    "source_id": "a100",
+    "title": "A100 Positioning",
+    "url": "https://www.nvidia.com/en-us/data-center/a100/",
+    "section_path": "Product Positioning",
+    "doc_family": "hardware",
+    "doc_type": "product",
+    "product_tags": ["a100", "training", "sizing"],
+    "updated_at": "2026-03-15",
+    "content": "A100-class systems remain relevant for many training and inference deployments when the client wants mature ecosystem support and strong performance without moving to the newest platform. Final selection depends on workload scale, budget, and availability."
+  },
+  {
+    "id": "demo-l40s",
+    "source_id": "l40s",
+    "title": "L40S Positioning",
+    "url": "https://www.nvidia.com/en-us/data-center/l40s/",
+    "section_path": "Product Positioning",
+    "doc_family": "hardware",
+    "doc_type": "product",
+    "product_tags": ["l40s", "inference", "sizing"],
+    "updated_at": "2026-03-15",
+    "content": "L40S-style systems are often attractive when the workload leans toward inference, visualization, or mixed-use acceleration rather than the most demanding large-scale training jobs. The recommendation depends on whether training throughput or deployment flexibility matters more."
+  },
+  {
+    "id": "demo-megatron",
+    "source_id": "megatron-core",
+    "title": "Large Model Parallelism",
+    "url": "https://docs.nvidia.com/megatron-core/index.html",
+    "section_path": "Parallelism Strategies",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "product_tags": ["llm", "parallelism", "distributed-training"],
+    "updated_at": "2026-03-15",
+    "content": "Large-model training often needs combinations of data, tensor, and pipeline parallelism. The right strategy depends on model size, memory limits, and communication cost, so topology and collective performance become part of the design decision."
+  }
+]
+

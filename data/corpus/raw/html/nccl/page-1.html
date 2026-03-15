@@ -1,0 +1,181 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+   <head>
+      <!-- OneTrust Cookies Consent Notice start for nvidia.com -->
+      <script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" data-document-language="true" type="text/javascript" charset="UTF-8" data-domain-script="3e2b62ff-7ae7-4ac5-87c8-d5949ecafff5"></script>
+      <script type="text/javascript">
+        function OptanonWrapper() { };
+      </script>
+      <!-- OneTrust Cookies Consent Notice end for nvidia.com -->
+      <!-- OneTrust gpc signal detection script start -->
+      <script type="text/javascript"> 
+        (function () {
+          "use strict";
+          const observer = new MutationObserver(function (mutations, mutationInstance) {
+            const otPreferencePanel = document.getElementById('onetrust-pc-sdk');
+            if (otPreferencePanel) {
+              const otBanner = document.getElementById('onetrust-banner-sdk');
+              if (otBanner && navigator.globalPrivacyControl) {
+                setNvDone();
+              }
+              mutationInstance.disconnect();
+            }
+          });
+          observer.observe(document, {
+            childList: true,
+            subtree: true
+          });
+
+          const setNvDone = function () {
+            // Hide elements by their IDs
+            var acceptbtn = document.getElementById('onetrust-accept-btn-handler');
+            var rejectbtn = document.getElementById('onetrust-reject-all-handler');
+            if (acceptbtn) {
+              acceptbtn.style.display = 'none';
+            }
+            if (rejectbtn) {
+              rejectbtn.style.display = 'none';
+            }
+            const doneButton = document.createElement('button');
+            doneButton.id = 'nv-done-btn-handler';
+            doneButton.textContent = 'Done';
+
+            document.getElementById('onetrust-button-group').appendChild(doneButton);
+
+            // Add click event listener to the new button
+            doneButton.addEventListener('click', function () {
+              OneTrust.Close();
+            });
+          };
+        })();
+      </script>
+      <!-- OneTrust gpc signal detection script end -->
+      <meta http-equiv="X-UA-Compatible" content="IE=edge"></meta>
+      <meta charset="utf-8"></meta>
+      <title>NVIDIA Deep Learning NCCL Documentation</title>
+      <link rel="stylesheet" type="text/css" href="common/formatting/site.css"></link>
+      <!--[if lt IE 9]>
+        <script src="common/formatting/html5shiv-printshiv.min.js"></script>
+        <![endif]-->
+      <script src="//assets.adobedtm.com/5d4962a43b79/c1061d2c5e7b/launch-191c2462b890.min.js"></script>
+      <script type="text/javascript" charset="utf-8" src="common/formatting/jquery.min.js"></script>
+      <script type="text/javascript" charset="utf-8" src="common/formatting/jquery.ba-hashchange.min.js"></script>
+      <script type="text/javascript" src="search/htmlFileList.js"></script>
+      <script type="text/javascript" src="search/htmlFileInfoList.js"></script>
+      <script type="text/javascript" src="search/nwSearchFnt.min.js"></script>
+      <script type="text/javascript" src="search/stemmers/en_stemmer.min.js"></script>
+      <script type="text/javascript" src="search/index-1.js"></script>
+      <script type="text/javascript" src="search/index-2.js"></script>
+      <script type="text/javascript" src="search/index-3.js"></script>
+      </head>
+   <body>
+      <header id="header">
+         <span id="company">NVIDIA</span><span id="site-title">NVIDIA Deep Learning NCCL Documentation</span><form id="search" method="get" action="search">
+            <input type="text" name="search-text"></input><fieldset id="search-location">
+               <legend>Search In:</legend>
+               <label><input type="radio" name="search-type" value="site"></input>Entire Site</label>
+               <label><input type="radio" name="search-type" value="document"></input>Just This Document</label></fieldset>
+            <button type="reset">clear search</button>
+            <button id="submit" type="submit">search</button></form>
+      </header>
+      <div id="site-content">
+         <nav id="site-nav">
+            <div class="category"><a href="#getting-started">Getting Started</a></div>
+            <ul>
+               <li><a href="release-notes/index.html" title="This document describes the key features, software enhancements and improvements, and known issues for NCCL 2.29.7. The NVIDIA Collective Communications Library (NCCL) (pronounced &#34;Nickel&#34;) is a library of multi-GPU collective communication primitives that are topology-aware and can be easily integrated into applications. Collective communication algorithms employ many processors working in concert to aggregate data. NCCL is not a full-blown parallel programming framework; rather, it is a library focused on accelerating collective communication primitives.">Release Notes</a></li>
+               <li><a href="install-guide/index.html" title="This NVIDIA Collective Communication Library (NCCL) Installation Guide provides a step-by-step instructions for downloading and installing NCCL.">Installation Guide</a></li>
+            </ul>
+            <div class="category"><a href="#training">Training</a></div>
+            <ul>
+               <li><a href="user-guide/index.html" title="This NCCL Developer Guide is the reference document for developers who want to use NCCL in their C/C++ application or library. It explains how to use NCCL for inter-GPU communication, details the communication semantics as well as the API. Examples include using NCCL in different contexts such as single process, multiple threads and multiple processes, potentially across different machines. It also explains how NCCL can be used together with MPI.">User Guide</a></li>
+            </ul>
+            <div class="category"><a href="#licenses">Licenses</a></div>
+            <ul>
+               <li><a href="sla/index.html" title="This document is the Software License Agreement (SLA) for NVIDIA NCCL. The following contains specific license terms and conditions for NVIDIA NCCL. By accepting this agreement, you agree to comply with all the terms and conditions applicable to the specific product(s) included herein.">SLA</a></li>
+               <li><a href="bsd/index.html" title="This document is the Berkeley Software Distribution (BSD) license for NVIDIA NCCL. The following contains specific license terms and conditions for NVIDIA NCCL open sourced. By accepting this agreement, you agree to comply with all the terms and conditions applicable to the specific product(s) included herein.">BSD License</a></li>
+            </ul>
+            <div class="category"><a href="#archives">Archives</a></div>
+            <ul>
+               <li><a href="archives/index.html" title="This Archives document provides access to previously released NCCL documentation versions.">Documentation Archives</a></li>
+            </ul>
+         </nav>
+         <div id="resize-nav"></div>
+         <nav id="search-results">
+            <h2>Search Results</h2>
+            <ol></ol>
+         </nav>
+         <div id="contents-container">
+            <article id="contents">
+               <h2 id="getting-started">Getting Started</h2>
+               <hr></hr>
+               <dl class="landing-page">
+                  <dt><a href="release-notes/index.html">Release Notes</a></dt>
+                  <dd>This document describes the key features, software enhancements
+                     and improvements, and known issues for NCCL 2.29.7. The NVIDIA Collective Communications
+                     Library (NCCL) (pronounced "Nickel") is a library of multi-GPU collective communication
+                     primitives that are topology-aware and can be easily integrated into applications.
+                     Collective communication algorithms employ many processors working in concert to
+                     aggregate data. NCCL is not a full-blown parallel programming framework; rather, it is a
+                     library focused on accelerating collective communication primitives.
+                  </dd>
+                  <dt><a href="install-guide/index.html">Installation Guide</a></dt>
+                  <dd>This NVIDIA Collective Communication Library (NCCL) Installation
+                     Guide provides a step-by-step instructions for downloading and installing NCCL. 
+                  </dd>
+               </dl>
+               <h2 id="training">Training</h2>
+               <hr></hr>
+               <dl class="landing-page">
+                  <dt><a href="user-guide/index.html">User Guide</a></dt>
+                  <dd>This NCCL Developer Guide is the reference document for
+                     developers who want to use NCCL in their C/C++ application or library. It explains how
+                     to use NCCL for inter-GPU communication, details the communication semantics as well as
+                     the API. Examples include using NCCL in different contexts such as single process,
+                     multiple threads and multiple processes, potentially across different machines. It also
+                     explains how NCCL can be used together with MPI.
+                  </dd>
+               </dl>
+               <h2 id="licenses">Licenses</h2>
+               <hr></hr>
+               <dl class="landing-page">
+                  <dt><a href="sla/index.html">SLA</a></dt>
+                  <dd>This document is the Software License Agreement (SLA) for NVIDIA
+                     NCCL. The following contains specific license terms and conditions for NVIDIA NCCL. By
+                     accepting this agreement, you agree to comply with all the terms and conditions
+                     applicable to the specific product(s) included herein. 
+                  </dd>
+                  <dt><a href="bsd/index.html">BSD License</a></dt>
+                  <dd>This document is the Berkeley Software Distribution (BSD) license
+                     for NVIDIA NCCL. The following contains specific license terms and conditions for NVIDIA
+                     NCCL open sourced. By accepting this agreement, you agree to comply with all the terms
+                     and conditions applicable to the specific product(s) included herein. 
+                  </dd>
+               </dl>
+               <h2 id="archives">Archives</h2>
+               <hr></hr>
+               <dl class="landing-page">
+                  <dt><a href="archives/index.html">Documentation Archives</a></dt>
+                  <dd>This Archives document provides access to previously released
+                     NCCL documentation versions.
+                  </dd>
+               </dl>
+            </article>
+            <footer id="footer"><img src="./common/formatting/NVIDIA-LogoBlack.svg"></img><div><a href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/" target="_blank">Privacy Policy</a> | 
+                  <a href="https://www.nvidia.com/en-us/privacy-center/" target="_blank">Manage My Privacy</a> | 
+                  <a href="https://www.nvidia.com/en-us/preferences/email-preferences/" target="_blank">Do Not Sell or Share My Data</a> | 
+                  <a href="https://www.nvidia.com/en-us/about-nvidia/terms-of-service/" target="_blank">Terms of Service</a> | 
+                  <a href="https://www.nvidia.com/en-us/about-nvidia/accessibility/" target="_blank">Accessibility</a> | 
+                  <a href="https://www.nvidia.com/en-us/about-nvidia/company-policies/" target="_blank">Corporate Policies</a> | 
+                  <a href="https://www.nvidia.com/en-us/product-security/" target="_blank">Product Security</a> | 
+                  <a href="https://www.nvidia.com/en-us/contact/" target="_blank">Contact</a></div>
+               <div class="copyright">Copyright © 2026 NVIDIA Corporation</div>
+            </footer>
+         </div>
+      </div>
+      <script language="JavaScript" type="text/javascript" charset="utf-8" src="common/formatting/common.min.js"></script>
+      <script language="JavaScript" type="text/javascript" charset="utf-8" src="common/scripts/google-analytics/google-analytics-write.js"></script>
+      <script language="JavaScript" type="text/javascript" charset="utf-8" src="common/scripts/google-analytics/google-analytics-tracker.js"></script>
+      <script type="text/javascript">var switchTo5x=true;</script><script type="text/javascript">stLight.options({publisher: "998dc202-a267-4d8e-bce9-14debadb8d92", doNotHash: false, doNotCopy: false, hashAddressBar: false});</script>
+      <script type="text/javascript">_satellite.pageBottom();</script></body>
+</html>

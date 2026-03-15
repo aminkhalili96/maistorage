@@ -1,0 +1,146 @@
+{
+  "experiment": "retrieval_benchmark",
+  "metadata": {
+    "config_name": "gemini-embedding-001-3072",
+    "snapshot_id": "20260315",
+    "question_set": "/Users/amin/dev/maistorage/data/evals/golden_questions.json",
+    "source_ids": [
+      "a100",
+      "container-toolkit",
+      "cuda-install",
+      "dl-performance",
+      "fabric-manager",
+      "gpudirect-storage",
+      "h100",
+      "l40s",
+      "nccl"
+    ],
+    "source_count": 9,
+    "chunk_count": 307,
+    "run_at": "2026-03-15T18:10:39.926428+00:00",
+    "notes": "Selected assessment configuration on a capped benchmark subset covering all golden questions (max 40 chunks per source id)."
+  },
+  "aggregate_metrics": {
+    "hit@5": 1.0,
+    "mrr": 1.0,
+    "ndcg@5": 1.9511,
+    "routing@3": 1.0,
+    "retry_count": 0.0
+  },
+  "rows": [
+    {
+      "question": "Why is 4-GPU training scaling poorly?",
+      "query_class": "distributed_multi_gpu",
+      "expected_sources": [
+        "nccl",
+        "fabric-manager"
+      ],
+      "retrieved_sources": [
+        "nccl",
+        "nccl",
+        "nccl",
+        "fabric-manager",
+        "fabric-manager",
+        "fabric-manager",
+        "fabric-manager"
+      ],
+      "metrics": {
+        "hit@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.8078394317246163,
+        "routing@3": 1.0,
+        "retry_count": 0
+      }
+    },
+    {
+      "question": "When should I use mixed precision training?",
+      "query_class": "training_optimization",
+      "expected_sources": [
+        "dl-performance"
+      ],
+      "retrieved_sources": [
+        "dl-performance",
+        "dl-performance",
+        "dl-performance",
+        "dl-performance",
+        "dl-performance"
+      ],
+      "metrics": {
+        "hit@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 2.9484591188793923,
+        "routing@3": 1.0,
+        "retry_count": 0
+      }
+    },
+    {
+      "question": "Why is GPU utilization high but throughput low?",
+      "query_class": "training_optimization",
+      "expected_sources": [
+        "dl-performance",
+        "gpudirect-storage"
+      ],
+      "retrieved_sources": [
+        "dl-performance",
+        "dl-performance",
+        "dl-performance",
+        "dl-performance",
+        "dl-performance"
+      ],
+      "metrics": {
+        "hit@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.8078394317246163,
+        "routing@3": 1.0,
+        "retry_count": 0
+      }
+    },
+    {
+      "question": "What NVIDIA stack is needed to deploy training workloads on Linux?",
+      "query_class": "deployment_runtime",
+      "expected_sources": [
+        "cuda-install",
+        "container-toolkit"
+      ],
+      "retrieved_sources": [
+        "cuda-install",
+        "container-toolkit",
+        "cuda-install",
+        "cuda-install",
+        "cuda-install"
+      ],
+      "metrics": {
+        "hit@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.8078394317246163,
+        "routing@3": 1.0,
+        "retry_count": 0
+      }
+    },
+    {
+      "question": "For a client fine-tuning a 7B model on-prem, what hardware should we consider?",
+      "query_class": "hardware_topology",
+      "expected_sources": [
+        "h100",
+        "a100",
+        "l40s"
+      ],
+      "retrieved_sources": [
+        "h100",
+        "h100",
+        "h100",
+        "h100",
+        "h100",
+        "a100",
+        "a100"
+      ],
+      "metrics": {
+        "hit@5": 1.0,
+        "mrr": 1.0,
+        "ndcg@5": 1.3836491390379002,
+        "routing@3": 1.0,
+        "retry_count": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,1191 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transformer Engine documentation &mdash; Transformer Engine 2.12.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="_static/css/nvidia_font.css?v=e009355c" />
+      <link rel="stylesheet" type="text/css" href="_static/css/nvidia_footer.css?v=84031d34" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtabs.css?v=3b279199" />
+      <link rel="stylesheet" type="text/css" href="_static/css/output-style.css?v=61b53d26" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=84389e84"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+
+  <script src="https://assets.adobedtm.com/5d4962a43b79/c1061d2c5e7b/launch-191c2462b890.min.js"></script>
+
+  
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" > 
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Transformer Engine
+          </a>
+
+          
+          <div class="version">
+            2.12.0
+            <br>
+            Version select: <select onChange="window.location.href = this.value" onFocus="this.selectedIndex = {0}">
+              <option value="https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/index.html"{1}>Current release</option>
+              <option value="https://docs.nvidia.com/deeplearning/transformer-engine/documentation-archive.html">Older releases</option>
+            </select>
+          </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #76b900;
+    }
+
+    .wy-menu > p > span.caption-text {
+      color: #76b900;
+    }
+
+    .wy-menu-vertical p {
+      height: 32px;
+      line-height: 32px;
+      padding: 0 1.618em;
+      margin: 12px 0 0;
+      display: block;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 85%;
+      white-space: nowrap;
+    }
+
+    .wy-side-nav-search a:link, .wy-nav-top a:link {
+      color: #fff;
+    }
+    .wy-side-nav-search a:visited, .wy-nav-top a:visited {
+      color: #fff;
+    }
+    .wy-side-nav-search a:hover, .wy-nav-top a:hover {
+      color: #fff;
+    }
+
+    .wy-menu-vertical a:link, .wy-menu-vertical a:visited {
+      color: #d9d9d9
+    }
+
+    .wy-menu-vertical a:active {
+      background-color: #76b900
+    }
+
+    .wy-side-nav-search>div.version {
+      color: rgba(0, 0, 0, 0.3)
+    }
+
+    .wy-nav-content {
+      max-width: 1000px;
+    }
+
+    /* override table width restrictions */
+    .wy-table-responsive table td, .wy-table-responsive table th {
+        /* !important prevents the common CSS stylesheets from
+          overriding this as on RTD they are loaded after this stylesheet */
+        white-space: normal !important;
+    }
+
+    .wy-table-responsive {
+        overflow: visible !important;
+    }
+
+  </style>
+  <style>
+  a:link, a:visited {
+    color: #76b900;
+  }
+
+  a:hover {
+    color: #8c0;
+  }
+
+  html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple)>dt {
+    background: rgba(118, 185, 0, 0.1);
+    color: rgba(59,93,0,1);
+    border-top: solid 3px rgba(59,93,0,1);
+  }
+
+  html.writer-html4 .rst-content dl:not(.docutils) .property, html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) .property {
+    text-transform: capitalize;
+    display: inline-block;
+    padding-right: 8px;
+  }
+  </style>
+
+  
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#transformer-engine-in-ngc-containers">Transformer Engine in NGC Containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pip-from-pypi">pip - from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pip-from-github">pip - from GitHub</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#additional-prerequisites">Additional Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#installation-stable-release">Installation (stable release)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#installation-development-build">Installation (development build)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#installation-from-source">Installation (from source)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#baseline-pure-framework-implementation">Baseline: Pure Framework Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#te-unfused-basic-te-modules">TE Unfused: Basic TE Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#te-unfused-te-attention">TE Unfused + TE Attention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#te-unfused-te-attention-fp8">TE Unfused + TE Attention + FP8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#te-fused-te-attention-fp8-optimized-modules">TE Fused + TE Attention + FP8: Optimized Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#te-transformerlayer-fp8-ready-to-use-module">TE TransformerLayer + FP8: Ready-to-use Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started/index.html#benchmark-summary">Benchmark Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#fp8-checkpoint-compatibility">FP8 checkpoint compatibility</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/common.html">Common API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html#transformer_engine.common.recipe.Format"><code class="docutils literal notranslate"><span class="pre">Format</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html#transformer_engine.common.recipe.DelayedScaling"><code class="docutils literal notranslate"><span class="pre">DelayedScaling</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html#transformer_engine.common.recipe.MXFP8BlockScaling"><code class="docutils literal notranslate"><span class="pre">MXFP8BlockScaling</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html#transformer_engine.common.recipe.NVFP4BlockScaling"><code class="docutils literal notranslate"><span class="pre">NVFP4BlockScaling</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html#transformer_engine.common.recipe.Float8CurrentScaling"><code class="docutils literal notranslate"><span class="pre">Float8CurrentScaling</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html#transformer_engine.common.recipe.Float8BlockScaling"><code class="docutils literal notranslate"><span class="pre">Float8BlockScaling</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/common.html#transformer_engine.common.recipe.CustomRecipe"><code class="docutils literal notranslate"><span class="pre">CustomRecipe</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/framework.html">Framework-specific API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pytorch.html">PyTorch</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Linear"><code class="docutils literal notranslate"><span class="pre">Linear</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Linear.forward"><code class="docutils literal notranslate"><span class="pre">Linear.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Linear.set_tensor_parallel_group"><code class="docutils literal notranslate"><span class="pre">Linear.set_tensor_parallel_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.GroupedLinear"><code class="docutils literal notranslate"><span class="pre">GroupedLinear</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.GroupedLinear.forward"><code class="docutils literal notranslate"><span class="pre">GroupedLinear.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.GroupedLinear.set_tensor_parallel_group"><code class="docutils literal notranslate"><span class="pre">GroupedLinear.set_tensor_parallel_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.LayerNorm"><code class="docutils literal notranslate"><span class="pre">LayerNorm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.RMSNorm"><code class="docutils literal notranslate"><span class="pre">RMSNorm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.LayerNormLinear"><code class="docutils literal notranslate"><span class="pre">LayerNormLinear</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.LayerNormLinear.forward"><code class="docutils literal notranslate"><span class="pre">LayerNormLinear.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.LayerNormLinear.set_tensor_parallel_group"><code class="docutils literal notranslate"><span class="pre">LayerNormLinear.set_tensor_parallel_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.LayerNormMLP"><code class="docutils literal notranslate"><span class="pre">LayerNormMLP</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.LayerNormMLP.forward"><code class="docutils literal notranslate"><span class="pre">LayerNormMLP.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.LayerNormMLP.set_tensor_parallel_group"><code class="docutils literal notranslate"><span class="pre">LayerNormMLP.set_tensor_parallel_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.DotProductAttention"><code class="docutils literal notranslate"><span class="pre">DotProductAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.DotProductAttention.forward"><code class="docutils literal notranslate"><span class="pre">DotProductAttention.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.DotProductAttention.set_context_parallel_group"><code class="docutils literal notranslate"><span class="pre">DotProductAttention.set_context_parallel_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.MultiheadAttention"><code class="docutils literal notranslate"><span class="pre">MultiheadAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.MultiheadAttention.forward"><code class="docutils literal notranslate"><span class="pre">MultiheadAttention.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.MultiheadAttention.set_context_parallel_group"><code class="docutils literal notranslate"><span class="pre">MultiheadAttention.set_context_parallel_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.MultiheadAttention.set_tensor_parallel_group"><code class="docutils literal notranslate"><span class="pre">MultiheadAttention.set_tensor_parallel_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.TransformerLayer"><code class="docutils literal notranslate"><span class="pre">TransformerLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.TransformerLayer.forward"><code class="docutils literal notranslate"><span class="pre">TransformerLayer.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.TransformerLayer.set_context_parallel_group"><code class="docutils literal notranslate"><span class="pre">TransformerLayer.set_context_parallel_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.TransformerLayer.set_tensor_parallel_group"><code class="docutils literal notranslate"><span class="pre">TransformerLayer.set_tensor_parallel_group()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.CudaRNGStatesTracker"><code class="docutils literal notranslate"><span class="pre">CudaRNGStatesTracker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.CudaRNGStatesTracker.add"><code class="docutils literal notranslate"><span class="pre">CudaRNGStatesTracker.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.CudaRNGStatesTracker.fork"><code class="docutils literal notranslate"><span class="pre">CudaRNGStatesTracker.fork()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.CudaRNGStatesTracker.get_states"><code class="docutils literal notranslate"><span class="pre">CudaRNGStatesTracker.get_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.CudaRNGStatesTracker.reset"><code class="docutils literal notranslate"><span class="pre">CudaRNGStatesTracker.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.CudaRNGStatesTracker.set_states"><code class="docutils literal notranslate"><span class="pre">CudaRNGStatesTracker.set_states()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.autocast"><code class="docutils literal notranslate"><span class="pre">autocast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.quantized_model_init"><code class="docutils literal notranslate"><span class="pre">quantized_model_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.checkpoint"><code class="docutils literal notranslate"><span class="pre">checkpoint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.make_graphed_callables"><code class="docutils literal notranslate"><span class="pre">make_graphed_callables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.get_cpu_offload_context"><code class="docutils literal notranslate"><span class="pre">get_cpu_offload_context()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.parallel_cross_entropy"><code class="docutils literal notranslate"><span class="pre">parallel_cross_entropy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#recipe-availability">Recipe availability</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.is_fp8_available"><code class="docutils literal notranslate"><span class="pre">is_fp8_available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.is_mxfp8_available"><code class="docutils literal notranslate"><span class="pre">is_mxfp8_available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.is_fp8_block_scaling_available"><code class="docutils literal notranslate"><span class="pre">is_fp8_block_scaling_available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.is_nvfp4_available"><code class="docutils literal notranslate"><span class="pre">is_nvfp4_available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.is_bf16_available"><code class="docutils literal notranslate"><span class="pre">is_bf16_available()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.get_cudnn_version"><code class="docutils literal notranslate"><span class="pre">get_cudnn_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.get_device_compute_capability"><code class="docutils literal notranslate"><span class="pre">get_device_compute_capability()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.get_default_recipe"><code class="docutils literal notranslate"><span class="pre">get_default_recipe()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#mixture-of-experts-moe-functions">Mixture of Experts (MoE) functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.moe_permute"><code class="docutils literal notranslate"><span class="pre">moe_permute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.moe_permute_with_probs"><code class="docutils literal notranslate"><span class="pre">moe_permute_with_probs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.moe_unpermute"><code class="docutils literal notranslate"><span class="pre">moe_unpermute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.moe_sort_chunks_by_index"><code class="docutils literal notranslate"><span class="pre">moe_sort_chunks_by_index()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.moe_sort_chunks_by_index_with_probs"><code class="docutils literal notranslate"><span class="pre">moe_sort_chunks_by_index_with_probs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#communication-computation-overlap">Communication-computation overlap</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.initialize_ub"><code class="docutils literal notranslate"><span class="pre">initialize_ub()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.destroy_ub"><code class="docutils literal notranslate"><span class="pre">destroy_ub()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.UserBufferQuantizationMode"><code class="docutils literal notranslate"><span class="pre">UserBufferQuantizationMode</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#quantized-tensors">Quantized tensors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.QuantizedTensorStorage"><code class="docutils literal notranslate"><span class="pre">QuantizedTensorStorage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.QuantizedTensor"><code class="docutils literal notranslate"><span class="pre">QuantizedTensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Float8TensorStorage"><code class="docutils literal notranslate"><span class="pre">Float8TensorStorage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.MXFP8TensorStorage"><code class="docutils literal notranslate"><span class="pre">MXFP8TensorStorage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Float8BlockwiseQTensorStorage"><code class="docutils literal notranslate"><span class="pre">Float8BlockwiseQTensorStorage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.NVFP4TensorStorage"><code class="docutils literal notranslate"><span class="pre">NVFP4TensorStorage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Float8Tensor"><code class="docutils literal notranslate"><span class="pre">Float8Tensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.MXFP8Tensor"><code class="docutils literal notranslate"><span class="pre">MXFP8Tensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Float8BlockwiseQTensor"><code class="docutils literal notranslate"><span class="pre">Float8BlockwiseQTensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.NVFP4Tensor"><code class="docutils literal notranslate"><span class="pre">NVFP4Tensor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#quantizers">Quantizers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Quantizer"><code class="docutils literal notranslate"><span class="pre">Quantizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Float8Quantizer"><code class="docutils literal notranslate"><span class="pre">Float8Quantizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Float8CurrentScalingQuantizer"><code class="docutils literal notranslate"><span class="pre">Float8CurrentScalingQuantizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.MXFP8Quantizer"><code class="docutils literal notranslate"><span class="pre">MXFP8Quantizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.Float8BlockQuantizer"><code class="docutils literal notranslate"><span class="pre">Float8BlockQuantizer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.NVFP4Quantizer"><code class="docutils literal notranslate"><span class="pre">NVFP4Quantizer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#tensor-saving-and-restoring-functions">Tensor saving and restoring functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.prepare_for_saving"><code class="docutils literal notranslate"><span class="pre">prepare_for_saving()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.restore_from_saved"><code class="docutils literal notranslate"><span class="pre">restore_from_saved()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/pytorch.html#deprecated-functions">Deprecated functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.fp8_autocast"><code class="docutils literal notranslate"><span class="pre">fp8_autocast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/pytorch.html#transformer_engine.pytorch.fp8_model_init"><code class="docutils literal notranslate"><span class="pre">fp8_model_init()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/jax.html">Jax</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/jax.html#pre-defined-variable-of-logical-axes">Pre-defined Variable of Logical Axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/jax.html#checkpointing">Checkpointing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/jax.html#modules">Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.TransformerLayerType"><code class="docutils literal notranslate"><span class="pre">TransformerLayerType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.MeshResource"><code class="docutils literal notranslate"><span class="pre">MeshResource</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.fp8_autocast"><code class="docutils literal notranslate"><span class="pre">fp8_autocast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.autocast"><code class="docutils literal notranslate"><span class="pre">autocast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.update_collections"><code class="docutils literal notranslate"><span class="pre">update_collections()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.LayerNorm"><code class="docutils literal notranslate"><span class="pre">LayerNorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.DenseGeneral"><code class="docutils literal notranslate"><span class="pre">DenseGeneral</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.LayerNormDenseGeneral"><code class="docutils literal notranslate"><span class="pre">LayerNormDenseGeneral</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.LayerNormMLP"><code class="docutils literal notranslate"><span class="pre">LayerNormMLP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.RelativePositionBiases"><code class="docutils literal notranslate"><span class="pre">RelativePositionBiases</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.DotProductAttention"><code class="docutils literal notranslate"><span class="pre">DotProductAttention</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.MultiHeadAttention"><code class="docutils literal notranslate"><span class="pre">MultiHeadAttention</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.TransformerLayer"><code class="docutils literal notranslate"><span class="pre">TransformerLayer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/jax.html#transformer_engine.jax.flax.extend_logical_axis_rules"><code class="docutils literal notranslate"><span class="pre">extend_logical_axis_rules()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/fp8_primer.html">Using FP8 and FP4 with Transformer Engine</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/fp8_primer.html#Introduction-to-FP8">Introduction to FP8</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#Structure">Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#Mixed-precision-training---a-quick-introduction">Mixed precision training - a quick introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#Mixed-precision-training-with-FP8">Mixed precision training with FP8</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/fp8_primer.html#MXFP8-and-block-scaling">MXFP8 and block scaling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#MXFP8-vs-FP8">MXFP8 vs FP8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#Handling-transposes">Handling transposes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/fp8_primer.html#Beyond-FP8---training-with-NVFP4">Beyond FP8 - training with NVFP4</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#NVFP4-Format">NVFP4 Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#NVFP4-training-recipe">NVFP4 training recipe</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/fp8_primer.html#id1">Using FP8 and FP4 with Transformer Engine</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#FP8-recipe">FP8 recipe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#FP8-autocasting">FP8 autocasting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#Handling-backward-pass">Handling backward pass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#Precision">Precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/fp8_primer.html#Using-multiple-recipes-in-the-same-training-run">Using multiple recipes in the same training run</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/advanced_optimizations.html">Performance Optimizations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/advanced_optimizations.html#Multi-GPU-training">Multi-GPU training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/advanced_optimizations.html#Gradient-accumulation-fusion">Gradient accumulation fusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/advanced_optimizations.html#FP8-weight-caching">FP8 weight caching</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html">Accelerating Hugging Face Llama 2 and 3 Fine-Tuning with Transformer Engine</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Dependencies-for-this-tutorial">Dependencies for this tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Table-of-contents">Table of contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#From-%22Transformer%22-to-%22Llama%22">From “Transformer” to “Llama”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Hugging-Face's-LlamaModel">Hugging Face’s <code class="docutils literal notranslate"><span class="pre">LlamaModel</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Hugging-Face's-LlamaDecoderLayer">Hugging Face’s <code class="docutils literal notranslate"><span class="pre">LlamaDecoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Self_Attn-Layer">Self_Attn Layer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#MLP-Layer">MLP Layer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#[Baseline]-Running-HF-LlamaModel-(Precision:-BF16)">[Baseline] Running HF <code class="docutils literal notranslate"><span class="pre">LlamaModel</span></code> (Precision: <code class="docutils literal notranslate"><span class="pre">BF16</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#[Improvement-1]-Replace-HF's-LlamaDecoderLayer-with-TE's-TransformerLayer-(Precision:-BF16)">[Improvement 1] Replace HF’s <code class="docutils literal notranslate"><span class="pre">LlamaDecoderLayer</span></code> with TE’s <code class="docutils literal notranslate"><span class="pre">TransformerLayer</span></code> (Precision: <code class="docutils literal notranslate"><span class="pre">BF16</span></code>)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Transformer-Engine's-TransformerLayer">Transformer Engine’s <code class="docutils literal notranslate"><span class="pre">TransformerLayer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#TransformerLayer-options-explained"><code class="docutils literal notranslate"><span class="pre">TransformerLayer</span></code> options explained</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Mapping-weights-from-HF's-LlamaDecoderLayer-to-TE's-TransformerLayer">Mapping weights from HF’s <code class="docutils literal notranslate"><span class="pre">LlamaDecoderLayer</span></code> to TE’s <code class="docutils literal notranslate"><span class="pre">TransformerLayer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#[Improvement-2]-Replace-HF's-LlamaDecoderLayer-with-TE's-TransformerLayer-(Precision:-FP8)">[Improvement 2] Replace HF’s <code class="docutils literal notranslate"><span class="pre">LlamaDecoderLayer</span></code> with TE’s <code class="docutils literal notranslate"><span class="pre">TransformerLayer</span></code> (Precision: <code class="docutils literal notranslate"><span class="pre">FP8</span></code>)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#How-to-run-the-model-in-FP8-precision">How to run the model in <code class="docutils literal notranslate"><span class="pre">FP8</span></code> precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Llama-3-performance-results">Llama 3 performance results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_llama/tutorial_accelerate_hf_llama_with_te.html#Conclusion">Conclusion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html">Accelerating Hugging Face Gemma Inference with Transformer Engine</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Introduction">Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#1.-From-vanilla-KV-caching-to-Paged-Attention-for-inference-in-Transformer-Engine">1. From vanilla KV-caching to Paged Attention for inference in Transformer Engine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#2.-CUDA-Graphs-API">2. CUDA Graphs API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#3.-FP8-Scaling-Factors-Calibration">3. FP8 Scaling Factors Calibration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#4.-FP8-Model-Weights">4. FP8 Model Weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Benchmarking">Benchmarking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Dependencies-for-this-tutorial">Dependencies for this tutorial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Setup-and-checks">Setup and checks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#[Baseline]-Running-Hugging-Face-generation-with-Gemma-model">[Baseline] Running Hugging Face generation with Gemma model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#[Optimization-1]-Accelerating-generation-with-Transformer-Engine">[Optimization 1] Accelerating generation with Transformer Engine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#[Optimization-2]-More-acceleration-with-CUDA-Graphs">[Optimization 2] More acceleration with CUDA Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#[Optimization-3]-Even-more-acceleration-with-FP8-precision">[Optimization 3] Even more acceleration with FP8 precision</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Calibrating-FP8-scaling-factors-for-correctness">Calibrating FP8 scaling factors for correctness</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Generation-with-better-FP8-scaling-factors">Generation with better FP8 scaling factors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Use-of-FP8-only-model-weights">Use of FP8-only model weights</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_gemma/tutorial_generation_gemma_with_te.html#Conclusions">Conclusions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/onnx/onnx_export.html">Export to ONNX and inference using TensorRT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/onnx/onnx_export.html#Creating-models-with-TE">Creating models with TE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/onnx/onnx_export.html#Exporting-the-TE-Model-to-ONNX-Format">Exporting the TE Model to ONNX Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/onnx/onnx_export.html#Inference-with-TensorRT">Inference with TensorRT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/onnx/onnx_export.html#Appendix:-Low-Precision-Operators-in-ONNX-and-TensorRT">Appendix: Low Precision Operators in ONNX and TensorRT</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/te_jax_integration.html">JAX: Integrating TE into an existing framework</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_jax_integration.html#Testing-Performance">Testing Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/te_jax_integration.html#Transformer-Engine">Transformer Engine</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/c/index.html">C/C++ API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/c/transformer_engine.html">transformer_engine.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv410NVTETensor"><code class="docutils literal notranslate"><span class="pre">NVTETensor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv422NVTEQuantizationConfig"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv417NVTEGroupedTensor"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv49NVTEDType"><code class="docutils literal notranslate"><span class="pre">NVTEDType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType9kNVTEByteE"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEByte</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType10kNVTEInt16E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEInt16</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType10kNVTEInt32E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEInt32</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType10kNVTEInt64E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEInt64</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType12kNVTEFloat32E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEFloat32</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType12kNVTEFloat16E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEFloat16</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType13kNVTEBFloat16E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEBFloat16</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType15kNVTEFloat8E4M3E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEFloat8E4M3</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType15kNVTEFloat8E5M2E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEFloat8E5M2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType15kNVTEFloat8E8M0E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEFloat8E8M0</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType15kNVTEFloat4E2M1E"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTEFloat4E2M1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEDType13kNVTENumTypesE"><code class="docutils literal notranslate"><span class="pre">NVTEDType::kNVTENumTypes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv415NVTETensorParam"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam16kNVTERowwiseDataE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTERowwiseData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam19kNVTEColumnwiseDataE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTEColumnwiseData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam10kNVTEScaleE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTEScale</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam9kNVTEAmaxE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTEAmax</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam20kNVTERowwiseScaleInvE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTERowwiseScaleInv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam23kNVTEColumnwiseScaleInvE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTEColumnwiseScaleInv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam19kNVTEColumnwiseAmaxE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTEColumnwiseAmax</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam27kNVTEWithGEMMSwizzledScalesE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTEWithGEMMSwizzledScales</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTETensorParam20kNVTENumTensorParamsE"><code class="docutils literal notranslate"><span class="pre">NVTETensorParam::kNVTENumTensorParams</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv415NVTEScalingMode"><code class="docutils literal notranslate"><span class="pre">NVTEScalingMode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEScalingMode27NVTE_DELAYED_TENSOR_SCALINGE"><code class="docutils literal notranslate"><span class="pre">NVTEScalingMode::NVTE_DELAYED_TENSOR_SCALING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEScalingMode21NVTE_MXFP8_1D_SCALINGE"><code class="docutils literal notranslate"><span class="pre">NVTEScalingMode::NVTE_MXFP8_1D_SCALING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEScalingMode21NVTE_BLOCK_SCALING_1DE"><code class="docutils literal notranslate"><span class="pre">NVTEScalingMode::NVTE_BLOCK_SCALING_1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEScalingMode21NVTE_BLOCK_SCALING_2DE"><code class="docutils literal notranslate"><span class="pre">NVTEScalingMode::NVTE_BLOCK_SCALING_2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEScalingMode21NVTE_NVFP4_1D_SCALINGE"><code class="docutils literal notranslate"><span class="pre">NVTEScalingMode::NVTE_NVFP4_1D_SCALING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEScalingMode20NVTE_INVALID_SCALINGE"><code class="docutils literal notranslate"><span class="pre">NVTEScalingMode::NVTE_INVALID_SCALING</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv431NVTEQuantizationConfigAttribute"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute38kNVTEQuantizationConfigForcePow2ScalesE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigForcePow2Scales</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute34kNVTEQuantizationConfigAmaxEpsilonE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigAmaxEpsilon</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute33kNVTEQuantizationConfigNoopTensorE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigNoopTensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute51kNVTEQuantizationConfigFloat8BlockScaleTensorFormatE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigFloat8BlockScaleTensorFormat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute31kNVTEQuantizationConfigRNGStateE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigRNGState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute42kNVTEQuantizationConfigNVFP42DQuantizationE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigNVFP42DQuantization</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute41kNVTEQuantizationConfigStochasticRoundingE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigStochasticRounding</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute34kNVTEQuantizationConfigUseFastMathE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigUseFastMath</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N31NVTEQuantizationConfigAttribute36kNVTEQuantizationConfigNumAttributesE"><code class="docutils literal notranslate"><span class="pre">NVTEQuantizationConfigAttribute::kNVTEQuantizationConfigNumAttributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv422NVTEGroupedTensorParam"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam23kNVTEGroupedRowwiseDataE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedRowwiseData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam26kNVTEGroupedColumnwiseDataE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedColumnwiseData</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam17kNVTEGroupedScaleE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedScale</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam16kNVTEGroupedAmaxE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedAmax</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam27kNVTEGroupedRowwiseScaleInvE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedRowwiseScaleInv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam30kNVTEGroupedColumnwiseScaleInvE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedColumnwiseScaleInv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam26kNVTEGroupedColumnwiseAmaxE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedColumnwiseAmax</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam21kNVTEGroupedFirstDimsE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedFirstDims</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam20kNVTEGroupedLastDimsE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedLastDims</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam25kNVTEGroupedTensorOffsetsE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTEGroupedTensorOffsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N22NVTEGroupedTensorParam27kNVTENumGroupedTensorParamsE"><code class="docutils literal notranslate"><span class="pre">NVTEGroupedTensorParam::kNVTENumGroupedTensorParams</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv418nvte_create_tensor15NVTEScalingMode"><code class="docutils literal notranslate"><span class="pre">nvte_create_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv419nvte_destroy_tensor10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_destroy_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv416nvte_tensor_dataK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv427nvte_tensor_columnwise_dataK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_columnwise_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv415nvte_make_shapePK6size_t6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_make_shape()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv417nvte_tensor_shapeK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_shape()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv428nvte_tensor_columnwise_shapeK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_columnwise_shape()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv417nvte_tensor_ndimsK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_ndims()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv416nvte_tensor_sizeK10NVTETensorK6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv422nvte_tensor_size_bytesK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_size_bytes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv417nvte_tensor_numelK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_numel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv424nvte_tensor_element_sizeK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_element_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv429nvte_tensor_element_size_bitsK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_element_size_bits()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv416nvte_tensor_typeK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv416nvte_tensor_amaxK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_amax()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv417nvte_tensor_scaleK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_scale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv421nvte_tensor_scale_invK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_scale_inv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv427nvte_tensor_scale_inv_shapeK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_scale_inv_shape()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv416nvte_zero_tensorK10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_zero_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv421nvte_set_tensor_paramP10NVTETensor15NVTETensorParamPK15NVTEBasicTensor"><code class="docutils literal notranslate"><span class="pre">nvte_set_tensor_param()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv421nvte_get_tensor_paramK10NVTETensor15NVTETensorParam"><code class="docutils literal notranslate"><span class="pre">nvte_get_tensor_param()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv424nvte_set_tensor_param_v210NVTETensor15NVTETensorParamPKv6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_set_tensor_param_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv424nvte_get_tensor_param_v2K10NVTETensor15NVTETensorParamPv6size_tP6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_get_tensor_param_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv424nvte_tensor_scaling_modeK10NVTETensor"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_scaling_mode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv423nvte_tensor_pack_createP14NVTETensorPack"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_pack_create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv424nvte_tensor_pack_destroyP14NVTETensorPack"><code class="docutils literal notranslate"><span class="pre">nvte_tensor_pack_destroy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv431nvte_create_quantization_configv"><code class="docutils literal notranslate"><span class="pre">nvte_create_quantization_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv438nvte_get_quantization_config_attribute22NVTEQuantizationConfig31NVTEQuantizationConfigAttributePv6size_tP6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_get_quantization_config_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv438nvte_set_quantization_config_attribute22NVTEQuantizationConfig31NVTEQuantizationConfigAttributePKv6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_set_quantization_config_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv432nvte_destroy_quantization_config22NVTEQuantizationConfig"><code class="docutils literal notranslate"><span class="pre">nvte_destroy_quantization_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv433nvte_is_non_tn_fp8_gemm_supportedv"><code class="docutils literal notranslate"><span class="pre">nvte_is_non_tn_fp8_gemm_supported()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv411nvte_memsetPvi6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_memset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv426nvte_create_grouped_tensor15NVTEScalingMode6size_t9NVTEShape"><code class="docutils literal notranslate"><span class="pre">nvte_create_grouped_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv427nvte_destroy_grouped_tensor17NVTEGroupedTensor"><code class="docutils literal notranslate"><span class="pre">nvte_destroy_grouped_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv429nvte_set_grouped_tensor_paramP17NVTEGroupedTensor22NVTEGroupedTensorParamPK15NVTEBasicTensor"><code class="docutils literal notranslate"><span class="pre">nvte_set_grouped_tensor_param()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv429nvte_get_grouped_tensor_paramK17NVTEGroupedTensor22NVTEGroupedTensorParam"><code class="docutils literal notranslate"><span class="pre">nvte_get_grouped_tensor_param()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv431nvte_grouped_tensor_num_tensorsK17NVTEGroupedTensor"><code class="docutils literal notranslate"><span class="pre">nvte_grouped_tensor_num_tensors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv424nvte_grouped_tensor_typeK17NVTEGroupedTensor"><code class="docutils literal notranslate"><span class="pre">nvte_grouped_tensor_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv432nvte_grouped_tensor_scaling_modeK17NVTEGroupedTensor"><code class="docutils literal notranslate"><span class="pre">nvte_grouped_tensor_scaling_mode()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv437nvte_get_grouped_tensor_logical_shapeK17NVTEGroupedTensor"><code class="docutils literal notranslate"><span class="pre">nvte_get_grouped_tensor_logical_shape()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv49NVTEShape"><code class="docutils literal notranslate"><span class="pre">NVTEShape</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEShape4dataE"><code class="docutils literal notranslate"><span class="pre">NVTEShape::data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N9NVTEShape4ndimE"><code class="docutils literal notranslate"><span class="pre">NVTEShape::ndim</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv415NVTEBasicTensor"><code class="docutils literal notranslate"><span class="pre">NVTEBasicTensor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEBasicTensor8data_ptrE"><code class="docutils literal notranslate"><span class="pre">NVTEBasicTensor::data_ptr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEBasicTensor5dtypeE"><code class="docutils literal notranslate"><span class="pre">NVTEBasicTensor::dtype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N15NVTEBasicTensor5shapeE"><code class="docutils literal notranslate"><span class="pre">NVTEBasicTensor::shape</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv414NVTETensorPack"><code class="docutils literal notranslate"><span class="pre">NVTETensorPack</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N14NVTETensorPack7tensorsE"><code class="docutils literal notranslate"><span class="pre">NVTETensorPack::tensors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N14NVTETensorPack4sizeE"><code class="docutils literal notranslate"><span class="pre">NVTETensorPack::size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N14NVTETensorPack8MAX_SIZEE"><code class="docutils literal notranslate"><span class="pre">NVTETensorPack::MAX_SIZE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv418transformer_engine"><code class="docutils literal notranslate"><span class="pre">transformer_engine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N18transformer_engine5DTypeE"><code class="docutils literal notranslate"><span class="pre">transformer_engine::DType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N18transformer_engine28Float8BlockScaleTensorFormatE"><code class="docutils literal notranslate"><span class="pre">transformer_engine::Float8BlockScaleTensorFormat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N18transformer_engine12is_fp8_dtypeEK5DType"><code class="docutils literal notranslate"><span class="pre">transformer_engine::is_fp8_dtype()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N18transformer_engine12is_fp4_dtypeEK5DType"><code class="docutils literal notranslate"><span class="pre">transformer_engine::is_fp4_dtype()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N18transformer_engine23is_high_precision_dtypeEK5DType"><code class="docutils literal notranslate"><span class="pre">transformer_engine::is_high_precision_dtype()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N18transformer_engine25QuantizationConfigWrapperE"><code class="docutils literal notranslate"><span class="pre">transformer_engine::QuantizationConfigWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/transformer_engine.html#_CPPv4N18transformer_engine13TensorWrapperE"><code class="docutils literal notranslate"><span class="pre">transformer_engine::TensorWrapper</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/activation.html">activation.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv420NVTE_Activation_Type"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type4GELUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::GELU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type5GEGLUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::GEGLU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type4SILUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::SILU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type6SWIGLUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::SWIGLU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type4RELUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::RELU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type5REGLUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::REGLU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type5QGELUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::QGELU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type6QGEGLUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::QGEGLU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type5SRELUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::SRELU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type6SREGLUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::SREGLU</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/activation.html#_CPPv4N20NVTE_Activation_Type14CLAMPED_SWIGLUE"><code class="docutils literal notranslate"><span class="pre">NVTE_Activation_Type::CLAMPED_SWIGLU</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv49nvte_geluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_gelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv49nvte_siluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_silu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv49nvte_reluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_relu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv410nvte_qgeluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_qgelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv410nvte_sreluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_srelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv410nvte_dgeluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dgelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv410nvte_dsiluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dsilu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv410nvte_dreluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_drelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv411nvte_dqgeluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dqgelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv411nvte_dsreluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dsrelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv410nvte_gegluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_geglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv411nvte_swigluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_swiglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv419nvte_clamped_swigluK10NVTETensor10NVTETensorff12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_clamped_swiglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv410nvte_regluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_reglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv411nvte_qgegluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_qgeglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv411nvte_sregluK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_sreglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv411nvte_dgegluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dgeglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv412nvte_dswigluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dswiglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv420nvte_clamped_dswigluK10NVTETensorK10NVTETensor10NVTETensorff12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_clamped_dswiglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv411nvte_dregluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dreglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv412nvte_dqgegluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dqgeglu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/activation.html#_CPPv412nvte_dsregluK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dsreglu()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/cast_transpose_noop.html">cast_transpose_noop.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast_transpose_noop.html#_CPPv424nvte_transpose_with_noopK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_transpose_with_noop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast_transpose_noop.html#_CPPv429nvte_cast_transpose_with_noopK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose_with_noop()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/cast.html">cast.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv413nvte_quantizeK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv418nvte_quantize_noopK10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_noop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv416nvte_quantize_v2K10NVTETensor10NVTETensorK22NVTEQuantizationConfig12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv419nvte_quantize_dbiasK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_dbias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv425nvte_quantize_dbias_dgeluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_dbias_dgelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv425nvte_quantize_dbias_dsiluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_dbias_dsilu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv425nvte_quantize_dbias_dreluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_dbias_drelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv426nvte_quantize_dbias_dqgeluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_dbias_dqgelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv426nvte_quantize_dbias_dsreluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_quantize_dbias_dsrelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv415nvte_dequantizeK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dequantize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv426nvte_multi_tensor_quantizePK10NVTETensorP10NVTETensorK22NVTEQuantizationConfigK6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_quantize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cast.html#_CPPv435nvte_group_nvfp4_quantize_with_amaxK10NVTETensorP10NVTETensorPK6size_t6size_tK22NVTEQuantizationConfig12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_group_nvfp4_quantize_with_amax()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/cudnn.html">cudnn.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/cudnn.html#_CPPv418transformer_engine"><code class="docutils literal notranslate"><span class="pre">transformer_engine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/cudnn.html#_CPPv4N18transformer_engine22nvte_cudnn_handle_initEv"><code class="docutils literal notranslate"><span class="pre">transformer_engine::nvte_cudnn_handle_init()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/fused_attn.html">fused_attn.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv415NVTE_QKV_Layout"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout10NVTE_SB3HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_SB3HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout10NVTE_SBH3DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_SBH3D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout15NVTE_SBHD_SB2HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_SBHD_SB2HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout15NVTE_SBHD_SBH2DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_SBHD_SBH2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout19NVTE_SBHD_SBHD_SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_SBHD_SBHD_SBHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout10NVTE_BS3HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_BS3HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout10NVTE_BSH3DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_BSH3D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout15NVTE_BSHD_BS2HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_BSHD_BS2HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout15NVTE_BSHD_BSH2DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_BSHD_BSH2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout19NVTE_BSHD_BSHD_BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_BSHD_BSHD_BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout9NVTE_T3HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_T3HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout9NVTE_TH3DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_TH3D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout13NVTE_THD_T2HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_THD_T2HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout13NVTE_THD_TH2DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_THD_TH2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout16NVTE_THD_THD_THDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_THD_THD_THD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout19NVTE_SBHD_BSHD_BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_SBHD_BSHD_BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout19NVTE_BSHD_SBHD_SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_BSHD_SBHD_SBHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout18NVTE_THD_BSHD_BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_THD_BSHD_BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout18NVTE_THD_SBHD_SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_THD_SBHD_SBHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout28NVTE_Paged_KV_BSHD_BSHD_BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_Paged_KV_BSHD_BSHD_BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout28NVTE_Paged_KV_BSHD_SBHD_SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_Paged_KV_BSHD_SBHD_SBHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout28NVTE_Paged_KV_SBHD_BSHD_BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_Paged_KV_SBHD_BSHD_BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout28NVTE_Paged_KV_SBHD_SBHD_SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_Paged_KV_SBHD_SBHD_SBHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout27NVTE_Paged_KV_THD_BSHD_BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_Paged_KV_THD_BSHD_BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Layout27NVTE_Paged_KV_THD_SBHD_SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout::NVTE_Paged_KV_THD_SBHD_SBHD</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv421NVTE_QKV_Layout_Group"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout_Group</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N21NVTE_QKV_Layout_Group8NVTE_3HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout_Group::NVTE_3HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N21NVTE_QKV_Layout_Group8NVTE_H3DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout_Group::NVTE_H3D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N21NVTE_QKV_Layout_Group11NVTE_HD_2HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout_Group::NVTE_HD_2HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N21NVTE_QKV_Layout_Group11NVTE_HD_H2DE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout_Group::NVTE_HD_H2D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N21NVTE_QKV_Layout_Group13NVTE_HD_HD_HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout_Group::NVTE_HD_HD_HD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N21NVTE_QKV_Layout_Group22NVTE_Paged_KV_HD_HD_HDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Layout_Group::NVTE_Paged_KV_HD_HD_HD</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv415NVTE_QKV_Format"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Format9NVTE_SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format::NVTE_SBHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Format9NVTE_BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format::NVTE_BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Format8NVTE_THDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format::NVTE_THD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Format15NVTE_BSHD_2SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format::NVTE_BSHD_2SBHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Format15NVTE_SBHD_2BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format::NVTE_SBHD_2BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Format14NVTE_THD_2BSHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format::NVTE_THD_2BSHD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N15NVTE_QKV_Format14NVTE_THD_2SBHDE"><code class="docutils literal notranslate"><span class="pre">NVTE_QKV_Format::NVTE_THD_2SBHD</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv414NVTE_Bias_Type"><code class="docutils literal notranslate"><span class="pre">NVTE_Bias_Type</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Bias_Type12NVTE_NO_BIASE"><code class="docutils literal notranslate"><span class="pre">NVTE_Bias_Type::NVTE_NO_BIAS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Bias_Type19NVTE_PRE_SCALE_BIASE"><code class="docutils literal notranslate"><span class="pre">NVTE_Bias_Type::NVTE_PRE_SCALE_BIAS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Bias_Type20NVTE_POST_SCALE_BIASE"><code class="docutils literal notranslate"><span class="pre">NVTE_Bias_Type::NVTE_POST_SCALE_BIAS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Bias_Type10NVTE_ALIBIE"><code class="docutils literal notranslate"><span class="pre">NVTE_Bias_Type::NVTE_ALIBI</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv414NVTE_Mask_Type"><code class="docutils literal notranslate"><span class="pre">NVTE_Mask_Type</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Mask_Type12NVTE_NO_MASKE"><code class="docutils literal notranslate"><span class="pre">NVTE_Mask_Type::NVTE_NO_MASK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Mask_Type17NVTE_PADDING_MASKE"><code class="docutils literal notranslate"><span class="pre">NVTE_Mask_Type::NVTE_PADDING_MASK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Mask_Type16NVTE_CAUSAL_MASKE"><code class="docutils literal notranslate"><span class="pre">NVTE_Mask_Type::NVTE_CAUSAL_MASK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Mask_Type24NVTE_PADDING_CAUSAL_MASKE"><code class="docutils literal notranslate"><span class="pre">NVTE_Mask_Type::NVTE_PADDING_CAUSAL_MASK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Mask_Type29NVTE_CAUSAL_BOTTOM_RIGHT_MASKE"><code class="docutils literal notranslate"><span class="pre">NVTE_Mask_Type::NVTE_CAUSAL_BOTTOM_RIGHT_MASK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N14NVTE_Mask_Type37NVTE_PADDING_CAUSAL_BOTTOM_RIGHT_MASKE"><code class="docutils literal notranslate"><span class="pre">NVTE_Mask_Type::NVTE_PADDING_CAUSAL_BOTTOM_RIGHT_MASK</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv417NVTE_Softmax_Type"><code class="docutils literal notranslate"><span class="pre">NVTE_Softmax_Type</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N17NVTE_Softmax_Type20NVTE_VANILLA_SOFTMAXE"><code class="docutils literal notranslate"><span class="pre">NVTE_Softmax_Type::NVTE_VANILLA_SOFTMAX</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N17NVTE_Softmax_Type23NVTE_OFF_BY_ONE_SOFTMAXE"><code class="docutils literal notranslate"><span class="pre">NVTE_Softmax_Type::NVTE_OFF_BY_ONE_SOFTMAX</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N17NVTE_Softmax_Type22NVTE_LEARNABLE_SOFTMAXE"><code class="docutils literal notranslate"><span class="pre">NVTE_Softmax_Type::NVTE_LEARNABLE_SOFTMAX</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv423NVTE_Fused_Attn_Backend"><code class="docutils literal notranslate"><span class="pre">NVTE_Fused_Attn_Backend</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N23NVTE_Fused_Attn_Backend15NVTE_No_BackendE"><code class="docutils literal notranslate"><span class="pre">NVTE_Fused_Attn_Backend::NVTE_No_Backend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N23NVTE_Fused_Attn_Backend22NVTE_F16_max512_seqlenE"><code class="docutils literal notranslate"><span class="pre">NVTE_Fused_Attn_Backend::NVTE_F16_max512_seqlen</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N23NVTE_Fused_Attn_Backend25NVTE_F16_arbitrary_seqlenE"><code class="docutils literal notranslate"><span class="pre">NVTE_Fused_Attn_Backend::NVTE_F16_arbitrary_seqlen</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/fused_attn.html#_CPPv4N23NVTE_Fused_Attn_Backend8NVTE_FP8E"><code class="docutils literal notranslate"><span class="pre">NVTE_Fused_Attn_Backend::NVTE_FP8</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv425nvte_get_qkv_layout_group15NVTE_QKV_Layout"><code class="docutils literal notranslate"><span class="pre">nvte_get_qkv_layout_group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv419nvte_get_qkv_format15NVTE_QKV_Layout"><code class="docutils literal notranslate"><span class="pre">nvte_get_qkv_format()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv417nvte_get_q_format15NVTE_QKV_Layout"><code class="docutils literal notranslate"><span class="pre">nvte_get_q_format()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv418nvte_get_kv_format15NVTE_QKV_Layout"><code class="docutils literal notranslate"><span class="pre">nvte_get_kv_format()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv427nvte_get_fused_attn_backendb9NVTEDType9NVTEDType15NVTE_QKV_Layout14NVTE_Bias_Type14NVTE_Mask_Type17NVTE_Softmax_Typef6size_t6size_t6size_t6size_t6size_t6size_t7int64_t7int64_tbbb"><code class="docutils literal notranslate"><span class="pre">nvte_get_fused_attn_backend()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv429nvte_fused_attn_fwd_qkvpackedK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensor10NVTETensorP14NVTETensorPackK10NVTETensorK10NVTETensorK10NVTETensor6size_tbbbff15NVTE_QKV_Layout14NVTE_Bias_Type14NVTE_Mask_Type17NVTE_Softmax_Type7int64_t7int64_tb10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_attn_fwd_qkvpacked()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv429nvte_fused_attn_bwd_qkvpackedK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensorPK14NVTETensorPack10NVTETensor10NVTETensor10NVTETensorK10NVTETensorK10NVTETensor6size_tff15NVTE_QKV_Layout14NVTE_Bias_Type14NVTE_Mask_Type17NVTE_Softmax_Type7int64_t7int64_tbbb10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_attn_bwd_qkvpacked()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv428nvte_fused_attn_fwd_kvpackedK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensor10NVTETensorP14NVTETensorPackK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor6size_t6size_tbbbff15NVTE_QKV_Layout14NVTE_Bias_Type14NVTE_Mask_Type17NVTE_Softmax_Type7int64_t7int64_tb10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_attn_fwd_kvpacked()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv428nvte_fused_attn_bwd_kvpackedK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensorPK14NVTETensorPack10NVTETensor10NVTETensor10NVTETensor10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor6size_t6size_tff15NVTE_QKV_Layout14NVTE_Bias_Type14NVTE_Mask_Type17NVTE_Softmax_Type7int64_t7int64_tbbb10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_attn_bwd_kvpacked()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv419nvte_fused_attn_fwdK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensor10NVTETensorP14NVTETensorPackK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor6size_t6size_tbbbff15NVTE_QKV_Layout14NVTE_Bias_Type14NVTE_Mask_Type17NVTE_Softmax_Type7int64_t7int64_tb10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_attn_fwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv419nvte_fused_attn_bwdK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensorPK14NVTETensorPack10NVTETensor10NVTETensor10NVTETensor10NVTETensor10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor6size_t6size_tff15NVTE_QKV_Layout14NVTE_Bias_Type14NVTE_Mask_Type17NVTE_Softmax_Type7int64_t7int64_tbbb10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_attn_bwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv429nvte_populate_rng_state_async10NVTETensorK10NVTETensor6size_t6size_t23NVTE_Fused_Attn_Backend12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_populate_rng_state_async()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv429nvte_get_runtime_num_segments10NVTETensor10NVTETensor6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_get_runtime_num_segments()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv428nvte_extract_seed_and_offsetP7int64_tiP7int64_t8uint64_tP7int64_t8uint64_t8uint32_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_extract_seed_and_offset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv421nvte_copy_to_kv_cache10NVTETensor10NVTETensor10NVTETensor10NVTETensor10NVTETensor10NVTETensor10NVTETensor15NVTE_QKV_Formatiiiii12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_copy_to_kv_cache()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv428nvte_cp_thd_read_half_tensorRK10NVTETensorRK10NVTETensor10NVTETensori12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cp_thd_read_half_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv438nvte_cp_thd_second_half_lse_correction10NVTETensorRK10NVTETensorRK10NVTETensori12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cp_thd_second_half_lse_correction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv432nvte_cp_thd_read_second_half_lseRK10NVTETensorRK10NVTETensor10NVTETensorii12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cp_thd_read_second_half_lse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv426nvte_cp_thd_out_correction10NVTETensorRK10NVTETensorRK10NVTETensorRK10NVTETensorRK10NVTETensorii12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cp_thd_out_correction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv427nvte_cp_thd_grad_correction10NVTETensorRK10NVTETensorRK10NVTETensorPKcPKc12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cp_thd_grad_correction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv435nvte_cp_thd_get_partitioned_indicesRK10NVTETensor10NVTETensoriii12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cp_thd_get_partitioned_indices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv424nvte_convert_thd_to_bshd10NVTETensor10NVTETensor10NVTETensorii12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_convert_thd_to_bshd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv424nvte_convert_bshd_to_thd10NVTETensor10NVTETensor10NVTETensori12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_convert_bshd_to_thd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv427nvte_prepare_flash_attn_fwd10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_prepare_flash_attn_fwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_attn.html#_CPPv427nvte_prepare_flash_attn_bwd10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_prepare_flash_attn_bwd()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/fused_rope.html">fused_rope.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_rope.html#_CPPv423nvte_fused_rope_forwardK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensorK15NVTE_QKV_FormatKbKiKiKiKiKiKiKiKiKiKiKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_rope_forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_rope.html#_CPPv424nvte_fused_rope_backwardK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensorK15NVTE_QKV_FormatKbKiKiKiKiKiKiKiKiKiKiKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_rope_backward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_rope.html#_CPPv427nvte_fused_qkv_rope_forwardK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensorK15NVTE_QKV_FormatKbKiKiKiKiKiKiKiKiKiKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_qkv_rope_forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/fused_rope.html#_CPPv428nvte_fused_qkv_rope_backwardK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensorK15NVTE_QKV_FormatKbKiKiKiKiKiKiKiKiKiKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fused_qkv_rope_backward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/gemm.html">gemm.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv416NVTEMatmulConfig"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv425NVTEMatmulConfigAttribute"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute27kNVTEMatmulConfigBiasTensorE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigBiasTensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute28kNVTEMatmulConfigDBiasTensorE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigDBiasTensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute33kNVTEMatmulConfigWithGELUEpilogueE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigWithGELUEpilogue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute34kNVTEMatmulConfigWithDGELUEpilogueE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigWithDGELUEpilogue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute34kNVTEMatmulConfigEpilogueAuxTensorE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigEpilogueAuxTensor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute36kNVTEMatmulConfigUseSplitAccumulatorE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigUseSplitAccumulator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute24kNVTEMatmulConfigSMCountE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigSMCount</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N25NVTEMatmulConfigAttribute30kNVTEMatmulConfigNumAttributesE"><code class="docutils literal notranslate"><span class="pre">NVTEMatmulConfigAttribute::kNVTEMatmulConfigNumAttributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv425nvte_create_matmul_configv"><code class="docutils literal notranslate"><span class="pre">nvte_create_matmul_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv432nvte_get_matmul_config_attribute16NVTEMatmulConfig25NVTEMatmulConfigAttributePv6size_tP6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_get_matmul_config_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv432nvte_set_matmul_config_attribute16NVTEMatmulConfig25NVTEMatmulConfigAttributePKv6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_set_matmul_config_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv426nvte_destroy_matmul_config16NVTEMatmulConfig"><code class="docutils literal notranslate"><span class="pre">nvte_destroy_matmul_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv416nvte_cublas_gemmK10NVTETensorK10NVTETensor10NVTETensorK10NVTETensor10NVTETensorbbb10NVTETensorbbi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cublas_gemm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv419nvte_cublas_gemm_v2iiPKfK10NVTETensorK10NVTETensorPKfK10NVTETensor10NVTETensor10NVTETensor16NVTEMatmulConfig12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cublas_gemm_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv423nvte_cublas_gemm_scaledK10NVTETensorK10NVTETensor10NVTETensorK10NVTETensor10NVTETensorbbb10NVTETensorffbi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cublas_gemm_scaled()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv423nvte_cublas_atomic_gemmK10NVTETensorK10NVTETensor10NVTETensorK10NVTETensor10NVTETensorbbb10NVTETensorbbiiibK10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cublas_atomic_gemm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv422nvte_multi_tensor_gemmPK10NVTETensorPK10NVTETensorP10NVTETensorPK10NVTETensorP10NVTETensorKibbbP10NVTETensorbbi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_gemm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/gemm.html#_CPPv418transformer_engine"><code class="docutils literal notranslate"><span class="pre">transformer_engine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N18transformer_engine23nvte_cublas_handle_initEv"><code class="docutils literal notranslate"><span class="pre">transformer_engine::nvte_cublas_handle_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/gemm.html#_CPPv4N18transformer_engine19MatmulConfigWrapperE"><code class="docutils literal notranslate"><span class="pre">transformer_engine::MatmulConfigWrapper</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/multi_tensor.html">multi_tensor.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv429nvte_multi_tensor_l2norm_cudai10NVTETensorPP10NVTETensorK6size_tK6size_t10NVTETensor10NVTETensor10NVTETensor10NVTETensorii12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_l2norm_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv437nvte_multi_tensor_unscale_l2norm_cudai10NVTETensorPP10NVTETensorK6size_tK6size_t10NVTETensor10NVTETensor10NVTETensor10NVTETensor10NVTETensorii12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_unscale_l2norm_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv427nvte_multi_tensor_adam_cudai10NVTETensorPP10NVTETensorK6size_tK6size_tKfKfKfKfKiKiKiKf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_adam_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv443nvte_multi_tensor_adam_param_remainder_cudai10NVTETensorPP10NVTETensorK6size_tK6size_tKfKfKfKfKiKiKiKf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_adam_param_remainder_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv431nvte_multi_tensor_adam_fp8_cudai10NVTETensorPP10NVTETensorK6size_tK6size_tKfKfKfKfKiKiKiKfK9NVTEDType12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_adam_fp8_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv438nvte_multi_tensor_adam_capturable_cudai10NVTETensorPP10NVTETensorK6size_tK6size_t10NVTETensorKfKfKf10NVTETensorKiKiKf10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_adam_capturable_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv445nvte_multi_tensor_adam_capturable_master_cudai10NVTETensorPP10NVTETensorK6size_tK6size_t10NVTETensorKfKfKf10NVTETensorKiKiKf10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_adam_capturable_master_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv426nvte_multi_tensor_sgd_cudai10NVTETensorPP10NVTETensorK6size_tK6size_tffffiiif12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_sgd_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv428nvte_multi_tensor_scale_cudai10NVTETensorPP10NVTETensorK6size_tK6size_tf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_scale_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv450nvte_multi_tensor_compute_scale_and_scale_inv_cudai10NVTETensorPP10NVTETensorK6size_tK6size_tfif12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_compute_scale_and_scale_inv_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv445nvte_multi_tensor_compute_scale_inv_e8m0_cudaiPP10NVTETensorK6size_tK6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_compute_scale_inv_e8m0_cuda()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/multi_tensor.html#_CPPv415nvte_group_amaxK10NVTETensorP10NVTETensorPK6size_t6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_group_amax()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/normalization.html">normalization.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv414NVTE_Norm_Type"><code class="docutils literal notranslate"><span class="pre">NVTE_Norm_Type</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/c/normalization.html#_CPPv4N14NVTE_Norm_Type9LayerNormE"><code class="docutils literal notranslate"><span class="pre">NVTE_Norm_Type::LayerNorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/c/normalization.html#_CPPv4N14NVTE_Norm_Type7RMSNormE"><code class="docutils literal notranslate"><span class="pre">NVTE_Norm_Type::RMSNorm</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv418nvte_layernorm_fwdK10NVTETensorK10NVTETensorK10NVTETensorKf10NVTETensor10NVTETensor10NVTETensor10NVTETensorKiKb12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_layernorm_fwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv418nvte_layernorm_bwdK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor10NVTETensorKiKb12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_layernorm_bwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv416nvte_rmsnorm_fwdK10NVTETensorK10NVTETensorKf10NVTETensor10NVTETensor10NVTETensorKiKb12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_rmsnorm_fwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv416nvte_rmsnorm_bwdK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensorKiKb12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_rmsnorm_bwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv420nvte_rmsnorm_bwd_addK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensorKiKb12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_rmsnorm_bwd_add()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv426nvte_enable_cudnn_norm_fwdb"><code class="docutils literal notranslate"><span class="pre">nvte_enable_cudnn_norm_fwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv426nvte_enable_cudnn_norm_bwdb"><code class="docutils literal notranslate"><span class="pre">nvte_enable_cudnn_norm_bwd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/normalization.html#_CPPv447nvte_enable_zero_centered_gamma_in_weight_dtypeb"><code class="docutils literal notranslate"><span class="pre">nvte_enable_zero_centered_gamma_in_weight_dtype()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/padding.html">padding.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/padding.html#_CPPv418nvte_multi_padding6size_tPK10NVTETensorP10NVTETensorPKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_padding()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/padding.html#_CPPv420nvte_multi_unpadding6size_tPK10NVTETensorP10NVTETensorPKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_unpadding()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/permutation.html">permutation.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/permutation.html#_CPPv412nvte_permuteK10NVTETensor10NVTETensorK10NVTETensor10NVTETensorK10NVTETensor10NVTETensorK10NVTETensorKiKiKiKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_permute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/permutation.html#_CPPv414nvte_unpermuteK10NVTETensor10NVTETensor10NVTETensorK10NVTETensorKiKiKi12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_unpermute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/permutation.html#_CPPv428nvte_device_radix_sort_pairsPvP6size_tPiPiPiPi6size_t"><code class="docutils literal notranslate"><span class="pre">nvte_device_radix_sort_pairs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/recipe.html">recipe.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv449nvte_delayed_scaling_recipe_amax_and_scale_updateK10NVTETensorK10NVTETensor10NVTETensor10NVTETensorPKc9NVTEDTypef12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_delayed_scaling_recipe_amax_and_scale_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv465nvte_delayed_scaling_recipe_amax_and_scale_update_after_reductionK10NVTETensorNSt6vectorI10NVTETensorEENSt6vectorI10NVTETensorEEPKc9NVTEDTypef12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_delayed_scaling_recipe_amax_and_scale_update_after_reduction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv417nvte_compute_amaxK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_compute_amax()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv429nvte_compute_amax_with_configK10NVTETensor10NVTETensorK22NVTEQuantizationConfig12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_compute_amax_with_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv428nvte_compute_scale_from_amax10NVTETensorK22NVTEQuantizationConfig12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_compute_scale_from_amax()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv443nvte_fp8_block_scaling_compute_partial_amaxK10NVTETensor10NVTETensor6size_t6size_t6size_t6size_t6size_t6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fp8_block_scaling_compute_partial_amax()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv435nvte_fp8_block_scaling_partial_castK10NVTETensor10NVTETensorK10NVTETensor6size_t6size_t6size_t6size_t6size_t6size_tK9NVTEDType12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fp8_block_scaling_partial_cast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv439nvte_mxfp8_scaling_compute_partial_amaxK10NVTETensor10NVTETensor10NVTETensorii6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_mxfp8_scaling_compute_partial_amax()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv431nvte_mxfp8_scaling_partial_castK10NVTETensor10NVTETensor10NVTETensorK10NVTETensorK10NVTETensorii6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_mxfp8_scaling_partial_cast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/recipe.html#_CPPv435nvte_nvfp4_compute_per_tensor_scaleK10NVTETensorKbK10NVTETensorKbf10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_nvfp4_compute_per_tensor_scale()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/softmax.html">softmax.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv427nvte_scaled_softmax_forwardK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_softmax_forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv428nvte_scaled_softmax_backwardK10NVTETensorK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_softmax_backward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv434nvte_scaled_masked_softmax_forwardK10NVTETensorK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_masked_softmax_forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv435nvte_scaled_masked_softmax_backwardK10NVTETensorK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_masked_softmax_backward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv447nvte_scaled_upper_triang_masked_softmax_forwardK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_upper_triang_masked_softmax_forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv448nvte_scaled_upper_triang_masked_softmax_backwardK10NVTETensorK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_upper_triang_masked_softmax_backward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv449nvte_scaled_aligned_causal_masked_softmax_forwardK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_aligned_causal_masked_softmax_forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/softmax.html#_CPPv450nvte_scaled_aligned_causal_masked_softmax_backwardK10NVTETensorK10NVTETensor10NVTETensorf12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_scaled_aligned_causal_masked_softmax_backward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/swizzle.html">swizzle.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/swizzle.html#_CPPv428nvte_swizzle_scaling_factorsK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_swizzle_scaling_factors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/swizzle.html#_CPPv441nvte_multi_tensor_swizzle_scaling_factorsPK10NVTETensorP10NVTETensorK6size_t12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_tensor_swizzle_scaling_factors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/swizzle.html#_CPPv451nvte_swizzle_block_scaling_to_mxfp8_scaling_factorsK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_swizzle_block_scaling_to_mxfp8_scaling_factors()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/c/transpose.html">transpose.h</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv419nvte_cast_transposeK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv414nvte_transposeK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv425nvte_cast_transpose_dbiasK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose_dbias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv424nvte_fp8_transpose_dbiasK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_fp8_transpose_dbias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv425nvte_multi_cast_transpose6size_tPK10NVTETensorP10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_multi_cast_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv431nvte_cast_transpose_dbias_dgeluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose_dbias_dgelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv431nvte_cast_transpose_dbias_dsiluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose_dbias_dsilu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv431nvte_cast_transpose_dbias_dreluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose_dbias_drelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv432nvte_cast_transpose_dbias_dqgeluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose_dbias_dqgelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv432nvte_cast_transpose_dbias_dsreluK10NVTETensorK10NVTETensor10NVTETensor10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_cast_transpose_dbias_dsrelu()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv426nvte_dgeglu_cast_transposeK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dgeglu_cast_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv427nvte_dswiglu_cast_transposeK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dswiglu_cast_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv426nvte_dreglu_cast_transposeK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dreglu_cast_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv427nvte_dqgeglu_cast_transposeK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dqgeglu_cast_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv427nvte_dsreglu_cast_transposeK10NVTETensorK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_dsreglu_cast_transpose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/c/transpose.html#_CPPv420nvte_swap_first_dimsK10NVTETensor10NVTETensor12cudaStream_t"><code class="docutils literal notranslate"><span class="pre">nvte_swap_first_dims()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="debug.html">Precision debug tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="debug/1_getting_started.html">Getting started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="debug/1_getting_started.html#example-training-script">Example training script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/1_getting_started.html#config-file">Config file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/1_getting_started.html#adjusting-python-file">Adjusting Python file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/1_getting_started.html#inspecting-the-logs">Inspecting the logs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/1_getting_started.html#logging-using-tensorboard">Logging using TensorBoard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="debug/2_config_file_structure.html">Config File Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="debug/2_config_file_structure.html#general-format">General Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/2_config_file_structure.html#layer-specification">Layer Specification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/2_config_file_structure.html#names-in-transformer-layers">Names in Transformer Layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/2_config_file_structure.html#structured-configuration-for-gemms-and-tensors">Structured Configuration for GEMMs and Tensors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/2_config_file_structure.html#enabling-or-disabling-sections-and-features">Enabling or Disabling Sections and Features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="debug/api.html">API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="debug/3_api_debug_setup.html">Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_debug_setup.html#initialize">initialize()</a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_debug_setup.html#set-tensor-reduction-group">set_tensor_reduction_group()</a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_debug_setup.html#set-weight-tensor-tp-group-reduce">set_weight_tensor_tp_group_reduce()</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="debug/3_api_features.html">Debug features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_features.html#transformer_engine.debug.features.log_tensor_stats.LogTensorStats"><code class="docutils literal notranslate"><span class="pre">LogTensorStats</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_features.html#transformer_engine.debug.features.log_fp8_tensor_stats.LogFp8TensorStats"><code class="docutils literal notranslate"><span class="pre">LogFp8TensorStats</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_features.html#transformer_engine.debug.features.disable_fp8_gemm.DisableFP8GEMM"><code class="docutils literal notranslate"><span class="pre">DisableFP8GEMM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_features.html#transformer_engine.debug.features.disable_fp8_layer.DisableFP8Layer"><code class="docutils literal notranslate"><span class="pre">DisableFP8Layer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_features.html#transformer_engine.debug.features.per_tensor_scaling.PerTensorScaling"><code class="docutils literal notranslate"><span class="pre">PerTensorScaling</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_features.html#transformer_engine.debug.features.fake_quant.FakeQuant"><code class="docutils literal notranslate"><span class="pre">FakeQuant</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="debug/3_api_te_calls.html">Calls to Nvidia-DL-Framework-Inspect</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_te_calls.html#transformer_engine.debug.features.api.TEDefaultFeatures.modify_tensor"><code class="docutils literal notranslate"><span class="pre">modify_tensor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_te_calls.html#transformer_engine.debug.features.api.TEDefaultFeatures.modify_tensor_enabled"><code class="docutils literal notranslate"><span class="pre">modify_tensor_enabled()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_te_calls.html#transformer_engine.debug.features.api.TEDefaultFeatures.fp8_gemm_enabled"><code class="docutils literal notranslate"><span class="pre">fp8_gemm_enabled()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_te_calls.html#transformer_engine.debug.features.api.TEDefaultFeatures.inspect_tensor"><code class="docutils literal notranslate"><span class="pre">inspect_tensor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_te_calls.html#transformer_engine.debug.features.api.TEDefaultFeatures.inspect_tensor_postquantize"><code class="docutils literal notranslate"><span class="pre">inspect_tensor_postquantize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_te_calls.html#transformer_engine.debug.features.api.TEDefaultFeatures.inspect_tensor_enabled"><code class="docutils literal notranslate"><span class="pre">inspect_tensor_enabled()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="debug/3_api_te_calls.html#transformer_engine.debug.features.api.TEDefaultFeatures.inspect_tensor_postquantize_enabled"><code class="docutils literal notranslate"><span class="pre">inspect_tensor_postquantize_enabled()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="debug/4_distributed.html">Distributed training</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="debug/4_distributed.html#behavior-of-the-features">Behavior of the features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/4_distributed.html#reduction-groups">Reduction groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/4_distributed.html#microbatching">Microbatching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="debug/4_distributed.html#logging-to-files-and-tensorboard">Logging to files and TensorBoard</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="envvars.html">Environment Variables</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="envvars.html#build-time-environment-variables">Build-Time Environment Variables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#build-configuration">Build Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#cuda-configuration">CUDA Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="envvars.html#runtime-environment-variables">Runtime Environment Variables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#attention-backend-selection">Attention Backend Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#context-parallelism">Context Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#fp8-configuration">FP8 Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#kernel-configuration">Kernel Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#torch-compilation-and-fusion">Torch Compilation and Fusion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#layernorm-rmsnorm-sm-margins">LayerNorm/RMSNorm SM Margins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#gemm-configuration">GEMM Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#cpu-offloading">CPU Offloading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#debugging-and-profiling">Debugging and Profiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#testing">Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#onnx-export">ONNX Export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#jax-specific-variables">JAX-Specific Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="envvars.html#examples">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#building-with-debug-symbols">Building with Debug Symbols</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#using-specific-attention-backend">Using Specific Attention Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#configuring-fp8-for-attention">Configuring FP8 for Attention</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#enable-profiling">Enable Profiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="envvars.html#jax-custom-calls-control">JAX Custom Calls Control</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/attention/attention.html">Attention Is All You Need!</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/attention/attention.html#1.-Attention-Backends">1. Attention Backends</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#1.1-Flash-vs.-Non-Flash">1.1 Flash vs. Non-Flash</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#1.2-flash-attention">1.2 flash-attention</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#1.3-cuDNN-Attention">1.3 cuDNN Attention</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/attention/attention.html#2.-Backend-Selection">2. Backend Selection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#2.1-Debug-Information">2.1 Debug Information</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#2.2-User-Control">2.2 User Control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#2.3-Example-Tests">2.3 Example Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/attention/attention.html#3.-Backend-Support">3. Backend Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#3.1-QKV-Layout">3.1 QKV Layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#3.2-Attention-Mask">3.2 Attention Mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#3.3-Attention-Bias">3.3 Attention Bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/attention.html#3.4-FP8-Attention">3.4 FP8 Attention</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html">Deep Dive into CP + THD + AG + Striped&gt;1 + SWA support for Transformer Engine JAX</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html#Question-1:-Why-choose-Striped&gt;1-?">Question 1: Why choose Striped&gt;1 ?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html#I.-Striped-(stripe_size=1)">I. Striped (<code class="docutils literal notranslate"><span class="pre">stripe_size=1</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html#II.-Striped-&gt;-1-(stripe_size-&gt;-1)">II. Striped &gt; 1 (<code class="docutils literal notranslate"><span class="pre">stripe_size</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html#Question-2:-Why-is-there-a-need-for-separate-helper-functions-for-calculating-seqlens-and-offsets-?">Question 2: Why is there a need for separate helper functions for calculating seqlens and offsets ?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html#Question-3:-What-is-the-implementation-logic-for-the-separate-helper-functions-?">Question 3: What is the implementation logic for the separate helper functions ?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html#I.-Implementation-logic-for-q_seqlens_for_striped_for_rank()">I. Implementation logic for q_seqlens_for_striped_for_rank()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/attention/cp_ag_thd_dpa_jax_deep_dive.html#II.-Implementation-logic-for-kv_seqoffsets_for_striped_for_rank()">II. Implementation logic for kv_seqoffsets_for_striped_for_rank()</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Transformer Engine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Transformer Engine documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="transformer-engine-documentation">
+<h1>Transformer Engine documentation<a class="headerlink" href="#transformer-engine-documentation" title="Link to this heading"></a></h1>
+<p>Transformer Engine (TE) is a library for accelerating Transformer models on NVIDIA GPUs, including
+using 8-bit floating point (FP8) precision on Hopper, Ada, and Blackwell GPUs, to provide better
+performance with lower memory utilization in both training and inference. TE provides a collection
+of highly optimized building blocks for popular Transformer architectures and an automatic mixed
+precision-like API that can be used seamlessly with your framework-specific code. TE also includes a
+framework agnostic C++ API that can be integrated with other deep learning libraries to enable FP8
+support for Transformers.</p>
+<p>As the number of parameters in Transformer models continues to grow, training and inference for
+architectures such as BERT, GPT and T5 become very memory and compute-intensive. Most deep learning
+frameworks train with FP32 by default. This is not essential, however, to achieve full accuracy for
+many deep learning models. Using mixed-precision training, which combines single-precision (FP32)
+with lower precision (e.g. FP16) format when training a model, results in significant speedups with
+minimal differences in accuracy as compared to FP32 training. With Hopper GPU
+architecture FP8 precision was introduced, which offers improved performance over FP16 with no
+degradation in accuracy. Although all major deep learning frameworks support FP16, FP8 support is
+not available natively in frameworks today.</p>
+<p>TE addresses the problem of FP8 support by providing APIs that integrate with popular Large Language
+Model (LLM) libraries. It provides a Python API consisting of modules to easily build a Transformer
+layer as well as a framework-agnostic library in C++ including structs and kernels needed for FP8
+support. Modules provided by TE internally maintain scaling factors and other values needed for FP8
+training, greatly simplifying mixed precision training for users.</p>
+</section>
+<section id="highlights">
+<h1>Highlights<a class="headerlink" href="#highlights" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Easy-to-use modules for building Transformer layers with FP8 support</p></li>
+<li><p>Optimizations (e.g. fused kernels) for Transformer models</p></li>
+<li><p>Support for FP8 on NVIDIA Hopper, Ada, and Blackwell GPUs</p></li>
+<li><p>Support for optimizations across all precisions (FP16, BF16) on NVIDIA Ampere GPU architecture generations and later</p></li>
+</ul>
+</section>
+<section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h1>
+<section id="pytorch">
+<h2>PyTorch<a class="headerlink" href="#pytorch" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">transformer_engine.pytorch</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">te</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformer_engine.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">recipe</span>
+
+<span class="c1"># Set dimensions.</span>
+<span class="n">in_features</span> <span class="o">=</span> <span class="mi">768</span>
+<span class="n">out_features</span> <span class="o">=</span> <span class="mi">3072</span>
+<span class="n">hidden_size</span> <span class="o">=</span> <span class="mi">2048</span>
+
+<span class="c1"># Initialize model and inputs.</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">te</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">out_features</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">inp</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create an FP8 recipe. Note: All input args are optional.</span>
+<span class="n">fp8_recipe</span> <span class="o">=</span> <span class="n">recipe</span><span class="o">.</span><span class="n">DelayedScaling</span><span class="p">(</span><span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fp8_format</span><span class="o">=</span><span class="n">recipe</span><span class="o">.</span><span class="n">Format</span><span class="o">.</span><span class="n">E4M3</span><span class="p">)</span>
+
+<span class="c1"># Enable autocasting for the forward pass</span>
+<span class="k">with</span> <span class="n">te</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recipe</span><span class="o">=</span><span class="n">fp8_recipe</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
+<span class="n">loss</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="jax">
+<h2>JAX<a class="headerlink" href="#jax" title="Link to this heading"></a></h2>
+<section id="flax">
+<h3>Flax<a class="headerlink" href="#flax" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">flax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">transformer_engine.jax</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">te</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">transformer_engine.jax.flax</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">te_flax</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformer_engine.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">recipe</span>
+
+<span class="n">BATCH</span> <span class="o">=</span> <span class="mi">32</span>
+<span class="n">SEQLEN</span> <span class="o">=</span> <span class="mi">128</span>
+<span class="n">HIDDEN</span> <span class="o">=</span> <span class="mi">1024</span>
+
+<span class="c1"># Initialize RNG and inputs.</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">init_rng</span><span class="p">,</span> <span class="n">data_rng</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rng</span><span class="p">)</span>
+<span class="n">inp</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">data_rng</span><span class="p">,</span> <span class="p">[</span><span class="n">BATCH</span><span class="p">,</span> <span class="n">SEQLEN</span><span class="p">,</span> <span class="n">HIDDEN</span><span class="p">],</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="c1"># Create an FP8 recipe. Note: All input args are optional.</span>
+<span class="n">fp8_recipe</span> <span class="o">=</span> <span class="n">recipe</span><span class="o">.</span><span class="n">DelayedScaling</span><span class="p">(</span><span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fp8_format</span><span class="o">=</span><span class="n">recipe</span><span class="o">.</span><span class="n">Format</span><span class="o">.</span><span class="n">HYBRID</span><span class="p">)</span>
+
+<span class="c1"># Enable autocasting for the forward pass</span>
+<span class="k">with</span> <span class="n">te</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recipe</span><span class="o">=</span><span class="n">fp8_recipe</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">te_flax</span><span class="o">.</span><span class="n">DenseGeneral</span><span class="p">(</span><span class="n">features</span><span class="o">=</span><span class="n">HIDDEN</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">other_vars</span><span class="p">,</span> <span class="n">inp</span><span class="p">):</span>
+      <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">apply</span><span class="p">({</span><span class="s1">&#39;params&#39;</span><span class="p">:</span><span class="n">params</span><span class="p">,</span> <span class="o">**</span><span class="n">other_vars</span><span class="p">},</span> <span class="n">inp</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+    <span class="c1"># Initialize models.</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">init_rng</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+    <span class="n">other_variables</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">flax</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Construct the forward and backward function</span>
+    <span class="n">fwd_bwd_fn</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">value_and_grad</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+      <span class="n">loss</span><span class="p">,</span> <span class="p">(</span><span class="n">param_grads</span><span class="p">,</span> <span class="n">other_grads</span><span class="p">)</span> <span class="o">=</span> <span class="n">fwd_bwd_fn</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">other_variables</span><span class="p">,</span> <span class="n">inp</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For a more comprehensive tutorial, check out our <a class="reference external" href="https://github.com/NVIDIA/TransformerEngine/blob/main/docs/examples/quickstart.ipynb">Quickstart Notebook</a>.</p>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+<img src="_static/NVIDIA-LogoBlack.svg"/>
+<p class="notices">
+<a href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/" target="_blank">Privacy Policy</a>
+|
+<a href="https://www.nvidia.com/en-us/about-nvidia/privacy-center/" target="_blank">Manage My Privacy</a>
+|
+<a href="https://www.nvidia.com/en-us/preferences/start/" target="_blank">Do Not Sell or Share My Data</a>
+|
+<a href="https://www.nvidia.com/en-us/about-nvidia/terms-of-service/" target="_blank">Terms of Service</a>
+|
+<a href="https://www.nvidia.com/en-us/about-nvidia/accessibility/" target="_blank">Accessibility</a>
+|
+<a href="https://www.nvidia.com/en-us/about-nvidia/company-policies/" target="_blank">Corporate Policies</a>
+|
+<a href="https://www.nvidia.com/en-us/product-security/" target="_blank">Product Security</a>
+|
+<a href="https://www.nvidia.com/en-us/contact/" target="_blank">Contact</a>
+</p>
+
+    <p>&#169; Copyright 2022-2026, NVIDIA CORPORATION &amp; AFFILIATES. All rights reserved..</p>
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  <script type="text/javascript">if (typeof _satellite !== “undefined”){ _satellite.pageBottom();}</script>
+
+  
+
+</body>
+</html>

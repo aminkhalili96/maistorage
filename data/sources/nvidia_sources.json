@@ -1,0 +1,195 @@
+[
+  {
+    "id": "cuda-programming-guide",
+    "title": "CUDA C++ Programming Guide",
+    "url": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/",
+    "doc_family": "core",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/",
+    "pdf_url": "https://docs.nvidia.com/cuda/cuda-programming-guide/pdf/cuda-programming-guide.pdf",
+    "product_tags": ["cuda", "gpu", "programming"]
+  },
+  {
+    "id": "cuda-best-practices",
+    "title": "CUDA C++ Best Practices Guide",
+    "url": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
+    "doc_family": "core",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
+    "pdf_url": "https://docs.nvidia.com/cuda/pdf/CUDA_C_Best_Practices_Guide.pdf",
+    "product_tags": ["cuda", "performance"]
+  },
+  {
+    "id": "dl-performance",
+    "title": "NVIDIA Deep Learning Performance",
+    "url": "https://docs.nvidia.com/deeplearning/performance/index.html",
+    "doc_family": "core",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/deeplearning/performance/",
+    "product_tags": ["training", "performance"]
+  },
+  {
+    "id": "nccl",
+    "title": "NCCL Documentation",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/deeplearning/nccl/",
+    "product_tags": ["multi-gpu", "communication", "nccl"]
+  },
+  {
+    "id": "nsight-compute",
+    "title": "Nsight Compute Profiling Guide",
+    "url": "https://docs.nvidia.com/nsight-compute/2022.3/ProfilingGuide/index.html",
+    "doc_family": "core",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/nsight-compute/",
+    "pdf_url": "https://docs.nvidia.com/nsight-compute/pdf/ProfilingGuide.pdf",
+    "product_tags": ["profiling", "diagnostics"]
+  },
+  {
+    "id": "cuda-install",
+    "title": "CUDA Installation Guide for Linux",
+    "url": "https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/datacenter/tesla/",
+    "product_tags": ["linux", "drivers", "deployment"]
+  },
+  {
+    "id": "container-toolkit",
+    "title": "NVIDIA Container Toolkit",
+    "url": "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/",
+    "product_tags": ["containers", "deployment", "runtime"]
+  },
+  {
+    "id": "gpu-operator",
+    "title": "NVIDIA GPU Operator",
+    "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/",
+    "product_tags": ["kubernetes", "gpu", "operator"]
+  },
+  {
+    "id": "gpudirect-storage",
+    "title": "GPUDirect Storage Overview Guide",
+    "url": "https://docs.nvidia.com/gpudirect-storage/overview-guide/index.html",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/gpudirect-storage/",
+    "product_tags": ["storage", "io", "throughput"]
+  },
+  {
+    "id": "dcgm",
+    "title": "Data Center GPU Manager User Guide",
+    "url": "https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/index.html",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/datacenter/dcgm/",
+    "product_tags": ["monitoring", "health", "diagnostics"]
+  },
+  {
+    "id": "fabric-manager",
+    "title": "Fabric Manager User Guide",
+    "url": "https://docs.nvidia.com/hgx-platforms/fabric-manager-user-guide/index.html",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/hgx-platforms/fabric-manager-user-guide/",
+    "product_tags": ["nvlink", "nvswitch", "fabric"]
+  },
+  {
+    "id": "dgx-basepod",
+    "title": "DGX BasePOD Deployment Guide",
+    "url": "https://docs.nvidia.com/dgx-basepod/deployment-guide-dgx-basepod/latest/index.html",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/dgx-basepod/",
+    "product_tags": ["cluster", "deployment", "reference-architecture"]
+  },
+  {
+    "id": "cudnn",
+    "title": "cuDNN Documentation",
+    "url": "https://docs.nvidia.com/deeplearning/cudnn/latest/",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/deeplearning/cudnn/",
+    "product_tags": ["training", "kernels", "library"]
+  },
+  {
+    "id": "cublas",
+    "title": "cuBLAS Documentation",
+    "url": "https://docs.nvidia.com/cuda/cublas/",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/cuda/cublas/",
+    "pdf_url": "https://docs.nvidia.com/cuda/pdf/CUBLAS_Library.pdf",
+    "product_tags": ["gemm", "linear-algebra", "library"]
+  },
+  {
+    "id": "megatron-core",
+    "title": "Megatron Core Documentation",
+    "url": "https://docs.nvidia.com/megatron-core/index.html",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/megatron-core/",
+    "product_tags": ["llm", "distributed-training", "parallelism"]
+  },
+  {
+    "id": "nemo-performance",
+    "title": "NeMo Performance Guide",
+    "url": "https://docs.nvidia.com/nemo-framework/user-guide/latest/performance/performance-guide.html",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/nemo-framework/",
+    "product_tags": ["llm", "performance", "training"]
+  },
+  {
+    "id": "transformer-engine",
+    "title": "Transformer Engine User Guide",
+    "url": "https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/deeplearning/transformer-engine/",
+    "product_tags": ["transformers", "precision", "fp8"]
+  },
+  {
+    "id": "h100",
+    "title": "NVIDIA H100",
+    "url": "https://www.nvidia.com/en-us/data-center/h100/",
+    "doc_family": "hardware",
+    "doc_type": "product",
+    "crawl_prefix": "https://www.nvidia.com/en-us/data-center/h100/",
+    "product_tags": ["h100", "hardware", "sizing"]
+  },
+  {
+    "id": "h200",
+    "title": "NVIDIA H200",
+    "url": "https://www.nvidia.com/en-us/data-center/h200/",
+    "doc_family": "hardware",
+    "doc_type": "product",
+    "crawl_prefix": "https://www.nvidia.com/en-us/data-center/h200/",
+    "product_tags": ["h200", "hardware", "sizing"]
+  },
+  {
+    "id": "a100",
+    "title": "NVIDIA A100",
+    "url": "https://www.nvidia.com/en-us/data-center/a100/",
+    "doc_family": "hardware",
+    "doc_type": "product",
+    "crawl_prefix": "https://www.nvidia.com/en-us/data-center/a100/",
+    "product_tags": ["a100", "hardware", "sizing"]
+  },
+  {
+    "id": "l40s",
+    "title": "NVIDIA L40S",
+    "url": "https://www.nvidia.com/en-us/data-center/l40s/",
+    "doc_family": "hardware",
+    "doc_type": "product",
+    "crawl_prefix": "https://www.nvidia.com/en-us/data-center/l40s/",
+    "product_tags": ["l40s", "hardware", "inference"]
+  }
+]

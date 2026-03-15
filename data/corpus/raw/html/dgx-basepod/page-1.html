@@ -1,0 +1,658 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems &#8212; NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/nvidia-sphinx-theme.css?v=933278ad" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=767de534" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" type="text/javascript"
+  data-document-language="true" charset="UTF-8" data-domain-script="3e2b62ff-7ae7-4ac5-87c8-d5949ecafff5">
+</script>
+<script type="text/javascript">
+  function OptanonWrapper() {
+    var event = new Event('bannerLoaded');
+    window.dispatchEvent(event);
+  }
+</script>
+<script src="https://images.nvidia.com/aem-dam/Solutions/ot-js/ot-custom.js" type="text/javascript">
+</script>
+
+
+    <script rel="preload" src="_static/modal-table.js"></script>
+    <script src="_static/documentation_options.js?v=91d07486"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scrollspy-patch.js?v=edc4054a"></script>
+    <script src="_static/external-links.js"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=65e89d2a"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script src="_static/version-patch.js?v=3e13fdd2"></script>
+
+<script type="text/javascript" src="https://assets.adobedtm.com/5d4962a43b79/c1061d2c5e7b/launch-191c2462b890.min.js"></script>
+
+    <link rel="icon" href="_static/favicon.ico"/>
+
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction" href="introduction.html" />
+
+<link rel="preload" as="image" href="https://www.nvidia.com/content/dam/1x1-00000000.png">
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="Nov 19, 2025"/>
+
+
+  </head>
+
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+<img src="https://www.nvidia.com/content/dam/1x1-00000000.png" width="1" height="1" style="display:none;" alt="country_code">
+
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/nvidia-logo-horiz-rgb-blk-for-screen.svg" class="logo__image only-light" alt="NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems - Home"/>
+    <img src="_static/nvidia-logo-horiz-rgb-wht-for-screen.svg" class="logo__image only-dark pst-js-only" alt="NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems - Home"/>
+  
+  
+    <p class="title logo__title">NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/nvidia-logo-horiz-rgb-blk-for-screen.svg" class="logo__image only-light" alt="NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems - Home"/>
+    <img src="_static/nvidia-logo-horiz-rgb-wht-for-screen.svg" class="logo__image only-dark pst-js-only" alt="NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems - Home"/>
+  
+  
+    <p class="title logo__title">NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems</p>
+  
+</a>
+
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Table of Contents">
+  <p class="bd-links__title" role="heading" aria-level="1">Table of Contents</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hardware-overview.html">Hardware Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-overview.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software-overview.html">Software Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nfs.html">NFS Storage</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">BCM/Network Deployment</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="network-bcm-intro.html">BCM Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-deploy.html">Network Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bcm-preinstall-prep.html">BCM Headnodes Pre-install Preparation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bcm-deploy.html">BCM Headnodes Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cluster-bringup.html">Cluster Bring Up</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">BCM HA and NFS</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="bcm-ha.html">BCM HA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nfs-config.html">Setup shared NFS storage.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test-ha.html">Testing BCM HA</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deploying Workload Manager</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="kube-deploy.html">Deploy Kubernetes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sriov.html">Compute network/ IB Interfaces Configuration</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Cluster Validation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="gpu-health.html">Validate the GPU status/health</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nvlink.html">Validate the system topology/NVlink</a></li>
+<li class="toctree-l1"><a class="reference internal" href="container.html">Validate the GPU/RDMA access within the container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nccl.html">Validate the node level NCCL test with 8 GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mn-nccl.html">Validate the cluster level NCCL test with 4 nodes and 32 GPUs</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="site-survey.html">Site Survey</a></li>
+<li class="toctree-l1"><a class="reference internal" href="switch-configurations.html">Switch Configurations</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+<div class="header-article-item">
+  <div class="d-flex justify-content-end w-100">
+    <a href="https://surveys.hotjar.com/4904bf71-6484-47a7-83ff-4715cceabdb5" id="openPopupButton">Is this page helpful?</a>
+  </div>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="nvidia-dgx-basepod-deployment-guide-featuring-nvidia-dgx-h200-h100-systems">
+<span id="dgx-basepod"></span><h1>NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200/H100 Systems<a class="headerlink" href="#nvidia-dgx-basepod-deployment-guide-featuring-nvidia-dgx-h200-h100-systems" title="Link to this heading">#</a></h1>
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Document Number</p></td>
+<td><p>NA</p></td>
+</tr>
+<tr class="row-even"><td><p>Publication Date</p></td>
+<td><p>2025-2-22</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The NVIDIA DGX BasePOD: Deployment Guide Featuring NVIDIA DGX H200 and H100 Systems is also available as a <a class="reference download internal" download="" href="_downloads/c632d64dbf70bf7b63ad34d5017b3bf3/DG11192005-Deployment-Guide.pdf"><code class="xref download docutils literal notranslate"><span class="pre">PDF</span></code></a>.</p>
+</div>
+<div class="toctree-wrapper compound" id="overview">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Overview</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hardware-overview.html">Hardware Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-overview.html">Networking</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="network-overview.html#dgx-h200-h100-system-network-ports">DGX H200/H100 System Network Ports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network-overview.html#dgx-basepod-network-overview">DGX BasePOD Network Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network-overview.html#managementnet-and-external-networks">Managementnet and External networks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network-overview.html#oobmanagementnet-ipminet">oobmanagementnet (ipminet)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network-overview.html#externalnet-uplink">externalnet uplink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network-overview.html#computenet-ibnet">computenet (ibnet)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="software-overview.html">Software Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="software-overview.html#kubernetes-k8s">Kubernetes (K8s)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nfs.html">NFS Storage</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="bcm-network-deployment">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">BCM/Network Deployment</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="network-bcm-intro.html">BCM Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-deploy.html">Network Deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="network-deploy.html#sn4600c-managementnet-ethernet-switches">SN4600C – managementnet ethernet switches</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="network-deploy.html#sn4600c-1-reference-configuration">SN4600C-1 Reference Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="network-deploy.html#sn4600c-2-reference-configuration">SN4600C-2 Reference Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="network-deploy.html#sn2201-ipmi-switch-for-out-of-band-management">SN2201 – IPMI Switch for Out-of-Band Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network-deploy.html#computenet-configuration">Computenet Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network-deploy.html#qm9700-ib-switches">QM9700  IB Switches</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="network-deploy.html#qm-9700-1">QM-9700-1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="network-deploy.html#qm-9700-2">QM-9700-2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="network-deploy.html#infiniband-ethernet-storage-fabric-specific-configurations">InfiniBand/Ethernet Storage Fabric Specific Configurations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bcm-preinstall-prep.html">BCM Headnodes Pre-install Preparation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bcm-preinstall-prep.html#nfs-server">NFS server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-preinstall-prep.html#verify-dns-ntp-servers">Verify DNS &amp; NTP servers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-preinstall-prep.html#cluster-nodes-configuration">Cluster Nodes Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bcm-preinstall-prep.html#dgx-bios-config-and-network-interface-boot-order">DGX BIOS Config and Network Interface Boot Order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bcm-preinstall-prep.html#control-plane-and-workload-management-nodes">Control Plane and Workload Management Nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bcm-preinstall-prep.html#other-branded-appliances">Other Branded Appliances</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bcm-preinstall-prep.html#raid-storage-configuration">RAID/Storage Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bcm-deploy.html">BCM Headnodes Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#download-the-base-command-manager-iso">Download the Base Command Manager ISO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#primary-headnode-preparation">Primary Headnode preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#dell-appliances-with-idrac9">Dell appliances with iDRAC9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#other-vendor-appliances">Other Vendor Appliances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#booting-the-base-command-manager-graphical-installer">Booting the Base Command Manager Graphical Installer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#login-to-the-headnode">Login to the Headnode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#update-bcm">Update BCM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#activate-the-bcm-cluster-license">Activate the BCM Cluster License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcm-deploy.html#enable-bonding-on-the-headnode">Enable Bonding on the Headnode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cluster-bringup.html">Cluster Bring Up</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cluster-bringup.html#enable-deviceresolveanymac">Enable DeviceResolveAnyMAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cluster-bringup.html#define-cluster-networks">Define Cluster Networks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#change-network-names">Change network names</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#computenet-config">Computenet Config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#storagenet-config">Storagenet Config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#ib-storage">IB Storage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cluster-bringup.html#enable-out-of-band-management-of-cluster-nodes">Enable Out-of-band Management of Cluster Nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cluster-bringup.html#dgx-node-bringup">DGX Node Bringup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#software-image-setup-for-dgxs">Software Image Setup for DGX’s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#dgx-node-category-setup">DGX Node category setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#dgx-interface-definitions">DGX Interface Definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#defining-the-storage-fabric">Defining the storage fabric:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#ethernet-tcp">Ethernet (tcp)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#infiniband-o2ib">Infiniband (o2ib)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#define-dgx-01s-mac-address">Define DGX-01’s MAC address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cluster-bringup.html#test-provisioning-of-dgx-01">Test Provisioning of DGX-01</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="bcm-ha-and-nfs">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">BCM HA and NFS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bcm-ha.html">BCM HA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nfs-config.html">Setup shared NFS storage.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test-ha.html">Testing BCM HA</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="deploying-workload-manager">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Deploying Workload Manager</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="kube-deploy.html">Deploy Kubernetes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="kube-deploy.html#kubernetes-node-setup">Kubernetes Node Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kube-deploy.html#kubernetes-deployment">Kubernetes Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kube-deploy.html#add-a-kubernetes-user">Add a kubernetes user</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sriov.html">Compute network/ IB Interfaces Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sriov.html#validate-ib-compute-interfaces">Validate IB/Compute interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sriov.html#configure-sr-iov-networknodepolicy-cr">Configure SR-IOV NetworkNodePolicy CR</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="cluster-validation">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Cluster Validation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gpu-health.html">Validate the GPU status/health</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nvlink.html">Validate the system topology/NVlink</a></li>
+<li class="toctree-l1"><a class="reference internal" href="container.html">Validate the GPU/RDMA access within the container</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="container.html#validate-gpu-access-from-container">Validate GPU access from container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="container.html#validate-the-rdma-network-from-the-container">Validate the RDMA Network from the container</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nccl.html">Validate the node level NCCL test with 8 GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mn-nccl.html">Validate the cluster level NCCL test with 4 nodes and 32 GPUs</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="appendix">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="site-survey.html">Site Survey</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="site-survey.html#sample-site-survey">Sample Site Survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="site-survey.html#blank-site-survey">Blank Site Survey</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="switch-configurations.html">Switch Configurations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="switch-configurations.html#sn2201-oobmanagementnet-switch-configuration">SN2201 (oobmanagementnet) Switch Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="switch-configurations.html#sn4600c-1-managementnet-switches-configuration">SN4600C-1 (managementnet) Switches Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="switch-configurations.html#sn4600c-1-configuration">SN4600C-1 Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="switch-configurations.html#sn4600c-2-configuration">SN4600C-2 Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="switch-configurations.html#qm9700-computenet-switches-configuration">QM9700 (computenet) Switches Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="switch-configurations.html#qm9700-1">QM9700-1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="switch-configurations.html#qm9700-2">QM9700-2</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="introduction.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Introduction</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+
+<div class="bd-sidebar-secondary"></div>
+
+
+              
+            
+
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+<script type="text/javascript">if (typeof _satellite !== "undefined") {_satellite.pageBottom();}</script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+<a class="footer-brand logo" href="https://www.nvidia.com">
+  <img src="_static/nvidia-logo-horiz-rgb-1c-blk-for-screen.svg" class="logo__image only-light" alt="NVIDIA"/>
+  <img src="_static/nvidia-logo-horiz-rgb-1c-wht-for-screen.svg" class="logo__image only-dark" alt="NVIDIA"/>
+</a></div>
+      
+        <div class="footer-item">
+
+<div class="footer-links">
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/">Privacy Policy</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/privacy-center/">Your Privacy Choices</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/terms-of-service/">Terms of Service</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/accessibility/">Accessibility</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/company-policies/">Corporate Policies</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/product-security/">Product Security</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/contact/">Contact</a>
+  
+  
+  
+</div>
+</div>
+      
+        <div class="footer-item">
+
+
+
+
+  <p class="copyright">
+    
+      Copyright © 2024-2025, NVIDIA Corporation.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item"><p class="last-updated">
+  Last updated on Nov 19, 2025.
+  <br/>
+</p></div>
+      
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+  </body>
+</html>

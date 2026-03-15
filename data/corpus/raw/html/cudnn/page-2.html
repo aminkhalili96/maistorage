@@ -1,0 +1,821 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>NVIDIA cuDNN Frontend &#8212; NVIDIA cuDNN Frontend</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/nvidia-sphinx-theme.css?v=933278ad" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=767de534" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+<script src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" type="text/javascript"
+  data-document-language="true" charset="UTF-8" data-domain-script="3e2b62ff-7ae7-4ac5-87c8-d5949ecafff5">
+</script>
+<script type="text/javascript">
+  function OptanonWrapper() {
+    var event = new Event('bannerLoaded');
+    window.dispatchEvent(event);
+  }
+</script>
+<script src="https://images.nvidia.com/aem-dam/Solutions/ot-js/ot-custom.js" type="text/javascript">
+</script>
+
+
+    <script rel="preload" src="_static/modal-table.js"></script>
+    <script src="_static/documentation_options.js?v=b422a5e1"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scrollspy-patch.js?v=edc4054a"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=65e89d2a"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = '../versions1.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.19.1';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script src="_static/version-patch.js?v=3e13fdd2"></script>
+
+<script type="text/javascript" src="https://assets.adobedtm.com/5d4962a43b79/c1061d2c5e7b/launch-191c2462b890.min.js"></script>
+
+    <link rel="icon" href="_static/favicon.ico"/>
+
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Samples" href="samples.html" />
+
+<link rel="preload" as="image" href="https://www.nvidia.com/content/dam/1x1-00000000.png">
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+    <meta name="docbuild:last-update" content="Mar 11, 2026"/>
+
+
+  </head>
+
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+<img src="https://www.nvidia.com/content/dam/1x1-00000000.png" width="1" height="1" style="display:none;" alt="country_code">
+
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/nvidia-logo-horiz-rgb-blk-for-screen.svg" class="logo__image only-light" alt="NVIDIA cuDNN Frontend - Home"/>
+    <img src="_static/nvidia-logo-horiz-rgb-wht-for-screen.svg" class="logo__image only-dark pst-js-only" alt="NVIDIA cuDNN Frontend - Home"/>
+  
+  
+    <p class="title logo__title">NVIDIA cuDNN Frontend</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+
+
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/nvidia-logo-horiz-rgb-blk-for-screen.svg" class="logo__image only-light" alt="NVIDIA cuDNN Frontend - Home"/>
+    <img src="_static/nvidia-logo-horiz-rgb-wht-for-screen.svg" class="logo__image only-dark pst-js-only" alt="NVIDIA cuDNN Frontend - Home"/>
+  
+  
+    <p class="title logo__title">NVIDIA cuDNN Frontend</p>
+  
+</a>
+
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+
+
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Table of Contents">
+  <p class="bd-links__title" role="heading" aria-level="1">Table of Contents</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference external" href="https://docs.nvidia.com/deeplearning/cudnn/latest/">Overview</a></li>
+<li class="toctree-l1"><a class="reference external" href="../../installation/latest/index.html" title="(in NVIDIA cuDNN Installation)"><span class="xref std std-doc">Installation Guide</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="samples.html">Samples</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/NVIDIA/cudnn-frontend/releases">Releases Notes</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frontend API</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="operations/operations.html">Operations</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="operations/Attention.html">Attention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/BlockScaling.html">Block Scaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Concatenate.html">Concatenate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Convolutions.html">Convolutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Matmul.html">Matmul</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/MoeGroupedMatmul.html">MoE Grouped Matmul</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Normalizations.html">Normalizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Pointwise.html">Pointwise and Reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Resampling.html">Resampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Slice.html">Slice</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="utilities/utilities.html">Utilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="utilities/cuda-graphs.html">CUDA Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities/custom-execution-plan.html">Custom Execution Plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities/deviceless-ahead-of-time-compilation.html">Deviceless Ahead-of-time Compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities/dynamic-kernel-cache.html">Dynamic Shapes and Kernel Cache</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="fe-oss-apis/fe-oss-apis.html">Frontend OSS APIs</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="fe-oss-apis/overview.html">FE-OSS APIs Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fe-oss-apis/nsa.html">Native Sparse Attention (NSA)</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="fe-oss-apis/gemm_fusions/gemm_fusions.html">GEMM Fusions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/gemm_amax.html">GEMM + Amax (SM100)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/gemm_swiglu.html">GEMM + SwiGLU (SM100)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/grouped_gemm_dswiglu.html">Grouped GEMM + dSwiGLU (SM100)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/grouped_gemm_swiglu.html">Grouped GEMM + SwiGLU (SM100)</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frontend Developer Guide</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="developer/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/core-concepts.html">Core Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/graph-api.html">Graphs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/forward-compatibility.html">Hardware Forward Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/misc.html">Odds and Ends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/debugging.html">Debugging</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="reference/support-matrix.html">Supported Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/faq.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/eula.html">Software License Agreement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/notices.html">Notices</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+<div class="header-article-item">
+  <div class="d-flex justify-content-end w-100">
+    <a href="https://surveys.hotjar.com/4904bf71-6484-47a7-83ff-4715cceabdb5" id="openPopupButton">Is this page helpful?</a>
+  </div>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="nvidia-cudnn-frontend">
+<h1>NVIDIA cuDNN Frontend<a class="headerlink" href="#nvidia-cudnn-frontend" title="Link to this heading">#</a></h1>
+<blockquote>
+<div><p>The <a class="reference internal" href="developer/overview.html#overview"><span class="std std-ref">NVIDIA cuDNN frontend API</span></a> provides a simplified programming model that is sufficient for most use cases.</p>
+<p>Use the <a class="reference external" href="../../backend/v9.20.0/api/overview.html#api-overview" title="(in NVIDIA cuDNN Backend)"><span class="xref std std-ref">NVIDIA cuDNN backend API</span></a> only if you want to use the legacy fixed-function routines that are not graph-based interfaces and are not exposed by the frontend API layers.</p>
+</div></blockquote>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://docs.nvidia.com/deeplearning/cudnn/latest/">Overview</a></li>
+<li class="toctree-l1"><a class="reference external" href="../../installation/latest/index.html" title="(in NVIDIA cuDNN Installation)"><span class="xref std std-doc">Installation Guide</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="samples.html">Samples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="samples.html#python-samples">Python Samples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="samples.html#source-code">Source Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="samples.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="samples.html#c-samples">C++ Samples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="samples.html#cpp-frontend-sample-code">Source Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="samples.html#build">Build</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/NVIDIA/cudnn-frontend/releases">Releases Notes</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="frontend-api">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frontend API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="operations/operations.html">Operations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="operations/Attention.html">Attention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/BlockScaling.html">Block Scaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Concatenate.html">Concatenate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Convolutions.html">Convolutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Matmul.html">Matmul</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/MoeGroupedMatmul.html">MoE Grouped Matmul</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Normalizations.html">Normalizations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Pointwise.html">Pointwise and Reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Resampling.html">Resampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="operations/Slice.html">Slice</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities/utilities.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utilities/cuda-graphs.html">CUDA Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities/custom-execution-plan.html">Custom Execution Plan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities/deviceless-ahead-of-time-compilation.html">Deviceless Ahead-of-time Compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities/dynamic-kernel-cache.html">Dynamic Shapes and Kernel Cache</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fe-oss-apis/fe-oss-apis.html">Frontend OSS APIs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fe-oss-apis/overview.html">FE-OSS APIs Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fe-oss-apis/nsa.html">Native Sparse Attention (NSA)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fe-oss-apis/gemm_fusions/gemm_fusions.html">GEMM Fusions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/gemm_amax.html">GEMM + Amax (SM100)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/gemm_swiglu.html">GEMM + SwiGLU (SM100)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/grouped_gemm_dswiglu.html">Grouped GEMM + dSwiGLU (SM100)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fe-oss-apis/gemm_fusions/grouped_gemm_swiglu.html">Grouped GEMM + SwiGLU (SM100)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="frontend-developer-guide">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frontend Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/overview.html#building-and-running-a-cudnn-graph-workflow">Building and Running a cuDNN Graph Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/overview.html#apis">APIs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#creating-the-graph">Creating the Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#defining-tensors">Defining Tensors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#defining-operations">Defining Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#validating-the-graph">Validating the Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#building-the-backend-graph">Building the Backend Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#creating-the-execution-plan">Creating the Execution Plan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#getting-the-execution-plan-count">Getting the Execution Plan Count</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#checking-graph-support">Checking Graph Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#building-the-execution-plan">Building the Execution Plan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#filtering-plans-optional">Filtering Plans (Optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#autotuning">Autotuning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#executing-the-graph">Executing the Graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#miscellaneous-apis">Miscellaneous APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#serialization">Serialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/overview.html#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/overview.html#operations">Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/core-concepts.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/core-concepts.html#cudnn-handle">cuDNN Handle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/core-concepts.html#tensors-and-layouts">Tensors and Layouts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/core-concepts.html#tensor-descriptor">Tensor Descriptor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#wxyz-tensor-descriptor">WXYZ Tensor Descriptor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#d-tensor-descriptor">3-D Tensor Descriptor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#four-d-tensor-descriptor">4-D Tensor Descriptor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#five-d-tensor-descriptor">5-D Tensor Descriptor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#fully-packed-tensors">Fully-Packed Tensors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#partially-packed-tensors">Partially-Packed Tensors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#spatially-packed-tensors">Spatially Packed Tensors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#overlapping-tensors">Overlapping Tensors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/core-concepts.html#data-layout-formats">Data Layout Formats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#example-tensor">Example Tensor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#convolution-layouts">Convolution Layouts</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="developer/core-concepts.html#nchw-memory-layout">NCHW Memory Layout</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/core-concepts.html#nhwc-memory-layout">NHWC Memory Layout</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/core-concepts.html#nc-32hw32-memory-layout">NC/32HW32 Memory Layout</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="developer/core-concepts.html#matmul-layouts">Matmul Layouts</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/graph-api.html">Graphs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/graph-api.html#key-concepts">Key Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#operations-and-operation-graphs">Operations and Operation Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#engines-and-engine-configurations">Engines and Engine Configurations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#other-runtime-concepts">Other Runtime Concepts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#heuristics">Heuristics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/graph-api.html#supported-graph-patterns">Supported Graph Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#pre-compiled-single-operation-engines">Pre-Compiled Single Operation Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#convolutionbwddata">ConvolutionBwdData</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#convolutionbwdfilter">ConvolutionBwdFilter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#convolutionfwd">ConvolutionFwd</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#generic-runtime-fusion-engines">Generic Runtime Fusion Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#support-surface">Support Surface</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#support-surface-90">Support Surface 90</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#support-surface-80">Support Surface 80</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#support-surface-70">Support Surface 70</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#operation-specific-constraints-for-the-runtime-fusion-engines">Operation Specific Constraints for the Runtime Fusion Engines</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#matmul">Matmul</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#convolutions">Convolutions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#pointwise">Pointwise</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#genstats">GenStats</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#reduction">Reduction</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#resamplefwd">ResampleFwd</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#resampling-index-tensor-dump-for-training">Resampling Index Tensor Dump for Training</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#resamplebwd">ResampleBwd</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#examples-of-supported-patterns">Examples of Supported Patterns</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#single-operation">Single Operation</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#pointwise-operations-after-convolution-1">Pointwise Operations After Convolution 1</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#pointwise-operations-after-convolution-2">Pointwise Operations After Convolution 2</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#pointwise-operations-before-matrix-multiplication">Pointwise Operations Before Matrix Multiplication</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#convolution-producer-node-in-middle-of-dag">Convolution Producer Node in Middle of DAG</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#mixed-input-precision-matmul-and-convolution">Mixed Input Precision Matmul and Convolution</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#normalizations">Normalizations</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#normalizationforward">NormalizationForward</a></li>
+<li class="toctree-l5"><a class="reference internal" href="developer/graph-api.html#normalizationbackward">NormalizationBackward</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#specialized-runtime-fusion-engines">Specialized Runtime Fusion Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#normaddrelu">NormAddRelu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#dreluforkdnorm">DReluForkDNorm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#fused-flash-attention-fprop">Fused Flash Attention fprop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#fused-flash-attention-fprop-fp8">Fused Flash Attention fprop (FP8)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#fused-flash-attention-bprop">Fused Flash Attention bprop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#fused-flash-attention-bprop-fp8">Fused Flash Attention bprop (FP8)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#specialized-pre-compiled-engines">Specialized Pre-Compiled Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#convbnfprop">ConvBNfprop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#convbnwgrad">ConvBNwgrad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#convbiasact">ConvBiasAct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#convscalebiasact">ConvScaleBiasAct</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#dgraddrelubnbwdweight">DgradDreluBNBwdWeight</a></li>
+<li class="toctree-l4"><a class="reference internal" href="developer/graph-api.html#fp8-fused-flash-attention">FP8 Fused Flash Attention</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="developer/graph-api.html#mapping-with-backend-descriptors">Mapping with Backend Descriptors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/graph-api.html#cudnn-jit">cuDNN JIT</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#cudnn-jit-requirements-and-limitations">cuDNN JIT Requirements and Limitations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#installing-jit">Installing JIT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#setting-the-cudnn-runtime-configuration">Setting the cuDNN Runtime Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="developer/graph-api.html#cudnn-jit-support-surface">cuDNN JIT Support Surface</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/forward-compatibility.html">Hardware Forward Compatibility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/forward-compatibility.html#configuring-forward-compatibility-mode">Configuring Forward-Compatibility Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/forward-compatibility.html#forward-compatibility-and-the-graph-api">Forward-Compatibility and the Graph API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="developer/forward-compatibility.html#supported-graph-patterns">Supported Graph Patterns</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/misc.html">Odds and Ends</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/misc.html#thread-safety">Thread Safety</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/misc.html#cudnn-backend-requirements">cuDNN Backend Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/misc.html#sm-carveout">SM Carveout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/misc.html#native-cuda-graph-api">Native CUDA Graph API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/debugging.html">Debugging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/debugging.html#debugging-by-using-environment-variables">Debugging by Using Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/debugging.html#debugging-by-using-api-calls">Debugging by Using API Calls</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="reference">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/support-matrix.html">Supported Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/faq.html">FAQs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/eula.html">Software License Agreement</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#license-agreement-for-nvidia-software-development-kits">LICENSE AGREEMENT FOR NVIDIA SOFTWARE DEVELOPMENT KITS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#license">License.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/eula.html#grant">Grant</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/eula.html#distribution-requirements">Distribution Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/eula.html#authorized-users">Authorized Users</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/eula.html#pre-release-sdk">Pre-Release SDK</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/eula.html#updates">Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/eula.html#components-under-other-licenses">Components Under Other Licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/eula.html#reservation-of-rights">Reservation of Rights</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#limitations">Limitations.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#ownership">Ownership.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#no-warranties">No Warranties.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#limitations-of-liability">Limitations of Liability.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#termination">Termination.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#general">General.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/eula.html#cudnn-supplement-to-software-license-agreement-for-nvidia-software-development-kits">cuDNN SUPPLEMENT TO SOFTWARE LICENSE AGREEMENT FOR NVIDIA SOFTWARE DEVELOPMENT KITS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference/acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/notices.html">Notices</a></li>
+</ul>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="samples.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Samples</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+
+<div class="bd-sidebar-secondary"></div>
+
+
+              
+            
+
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+<script type="text/javascript">if (typeof _satellite !== "undefined") {_satellite.pageBottom();}</script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+<a class="footer-brand logo" href="https://www.nvidia.com">
+  <img src="_static/nvidia-logo-horiz-rgb-1c-blk-for-screen.svg" class="logo__image only-light" alt="NVIDIA"/>
+  <img src="_static/nvidia-logo-horiz-rgb-1c-wht-for-screen.svg" class="logo__image only-dark" alt="NVIDIA"/>
+</a></div>
+      
+        <div class="footer-item">
+
+<div class="footer-links">
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/privacy-policy/">Privacy Policy</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/privacy-center/">Your Privacy Choices</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/terms-of-service/">Terms of Service</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/accessibility/">Accessibility</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/about-nvidia/company-policies/">Corporate Policies</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/product-security/">Product Security</a>
+   | 
+  
+  
+  
+  <a class="external" href="https://www.nvidia.com/en-us/contact/">Contact</a>
+  
+  
+  
+</div>
+</div>
+      
+        <div class="footer-item">
+
+
+
+
+  <p class="copyright">
+    
+      Copyright © 2024-2026, NVIDIA Corporation.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item"><p class="last-updated">
+  Last updated on Mar 11, 2026.
+  <br/>
+</p></div>
+      
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+  </body>
+</html>
