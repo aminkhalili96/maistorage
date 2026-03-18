@@ -32,7 +32,6 @@ An agentic RAG assistant for NVIDIA AI infrastructure and training optimization.
 - Docs:
   - [agentic-rag-plan.md](docs/agentic-rag-plan.md)
   - [evaluation-evidence.md](docs/evaluation-evidence.md)
-  - [interview-demo-playbook.md](docs/interview-demo-playbook.md)
   - [testing-strategy.md](docs/testing-strategy.md)
   - [evaluation-matrix.md](docs/evaluation-matrix.md)
 
@@ -69,7 +68,7 @@ Browser (React + SSE)
 - `data/corpus/` — offline raw and normalized NVIDIA corpus bundle
 - `data/evals/` — golden benchmark questions and evaluation results
 - `data/sources/` — source registry
-- `docs/` — architecture, testing, and demo playbook docs
+- `docs/` — architecture, testing, and evaluation docs
 - `scripts/` — corpus download, normalization, and evaluation helpers
 
 ## Local setup
@@ -164,8 +163,6 @@ Key talking points:
 - Progressive SSE streaming — trace events appear as each stage completes
 - Semantic caching for repeated queries
 - Query decomposition for complex multi-part questions
-
-Use the playbook in [interview-demo-playbook.md](docs/interview-demo-playbook.md) for the live demo order, MaiStorage-specific business framing, and design tradeoffs.
 
 **Recommended demo questions:**
 - `Why is 4-GPU training scaling poorly?`

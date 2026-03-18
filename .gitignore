@@ -35,6 +35,11 @@ data/evals/results/
 CLAUDE.md
 docs/PROJECT-TRACKER.md
 docs/presentation-brief.md
+docs/interview-demo-playbook.md
+docs/interview-demo-questions.md
+docs/jd-rag-coverage.md
+docs/GEMINI_TO_OPENAI_MIGRATION.md
+docs/screenshots/
 
 # Screenshots
 Screenshot*.png
