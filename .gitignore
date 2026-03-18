@@ -32,6 +32,7 @@ frontend/frontend_logs.txt
 data/evals/results/
 
 # Personal / working docs
+CLAUDE.md
 docs/PROJECT-TRACKER.md
 docs/presentation-brief.md
 
