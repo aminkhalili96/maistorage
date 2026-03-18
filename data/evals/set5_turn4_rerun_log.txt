@@ -1,0 +1,22 @@
+Index loaded: 38 chunks
+
+Running Turn 4: "Thanks, that's helpful"
+History turns: 6
+  Mode: direct-chat
+  Assistant mode: direct_chat
+  Confidence: 0.0
+  Answer: I can help with that, but I need a bit more detail to answer well.
+  Latency: 6.4s
+  Citations: 0
+
+Result: {
+  "turn": 4,
+  "question": "Thanks, that's helpful",
+  "expected_mode": "direct-chat",
+  "actual_mode": "direct-chat",
+  "mode_match": true,
+  "confidence": 0.0,
+  "citation_count": 0,
+  "latency_s": 6.4,
+  "answer_preview": "I can help with that, but I need a bit more detail to answer well."
+}

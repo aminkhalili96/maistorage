@@ -14,15 +14,22 @@ export interface Citation {
   chunk_id: string;
   title: string;
   url: string;
+  citation_url: string;
+  domain: string;
   section_path: string;
   snippet: string;
   source_kind: string;
+  source_id?: string;
+  score?: number;
+  char_count?: number;
+  page?: number;
 }
 
 export interface TraceEvent {
   type: string;
   message: string;
   payload: Record<string, unknown>;
+  timestamp?: number;
 }
 
 export interface SourceRecord {
@@ -33,6 +40,8 @@ export interface SourceRecord {
   doc_type: string;
   crawl_prefix: string;
   product_tags: string[];
+  pdf_url?: string | null;
+  source_kind?: string;
 }
 
 export interface SourcesResponse {
@@ -67,6 +76,7 @@ export interface EvalRow {
 
 export interface ChatDonePayload {
   answer: string;
+  assistant_mode: "direct_chat" | "doc_rag" | "live_query";
   confidence: number;
   used_fallback: boolean;
   response_mode: string;
@@ -77,4 +87,6 @@ export interface ChatDonePayload {
   citation_count: number;
   query_class: string;
   source_families: string[];
+  model_used: string;
+  generation_degraded?: boolean;
 }

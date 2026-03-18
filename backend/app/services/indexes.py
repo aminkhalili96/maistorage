@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import math
 from collections import Counter
 from typing import Protocol
@@ -8,6 +9,8 @@ from typing import Protocol
 from app.config import Settings
 from app.models import ChunkRecord, RetrieverResult
 from app.services.providers import Embedder, tokenize
+
+_log = logging.getLogger("maistorage.indexes")
 
 
 def _cosine_similarity(left: list[float], right: list[float]) -> float:
@@ -23,12 +26,12 @@ def _cosine_similarity(left: list[float], right: list[float]) -> float:
 def _sparse_vector(text: str, limit: int = 64) -> dict[str, list[float] | list[int]]:
     counts = Counter(tokenize(text))
     ranked = counts.most_common(limit)
-    indices: list[int] = []
-    values: list[float] = []
+    merged: dict[int, float] = {}
     for token, count in ranked:
         index = int(hashlib.md5(token.encode("utf-8")).hexdigest(), 16) % 20000
-        indices.append(index)
-        values.append(float(count))
+        merged[index] = merged.get(index, 0.0) + float(count)
+    indices = list(merged.keys())
+    values = list(merged.values())
     return {"indices": indices, "values": values}
 
 
@@ -71,7 +74,9 @@ class InMemoryHybridIndex:
 
     def upsert(self, chunks: list[ChunkRecord]) -> None:
         vectors = self.embedder.embed_documents([chunk.content for chunk in chunks])
-        for chunk, vector in zip(chunks, vectors, strict=False):
+        if len(vectors) != len(chunks):
+            raise RuntimeError(f"Embedder returned {len(vectors)} vectors for {len(chunks)} chunks.")
+        for chunk, vector in zip(chunks, vectors):
             self.chunks[chunk.id] = chunk
             self.vectors[chunk.id] = vector
             self.term_counts[chunk.id] = Counter(chunk.sparse_terms or tokenize(chunk.content))
@@ -120,14 +125,16 @@ class PineconeHybridIndex:
 
         self.embedder = embedder
         self.namespace = settings.pinecone_namespace
-        self.expected_dimensions = settings.gemini_embedding_dimensions
+        self.expected_dimensions = settings.openai_embedding_dimensions
         self.client = Pinecone(api_key=settings.pinecone_api_key)
         self.index = self.client.Index(settings.pinecone_index_name)
 
     def upsert(self, chunks: list[ChunkRecord]) -> None:
         vectors = self.embedder.embed_documents([chunk.content for chunk in chunks])
+        if len(vectors) != len(chunks):
+            raise RuntimeError(f"Embedder returned {len(vectors)} vectors for {len(chunks)} chunks.")
         payload = []
-        for chunk, vector in zip(chunks, vectors, strict=False):
+        for chunk, vector in zip(chunks, vectors):
             metadata = _sanitize_pinecone_metadata(chunk.model_dump())
             metadata["content"] = chunk.content
             payload.append(
@@ -149,14 +156,18 @@ class PineconeHybridIndex:
         filter_payload = None
         if families:
             filter_payload = {"doc_family": {"$in": families}}
-        response = self.index.query(
-            namespace=self.namespace,
-            vector=self.embedder.embed_query(query),
-            sparse_vector=_sparse_vector(query),
-            top_k=top_k,
-            include_metadata=True,
-            filter=filter_payload,
-        )
+        try:
+            response = self.index.query(
+                namespace=self.namespace,
+                vector=self.embedder.embed_query(query),
+                sparse_vector=_sparse_vector(query),
+                top_k=top_k,
+                include_metadata=True,
+                filter=filter_payload,
+            )
+        except Exception as exc:
+            _log.warning("Pinecone query failed (%s: %s), returning empty results", type(exc).__name__, str(exc)[:120])
+            return []
         matches = getattr(response, "matches", [])
         results: list[RetrieverResult] = []
         for match in matches:

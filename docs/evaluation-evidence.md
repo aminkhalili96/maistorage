@@ -12,6 +12,11 @@ Latest supplemental artifact bundle for model comparison and improved RAGAS:
 Latest Gemini 3.1 Pro RAGAS rerun attempt:
 
 - [20260315-195514](/Users/amin/dev/maistorage/data/evals/results/20260315-195514)
+- [20260316-043200](/Users/amin/dev/maistorage/data/evals/results/20260316-043200)
+
+Latest trajectory + Gemini 3.1 Pro judge artifact bundle:
+
+- [20260316-052110](/Users/amin/dev/maistorage/data/evals/results/20260316-052110)
 
 ## What Was Run
 
@@ -20,6 +25,14 @@ Latest Gemini 3.1 Pro RAGAS rerun attempt:
 - retrieval benchmark on the capped benchmark subset:
   - 9 source ids covering all golden questions
   - max 12 chunks per source id
+- unified benchmark file:
+  - 50 total questions
+  - 46 corpus-backed doc/RAG rows for retrieval and RAGAS
+  - 2 direct-chat routing rows
+  - 1 refusal row
+  - 1 controlled recency-fallback row
+- trajectory benchmark
+- optional Gemini 3.1 Pro trajectory-and-answer judge
 - RAGAS with authored reference answers
 - 3 real embedding-model comparison
 - Gemini dimension ablation
@@ -42,25 +55,79 @@ Artifact:
 
 - [retrieval_benchmark.json](/Users/amin/dev/maistorage/data/evals/results/20260315-181658/retrieval_benchmark.json)
 
-### RAGAS
+### RAGAS — Current: 10-question slim set (OpenAI, March 18 2026)
+
+- `faithfulness = 0.6943`
+- `answer_relevancy = 0.7350`
+- `context_precision = 0.6833`
+- `context_recall = 0.6750`
+
+Generation model: `gpt-5.4`. Judge model: `gpt-4.1`. 10-question curated slim set covering 7 categories, all 4 response modes, and 18 sources.
+
+Artifact: `data/evals/results/20260318-070241/ragas_slim_10.json`
+
+### RAGAS — Historical: 46-question set (Gemini, March 15-16 2026)
 
 - `faithfulness = 0.9103`
 - `answer_relevancy = 0.3804`
 - `context_precision = 0.8667`
 - `context_recall = 0.8`
 
+> **Note:** These results are from the pre-migration era when the system used Gemini models for generation and judging. They are preserved here as historical context. The project has since migrated to OpenAI (GPT-5.4 for synthesis, GPT-5 Mini for pipeline, GPT-5.4 Nano for routing).
+
 Interpretation:
 
 - authored reference answers materially improved the grounding signal versus the earlier proxy-based run
-- answer grounding is now strong, while answer relevancy is still the weakest score
-- this is a better benchmark story, but still small enough that it should be presented as an interview eval set rather than a production-quality QA corpus
 - the latest successful run used `gemini-2.5-flash` for the answer/judge path because the workspace hit the daily Gemini 3.1 Pro quota during regeneration
 - a direct rerun on `gemini-3.1-pro-preview` was attempted later and failed with `429 ResourceExhausted` before any score rows were produced
+- the RAGAS service is now configured to use the 46-question corpus-backed authored-reference subset of the unified 50-question benchmark
+- the intended release-style thresholds are:
+  - `faithfulness >= 0.80`
+  - `answer_relevancy >= 0.55`
+  - `context_precision >= 0.75`
+  - `context_recall >= 0.70`
+
+### Trajectory benchmark
+
+The project now includes an explicit trajectory layer on top of retrieval metrics:
+
+- assistant-mode accuracy
+- response-mode accuracy
+- tool-path accuracy
+- retry-budget pass rate
+- fallback correctness
+- grounding and answer-quality validation outcomes
+
+The corresponding artifact is written as `trajectory_benchmark.json` by [run_evaluation_suite.py](/Users/amin/dev/maistorage/scripts/run_evaluation_suite.py).
+
+Latest local run:
+
+- [trajectory_benchmark.json](/Users/amin/dev/maistorage/data/evals/results/20260316-052110/trajectory_benchmark.json)
+
+### Gemini 3.1 Pro judge
+
+The project now includes an optional live judge path using `gemini-3.1-pro-preview` to grade:
+
+- faithfulness
+- answer relevance
+- trajectory correctness
+- tool-path correctness
+- citation support
+
+The judge is intentionally optional:
+
+- it only runs when `GEMINI_API_KEY` exists
+- it only runs when `RUN_LIVE_JUDGE_TESTS=true`
+- otherwise it emits a structured `skipped` artifact instead of failing the suite
+- the latest live attempt is recorded here:
+  - [agentic_judge.json](/Users/amin/dev/maistorage/data/evals/results/20260316-052110/agentic_judge.json)
+  - [summary.md](/Users/amin/dev/maistorage/data/evals/results/20260316-052110/summary.md)
 
 Artifact:
 
 - [ragas.json](/Users/amin/dev/maistorage/data/evals/results/20260316-030114/ragas.json)
 - [failed Gemini 3.1 Pro rerun](/Users/amin/dev/maistorage/data/evals/results/20260315-195514/ragas.json)
+- [failed Gemini 3.1 Pro sample rerun after fallback hardening](/Users/amin/dev/maistorage/data/evals/results/20260316-043200/ragas.json)
 
 ### Embedding models
 

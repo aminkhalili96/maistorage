@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Notes: Kubernetes Workload Primitives</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 40px auto; max-width: 860px; line-height: 1.7; color: #1f2937; padding: 0 24px; }
+      h1, h2 { color: #111827; }
+      .meta { color: #6b7280; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>Kubernetes Workload Primitives</h1>
+    <p class="meta">Offline notes derived from official Kubernetes documentation.</p>
+    <p>Kubernetes manages applications through workload resources such as Deployments, StatefulSets, DaemonSets, and Jobs. For AI infrastructure, these primitives matter because GPU-serving systems, controllers, storage helpers, exporters, and batch-style tasks all map to different Kubernetes workload patterns.</p>
+    <p>Deployments are useful for scalable stateless services like inference APIs. StatefulSets are used when the workload needs stable identities or storage attachments. DaemonSets are a natural fit for node-level agents such as GPU plugins or monitoring components. Jobs are appropriate for finite batch tasks like data preprocessing or one-off cluster operations.</p>
+    <h2>Why It Matters For AI Infrastructure</h2>
+    <p>Kubernetes is attractive when the platform needs repeatable deployment, operators, device plugins, and service lifecycle management. It is often chosen over pure HPC scheduling when the environment must run both infrastructure components and model-serving workloads in a container-native way.</p>
+    <h2>Primary References</h2>
+    <ul>
+      <li><a href="https://kubernetes.io/docs/concepts/workloads/">Workloads</a></li>
+      <li><a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">Deployment</a></li>
+      <li><a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/">StatefulSet</a></li>
+      <li><a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/">DaemonSet</a></li>
+      <li><a href="https://kubernetes.io/docs/concepts/workloads/controllers/job/">Job</a></li>
+    </ul>
+  </body>
+</html>

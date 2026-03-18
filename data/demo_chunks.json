@@ -7,7 +7,11 @@
     "section_path": "Overview",
     "doc_family": "core",
     "doc_type": "html",
-    "product_tags": ["mixed-precision", "tensor-cores", "training"],
+    "product_tags": [
+      "mixed-precision",
+      "tensor-cores",
+      "training"
+    ],
     "updated_at": "2026-03-15",
     "content": "Mixed precision usually improves training throughput when Tensor Cores are active and the workload has enough matrix math. Accuracy risks are typically managed with loss scaling or BF16, and the main tradeoff is balancing speed against numerical stability for sensitive models."
   },
@@ -19,7 +23,11 @@
     "section_path": "Compute versus Memory",
     "doc_family": "core",
     "doc_type": "html",
-    "product_tags": ["performance", "memory", "compute"],
+    "product_tags": [
+      "performance",
+      "memory",
+      "compute"
+    ],
     "updated_at": "2026-03-15",
     "content": "High GPU utilization does not always mean efficient training. A job can still be limited by memory traffic, launch overhead, input pipeline delays, or communication. The practical diagnosis is to identify whether the workload is compute-bound, memory-bound, or blocked outside the device."
   },
@@ -31,9 +39,110 @@
     "section_path": "Collectives",
     "doc_family": "distributed",
     "doc_type": "html",
-    "product_tags": ["nccl", "all-reduce", "multi-gpu"],
+    "product_tags": [
+      "nccl",
+      "all-reduce",
+      "multi-gpu"
+    ],
     "updated_at": "2026-03-15",
     "content": "Poor multi-GPU scaling is often caused by collective communication overhead, topology limits, or imbalance between computation and all-reduce time. As GPU count increases, the communication path and the ratio between compute work and synchronization become more important."
+  },
+  {
+    "id": "demo-nccl-allreduce-algorithms",
+    "source_id": "nccl",
+    "title": "NCCL All-Reduce Algorithms: Ring and Tree",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html",
+    "section_path": "Collective Operations",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "product_tags": [
+      "nccl",
+      "all-reduce",
+      "ring-allreduce",
+      "multi-gpu",
+      "gradient-synchronization"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "NCCL implements all-reduce using two primary algorithms: ring and tree. The ring all-reduce divides the data into N segments for N GPUs, each GPU sends one segment to its neighbor and receives one segment in each step, completing in 2*(N-1) steps with near-linear bandwidth scaling. The tree all-reduce (binary tree or recursive halving) reduces latency for small messages where bandwidth efficiency is less critical. NCCL selects the algorithm automatically based on message size and topology. For gradient synchronization in distributed training, ring all-reduce achieves the highest bandwidth utilization when each step is compute-bound rather than communication-bound. The effective bandwidth is (N-1)/N * peak_bandwidth, so scaling efficiency decreases slightly as GPU count grows even under ideal conditions."
+  },
+  {
+    "id": "demo-nccl-topology-nvlink-pcie",
+    "source_id": "nccl",
+    "title": "NCCL Topology: NVLink vs PCIe All-Reduce Performance",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html",
+    "section_path": "System Topology",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "product_tags": [
+      "nccl",
+      "nvlink",
+      "pcie",
+      "topology",
+      "all-reduce",
+      "bandwidth",
+      "multi-gpu"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "NCCL detects system topology at startup using the NVIDIA topology file or automatic discovery. Within a single DGX node, NVLink provides 600 GB/s bidirectional bandwidth between GPUs (H100 SXM), compared to 64 GB/s for PCIe 4.0 x16. When GPUs are connected through PCIe switches without NVLink, all-reduce must traverse the PCIe bus and potentially the CPU, increasing latency by 5-10x and reducing effective training throughput. NCCL automatically selects the optimal all-reduce path (intra-node NVLink or inter-node InfiniBand) based on NVML topology probing. Suboptimal NVLink configuration \u2014 such as missing peer access grants or incorrect nvidia-fabricmanager status \u2014 causes NCCL to fall back to slower PCIe paths, which is the most common cause of unexpected multi-GPU scaling degradation on DGX systems."
+  },
+  {
+    "id": "demo-nccl-tuning-env-vars",
+    "source_id": "nccl",
+    "title": "NCCL Performance Tuning: Key Environment Variables",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html",
+    "section_path": "Environment Variables",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "product_tags": [
+      "nccl",
+      "tuning",
+      "environment-variables",
+      "bandwidth",
+      "performance",
+      "all-reduce"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "Key NCCL environment variables for maximizing all-reduce bandwidth: NCCL_IB_GID_INDEX controls which RoCE GID to use for InfiniBand RDMA (set to 3 for RoCEv2); NCCL_IB_TC sets the traffic class for QoS prioritization. NCCL_SOCKET_NTHREADS and NCCL_NSOCKS_PERTHREAD control the number of CPU threads and sockets used for network communication \u2014 increasing these from defaults (1/1) to 4/4 can significantly improve bandwidth on high-speed networks. NCCL_BUFFSIZE controls the internal buffer for collective operations (default 4MB); increasing to 64MB helps sustain throughput for large gradients. NCCL_ALGO=Ring forces ring algorithm regardless of message size. NCCL_DEBUG=INFO enables logging to diagnose topology and algorithm selection issues. NCCL_P2P_LEVEL controls whether peer-to-peer GPU access is used; setting to LOC or NVL ensures NVLink is preferred over SYS (PCIe traversal)."
+  },
+  {
+    "id": "demo-nccl-scaling-bottlenecks",
+    "source_id": "nccl",
+    "title": "NCCL Multi-GPU Scaling Bottlenecks and Diagnostics",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/troubleshooting.html",
+    "section_path": "Troubleshooting",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "product_tags": [
+      "nccl",
+      "scaling",
+      "multi-gpu",
+      "bottleneck",
+      "all-reduce",
+      "training",
+      "throughput"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "Common reasons why 4-GPU training scales poorly compared to single-GPU baselines: (1) Communication-compute overlap: if gradient all-reduce is not overlapped with backward pass computation, GPUs stall waiting for synchronization. Frameworks like PyTorch DDP use bucketed all-reduce to overlap communication with backward; small bucket sizes fragment large all-reduce operations. (2) PCIe contention: without NVLink, all-reduce on 4 GPUs requires 3*(N-1) PCIe transfers, each competing for shared root complex bandwidth. (3) Insufficient batch size: when global batch size is fixed and split across 4 GPUs, each GPU sees a smaller local batch, reducing GPU utilization and making the communication overhead a larger fraction of total step time. (4) NCCL not detecting NVLink: run nccl-tests all_reduce_perf to confirm bandwidth matches NVLink spec. If nccl-tests reports bandwidth near PCIe limits (30-40 GB/s) instead of NVLink limits (300+ GB/s), check nvidia-fabricmanager status and NVLink topology."
+  },
+  {
+    "id": "demo-nccl-ib-rdma",
+    "source_id": "nccl",
+    "title": "NCCL Multi-Node All-Reduce with InfiniBand RDMA",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html",
+    "section_path": "InfiniBand Configuration",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "product_tags": [
+      "nccl",
+      "infiniband",
+      "rdma",
+      "multi-node",
+      "all-reduce",
+      "bandwidth",
+      "gradient"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "For multi-node all-reduce over InfiniBand, NCCL uses GPUDirect RDMA to transfer gradient tensors directly between GPU memory across nodes without staging through host memory, reducing latency by bypassing the CPU. NCCL selects between IB Verbs and Sharp (in-network computing) depending on the switch capability. NVIDIA Quantum-2 switches with SHARP enable in-switch all-reduce, reducing inter-node traffic by up to 50% for large models. For optimal InfiniBand performance: ensure MLNX_OFED 5.x+ is installed, set NCCL_IB_HCA to the correct IB port, and verify GPUDirect RDMA is enabled with nvidia-peermem loaded. Typical H100 DGX H100 cluster achieves 400 Gb/s per GPU over InfiniBand with NCCL SHARP, enabling near-linear scaling up to 256+ GPUs for LLM training."
   },
   {
     "id": "demo-nvlink-fabric",
@@ -43,7 +152,11 @@
     "section_path": "Fabric Management",
     "doc_family": "distributed",
     "doc_type": "html",
-    "product_tags": ["nvlink", "nvswitch", "fabric"],
+    "product_tags": [
+      "nvlink",
+      "nvswitch",
+      "fabric"
+    ],
     "updated_at": "2026-03-15",
     "content": "NVLink and NVSwitch fabrics help reduce communication bottlenecks for tightly coupled multi-GPU workloads, but they still require correct system configuration, compatible drivers, and healthy topology discovery. Fabric management issues can degrade scaling even when compute kernels are efficient."
   },
@@ -55,7 +168,11 @@
     "section_path": "Installation Flow",
     "doc_family": "infrastructure",
     "doc_type": "html",
-    "product_tags": ["linux", "drivers", "cuda"],
+    "product_tags": [
+      "linux",
+      "drivers",
+      "cuda"
+    ],
     "updated_at": "2026-03-15",
     "content": "A standard Linux deployment path for NVIDIA training workloads includes validated GPU drivers, a compatible CUDA toolkit, container runtime support when needed, and version alignment across operating system, driver, and libraries. Driver and CUDA mismatches are a common source of runtime failure."
   },
@@ -67,7 +184,11 @@
     "section_path": "Runtime Setup",
     "doc_family": "infrastructure",
     "doc_type": "html",
-    "product_tags": ["containers", "docker", "runtime"],
+    "product_tags": [
+      "containers",
+      "docker",
+      "runtime"
+    ],
     "updated_at": "2026-03-15",
     "content": "GPU-enabled containers need a host driver stack plus the NVIDIA container runtime so workloads can access devices and libraries safely. In practice, containerized AI stacks reduce environment drift and make cluster deployment more repeatable."
   },
@@ -79,7 +200,11 @@
     "section_path": "Operator Responsibilities",
     "doc_family": "infrastructure",
     "doc_type": "html",
-    "product_tags": ["kubernetes", "operator", "deployment"],
+    "product_tags": [
+      "kubernetes",
+      "operator",
+      "deployment"
+    ],
     "updated_at": "2026-03-15",
     "content": "For Kubernetes environments, the GPU Operator simplifies deployment of drivers, device plugins, monitoring, and supporting components. It is useful when the target solution needs repeatable GPU cluster operations instead of manual host-by-host setup."
   },
@@ -91,7 +216,11 @@
     "section_path": "Why Storage Matters",
     "doc_family": "infrastructure",
     "doc_type": "html",
-    "product_tags": ["storage", "io", "throughput"],
+    "product_tags": [
+      "storage",
+      "io",
+      "throughput"
+    ],
     "updated_at": "2026-03-15",
     "content": "If the input pipeline cannot feed the GPUs fast enough, utilization may look unstable and end-to-end throughput suffers. Storage path design matters for large datasets, especially when many workers load data concurrently."
   },
@@ -103,7 +232,11 @@
     "section_path": "Product Positioning",
     "doc_family": "hardware",
     "doc_type": "product",
-    "product_tags": ["h100", "training", "sizing"],
+    "product_tags": [
+      "h100",
+      "training",
+      "sizing"
+    ],
     "updated_at": "2026-03-15",
     "content": "H100-class systems are a strong fit when the client prioritizes large-scale training throughput, newer precision support, and dense multi-GPU performance. The tradeoff is higher infrastructure cost and supporting power, cooling, and networking requirements."
   },
@@ -115,7 +248,11 @@
     "section_path": "Product Positioning",
     "doc_family": "hardware",
     "doc_type": "product",
-    "product_tags": ["a100", "training", "sizing"],
+    "product_tags": [
+      "a100",
+      "training",
+      "sizing"
+    ],
     "updated_at": "2026-03-15",
     "content": "A100-class systems remain relevant for many training and inference deployments when the client wants mature ecosystem support and strong performance without moving to the newest platform. Final selection depends on workload scale, budget, and availability."
   },
@@ -127,7 +264,11 @@
     "section_path": "Product Positioning",
     "doc_family": "hardware",
     "doc_type": "product",
-    "product_tags": ["l40s", "inference", "sizing"],
+    "product_tags": [
+      "l40s",
+      "inference",
+      "sizing"
+    ],
     "updated_at": "2026-03-15",
     "content": "L40S-style systems are often attractive when the workload leans toward inference, visualization, or mixed-use acceleration rather than the most demanding large-scale training jobs. The recommendation depends on whether training throughput or deployment flexibility matters more."
   },
@@ -139,9 +280,406 @@
     "section_path": "Parallelism Strategies",
     "doc_family": "advanced",
     "doc_type": "html",
-    "product_tags": ["llm", "parallelism", "distributed-training"],
+    "product_tags": [
+      "llm",
+      "parallelism",
+      "distributed-training"
+    ],
     "updated_at": "2026-03-15",
     "content": "Large-model training often needs combinations of data, tensor, and pipeline parallelism. The right strategy depends on model size, memory limits, and communication cost, so topology and collective performance become part of the design decision."
+  },
+  {
+    "id": "demo-server-platforms",
+    "source_id": "infra-platforms",
+    "title": "AI Server Platform Components",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#ai-server-platform-design",
+    "section_path": "AI Server Platform Design",
+    "doc_family": "hardware",
+    "doc_type": "markdown",
+    "product_tags": [
+      "server",
+      "motherboard",
+      "epyc",
+      "xeon",
+      "ram",
+      "pcie",
+      "nvlink"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "AI server design depends on more than the GPU alone. Motherboards determine expansion, PCIe layout, storage and NIC attachment, while AMD EPYC and Intel Xeon class CPUs provide memory channels, PCIe lanes, and host-side throughput. High-capacity RAM supports loaders and host buffers, PCIe is the baseline host-to-device path, and NVLink matters when the workload needs stronger GPU-to-GPU communication."
+  },
+  {
+    "id": "demo-cluster-management",
+    "source_id": "infra-cluster-ops",
+    "title": "HPC Scheduling And Kubernetes",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#cluster-management-and-linux-operations",
+    "section_path": "Cluster Management And Linux Operations",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "slurm",
+      "scheduler",
+      "kubernetes",
+      "cluster"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "AI clusters are often managed either with an HPC scheduler such as Slurm or with Kubernetes. Slurm fits queued batch training and reserved cluster resources, while Kubernetes is attractive when the platform also needs container-native deployment, operators, and repeatable service workflows."
+  },
+  {
+    "id": "demo-linux-ops",
+    "source_id": "infra-cluster-ops",
+    "title": "Linux GPU Operations",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#cluster-management-and-linux-operations",
+    "section_path": "Linux GPU Operations",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "linux",
+      "drivers",
+      "cuda",
+      "compatibility"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Linux operations remain critical on GPU clusters because kernel modules, driver installation, and CUDA toolkit compatibility must stay aligned. A large share of operational troubleshooting comes from version drift, bad node images, storage-path issues, and cluster networking bottlenecks rather than model code alone."
+  },
+  {
+    "id": "demo-infra-bottlenecks",
+    "source_id": "infra-cluster-ops",
+    "title": "Cluster Networking And Compatibility Bottlenecks",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#cluster-management-and-linux-operations",
+    "section_path": "Troubleshooting Bottlenecks",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "cluster networking",
+      "storage throughput",
+      "compatibility",
+      "bottlenecks"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "AI infrastructure troubleshooting often comes down to cluster networking, storage throughput, and software compatibility. Teams should isolate whether the bottleneck is communication, data delivery, version drift, or bad host configuration before blaming model code."
+  },
+  {
+    "id": "demo-parallel-fs",
+    "source_id": "infra-storage",
+    "title": "Parallel File Systems For Training",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#data-path-and-storage",
+    "section_path": "Parallel File Systems",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "parallel file system",
+      "lustre",
+      "beegfs",
+      "gpfs",
+      "training"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Parallel file systems such as Lustre, BeeGFS, or GPFS are useful when many training workers need shared, high-throughput access to the same dataset namespace. They are chosen when aggregate bandwidth and a shared namespace matter more than single-node convenience."
+  },
+  {
+    "id": "demo-object-storage",
+    "source_id": "infra-storage",
+    "title": "S3-Compatible Object Storage",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#data-path-and-storage",
+    "section_path": "Object Storage",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "s3",
+      "object storage",
+      "datasets",
+      "checkpoints"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "S3-compatible object storage is commonly used for large datasets, checkpoints, and model artifacts because it scales well and integrates with data lake style workflows. It is a practical choice when the platform needs durable shared storage for artifacts instead of only local disks."
+  },
+  {
+    "id": "demo-raid",
+    "source_id": "infra-storage",
+    "title": "RAID Tradeoffs",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#data-path-and-storage",
+    "section_path": "RAID Decisions",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "raid",
+      "redundancy",
+      "throughput",
+      "data protection"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "RAID 0 favors throughput without redundancy, RAID 1 mirrors for safety, RAID 5 and RAID 6 trade usable capacity for parity-based resilience, and RAID 10 balances mirrored protection with stronger performance at higher disk cost. The right RAID level depends on whether the priority is speed, rebuild safety, or balanced redundancy."
+  },
+  {
+    "id": "demo-docker",
+    "source_id": "infra-mlops",
+    "title": "Docker For AI Containers",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#containerization-and-delivery",
+    "section_path": "Containerization",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "docker",
+      "containers",
+      "deployment",
+      "repeatable"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Docker-style containerization packages AI dependencies and serving stacks in a repeatable way, which reduces environment drift between machines. Containers improve portability, but they still rely on correct host GPU drivers and runtime configuration."
+  },
+  {
+    "id": "demo-cicd",
+    "source_id": "infra-mlops",
+    "title": "CI/CD For Model Delivery",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#containerization-and-delivery",
+    "section_path": "Delivery Pipelines",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "product_tags": [
+      "ci/cd",
+      "mlops",
+      "deployment",
+      "rollout"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "CI/CD pipelines matter for model deployment because teams need automated image builds, tests, promotion gates, registry publishing, and controlled rollout of serving changes. In MLOps, CI/CD is what turns an experimental artifact into a repeatable deployment process."
+  },
+  {
+    "id": "demo-slurm",
+    "source_id": "slurm-workload-manager",
+    "title": "Slurm For Queued AI Training",
+    "url": "/resources/slurm-workload-manager.html",
+    "section_path": "Overview",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "slurm",
+      "scheduler",
+      "batch",
+      "cluster"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Slurm is a cluster workload manager used for queued batch jobs and reserved HPC resources. In AI environments it is a strong fit when teams want predictable scheduling, partitions, reservations, and multi-node training execution driven by job submissions such as sbatch and srun."
+  },
+  {
+    "id": "demo-k8s-workloads",
+    "source_id": "kubernetes-workloads",
+    "title": "Kubernetes Workload Primitives",
+    "url": "/resources/kubernetes-workloads.html",
+    "section_path": "Workloads",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "kubernetes",
+      "deployment",
+      "daemonset",
+      "job",
+      "statefulset"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Kubernetes manages applications through workload resources such as Deployments, StatefulSets, DaemonSets, and Jobs. For AI clusters, Deployments fit scalable services, DaemonSets fit node-level agents, Jobs fit finite batch tasks, and StatefulSets fit workloads that need stable identities or attached storage."
+  },
+  {
+    "id": "demo-beegfs",
+    "source_id": "beegfs",
+    "title": "BeeGFS Parallel Storage",
+    "url": "/resources/beegfs-parallel-filesystem.html",
+    "section_path": "Architecture",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "beegfs",
+      "parallel-file-system",
+      "storage",
+      "throughput"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "BeeGFS is a parallel file system that separates metadata services from storage services and stripes file contents across servers. It is useful when many training workers need a shared namespace with high aggregate bandwidth instead of relying on a single storage endpoint."
+  },
+  {
+    "id": "demo-lustre",
+    "source_id": "lustre",
+    "title": "Lustre Shared Namespace",
+    "url": "/resources/lustre-parallel-filesystem.html",
+    "section_path": "Architecture",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "lustre",
+      "parallel-file-system",
+      "storage",
+      "throughput"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Parallel file systems such as Lustre provide a shared POSIX-style namespace while separating metadata handling from object storage. Lustre matters when large AI clusters need both shared data visibility and strong concurrent read throughput."
+  },
+  {
+    "id": "demo-minio",
+    "source_id": "minio-object-storage",
+    "title": "MinIO And S3-Compatible Storage",
+    "url": "/resources/minio-object-storage.html",
+    "section_path": "Overview",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "minio",
+      "s3",
+      "object-storage",
+      "datasets",
+      "checkpoints"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "MinIO provides S3-compatible object storage that is useful for large datasets, checkpoints, and model artifacts. It fits durable shared storage and data-lake workflows better than low-latency POSIX metadata-heavy access patterns."
+  },
+  {
+    "id": "demo-mdraid",
+    "source_id": "linux-mdraid",
+    "title": "Linux mdraid Tradeoffs",
+    "url": "/resources/linux-mdraid.html",
+    "section_path": "RAID Levels",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "raid",
+      "mdraid",
+      "mdadm",
+      "storage",
+      "redundancy"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Linux mdraid, usually managed with mdadm, is the common software RAID path for servers. RAID 0 favors throughput, RAID 1 mirrors for protection, RAID 5 and 6 add parity-based resilience, and RAID 10 balances mirrored protection with stronger performance at higher disk cost."
+  },
+  {
+    "id": "demo-docker-buildkit",
+    "source_id": "docker-build-cicd",
+    "title": "Docker Build And CI",
+    "url": "/resources/docker-build-cicd.html",
+    "section_path": "Build Pipelines",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "docker",
+      "buildkit",
+      "ci/cd",
+      "containers",
+      "registry"
+    ],
+    "updated_at": "2026-03-16",
+    "content": "Docker Build and BuildKit support repeatable image builds with caching and automation, while CI pipelines can test, build, and publish those images to a registry. For AI deployments, that is the operational path from model-serving code to a reusable deployment artifact."
+  },
+  {
+    "id": "demo-megatron-parallelism-strategy",
+    "source_id": "megatron-core",
+    "title": "Parallelism Strategies Guide",
+    "url": "https://docs.nvidia.com/megatron-core/user-guide/latest/api-guide/distributed_checkpointing.html",
+    "section_path": "Parallelism Strategies Guide > Choosing a Parallelism Strategy",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "product_tags": [
+      "llm",
+      "distributed-training",
+      "parallelism",
+      "tensor-parallelism",
+      "pipeline-parallelism"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "Choosing a Parallelism Strategy for Large Model Training. When selecting a parallelism strategy for a large model in Megatron-Core, you need to consider four primary dimensions: model size relative to GPU memory, communication topology, pipeline bubble overhead, and compute efficiency. Key factors to look at: (1) Model size vs. GPU memory: If the model does not fit in a single GPU, you must use tensor parallelism (TP) or pipeline parallelism (PP). A 70B parameter model at BF16 requires approximately 140 GB; a single H100 with 80 GB cannot hold it, requiring at minimum TP=2. (2) NVLink bandwidth availability: Tensor parallelism requires high-bandwidth all-reduce on every forward and backward pass. Use TP only within a single NVLink-connected node (typically TP<=8 for DGX systems). Across nodes, pipeline parallelism is more communication-efficient (point-to-point sends of activation tensors). (3) Pipeline bubble overhead: Pipeline parallelism introduces a bubble fraction of (p-1)/(m+p-1) where p is pipeline stages and m is micro-batches. Increase micro-batches to reduce bubble. Use interleaved pipeline schedule to halve it. (4) Data parallelism: Apply DP on top of TP and PP to fill all GPUs. DP is the most efficient form of parallelism when model fits per-TP-PP shard. Recommended starting configuration for 70B+ models: TP=8 (within node, NVLink), PP=number_of_nodes, DP=total_GPUs/(TP*PP)."
+  },
+  {
+    "id": "demo-megatron-tensor-parallelism",
+    "source_id": "megatron-core",
+    "title": "Parallelism Strategies Guide",
+    "url": "https://docs.nvidia.com/megatron-core/user-guide/latest/api-guide/distributed_checkpointing.html",
+    "section_path": "Parallelism Strategies Guide > Tensor Parallelism",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "product_tags": [
+      "llm",
+      "distributed-training",
+      "tensor-parallelism"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "Tensor Parallelism (TP) in Megatron-Core partitions individual weight matrices across multiple GPUs. For a transformer layer, the attention and MLP weight matrices are split column-wise across TP ranks, then row-wise for the output projection, requiring an all-reduce after each row-parallel GEMM. Communication cost per layer: 2 all-reduces per forward pass plus 2 per backward pass (4 total). When to use TP: model layers do not fit in a single GPU HBM, or GPUs are connected by NVLink (600 GB/s on DGX H100). TP degree should be a power of 2 and no more than GPUs per node (typically TP=4 or TP=8). When NOT to use high TP: if the model fits per GPU, prefer data parallelism instead. TP>8 spans InfiniBand, which is 10-50x slower than NVLink \u2014 performance degrades sharply. Configure via: --tensor-model-parallel-size N"
+  },
+  {
+    "id": "demo-megatron-pipeline-parallelism",
+    "source_id": "megatron-core",
+    "title": "Parallelism Strategies Guide",
+    "url": "https://docs.nvidia.com/megatron-core/user-guide/latest/api-guide/distributed_checkpointing.html",
+    "section_path": "Parallelism Strategies Guide > Pipeline Parallelism",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "product_tags": [
+      "llm",
+      "distributed-training",
+      "pipeline-parallelism"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "Pipeline Parallelism (PP) in Megatron-Core assigns consecutive transformer layers to different GPUs (pipeline stages). Each stage processes a micro-batch and passes activations to the next stage via point-to-point send/recv. Pipeline bubble: With naive pipeline, (p-1) micro-batches are needed to fill the pipeline, creating an idle bubble of (p-1)/(m+p-1) fraction of total compute time. Example: 4 pipeline stages, 8 micro-batches -> bubble = 27%. Interleaved pipeline schedule (1F1B) reduces bubble by 1/v factor with --num-layers-per-virtual-pipeline-stage v. When to use PP: model must span multiple nodes. PP handles inter-node sharding with small activation tensor transfers over InfiniBand. Memory: each PP stage holds 1/PP of model parameters. Use --recompute-granularity to trade compute for activation memory. Configure via: --pipeline-model-parallel-size N"
+  },
+  {
+    "id": "demo-megatron-3d-parallelism",
+    "source_id": "megatron-core",
+    "title": "Parallelism Strategies Guide",
+    "url": "https://docs.nvidia.com/megatron-core/user-guide/latest/api-guide/distributed_checkpointing.html",
+    "section_path": "Parallelism Strategies Guide > 3D Parallelism",
+    "doc_family": "advanced",
+    "doc_type": "html",
+    "product_tags": [
+      "llm",
+      "distributed-training",
+      "3d-parallelism"
+    ],
+    "updated_at": "2026-03-15",
+    "content": "3D Parallelism (TP+PP+DP) in Megatron-Core combines tensor, pipeline, and data parallelism for 100B+ parameter models across many nodes. Total GPU count = TP x PP x DP. Recommended strategy: maximize TP within a node using NVLink, use PP to span nodes over InfiniBand, use DP to replicate the TP+PP shard for throughput. Example: 70B model on 64 GPUs (8 nodes x 8 GPUs): TP=8 (within node), PP=4 (4 nodes per replica), DP=2 (2 replicas). Expert parallelism (EP) for MoE models distributes different experts across GPUs with all-to-all routing. Context parallelism (CP) for long-sequence training (>32K tokens) splits the sequence dimension with ring-attention communication."
+  },
+  {
+    "id": "dcgm-health-checks-pretrain-a1b2c3d4",
+    "source_id": "dcgm",
+    "title": "DCGM Health Checks Before Training Jobs",
+    "url": "https://docs.nvidia.com/datacenter/dcgm/latest/user-guide/index.html",
+    "section_path": "Health and Diagnostics / Pre-Job Checks",
+    "doc_family": "infrastructure",
+    "doc_type": "html",
+    "product_tags": [
+      "dcgm",
+      "health",
+      "diagnostics",
+      "monitoring",
+      "pre-training"
+    ],
+    "source_kind": "nvidia_docs",
+    "content": "DCGM Health Checks Before Large Training Jobs. Before launching a GPU training job, recommended checks: 1) Active Health Check: dcgmi health -g <group_id> --check stresses GPU memory and PCIe. 2) Memory Test: dcgmi diag -r 1 runs memtest to catch ECC errors; -r 3 for full burn-in. 3) NVLink/PCIe Bandwidth: dcgmi diag -r 2 tests fabric and PCIe throughput. 4) Thermal/Power: dcgmi dmon -e 150,155 checks temperature and power draw. 5) ECC Check: query uncorrected ECC errors before the job. Enable job stats with dcgmi stats --enable-pid before training to capture utilization, memory bandwidth, NVLink throughput, and power throughout the run. Integrate dcgmi health checks into Slurm prolog to auto-drain faulty nodes.",
+    "sparse_terms": [
+      "dcgm",
+      "dcgmi",
+      "health",
+      "health check",
+      "health checks",
+      "diagnostics",
+      "pre-training",
+      "pre-job",
+      "gpu",
+      "cluster",
+      "training",
+      "job",
+      "ecc",
+      "memory",
+      "nccl",
+      "pcie",
+      "nvlink",
+      "bandwidth",
+      "thermal",
+      "power",
+      "monitoring",
+      "burn-in",
+      "memtest",
+      "active health",
+      "slurm",
+      "prolog",
+      "epilog",
+      "job statistics"
+    ]
   }
 ]
-

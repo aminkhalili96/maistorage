@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import time
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -65,15 +66,41 @@ class Citation(BaseModel):
     chunk_id: str
     title: str
     url: str
+    citation_url: str
+    domain: str
     section_path: str
     snippet: str
     source_kind: str = "corpus"
+    source_id: str = ""
+    score: float | None = None
+    char_count: int | None = None
+    page: int | None = None
+
+
+class TraceEventType(str, Enum):
+    classification = "classification"
+    retrieval = "retrieval"
+    retrieve = "retrieve"
+    rerank = "rerank"
+    document_grading = "document_grading"
+    rewrite = "rewrite"
+    fallback = "fallback"
+    generation = "generation"
+    generation_error = "generation_error"
+    self_reflect = "self_reflect"
+    grounding_check = "grounding_check"
+    answer_quality_check = "answer_quality_check"
+    citation = "citation"
+    query_reformulation = "query_reformulation"
+    error = "error"
+    done = "done"
 
 
 class TraceEvent(BaseModel):
-    type: str
+    type: str  # kept as str for backwards compat; validated values in TraceEventType
     message: str
     payload: dict[str, Any] = Field(default_factory=dict)
+    timestamp: float = Field(default_factory=time.time)
 
 
 class QueryPlan(BaseModel):
@@ -101,6 +128,8 @@ class SearchDebugResponse(BaseModel):
 
 class AgentRunState(BaseModel):
     question: str
+    model_used: str
+    assistant_mode: str = "doc_rag"
     query_plan: QueryPlan | None = None
     rewritten_query: str | None = None
     retrieval_results: list[RetrieverResult] = Field(default_factory=list)
@@ -114,16 +143,18 @@ class AgentRunState(BaseModel):
     rejected_chunk_ids: list[str] = Field(default_factory=list)
     grounding_passed: bool = False
     answer_quality_passed: bool = False
+    generation_degraded: bool = False
 
 
 class ChatTurn(BaseModel):
-    role: str
+    role: Literal["user", "assistant"]
     content: str
 
 
 class ChatRequest(BaseModel):
     question: str
     history: list[ChatTurn] = Field(default_factory=list)
+    model: str | None = None
 
 
 class IngestRequest(BaseModel):

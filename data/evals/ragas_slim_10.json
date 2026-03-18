@@ -1,0 +1,234 @@
+[
+  {
+    "id": "agentic-001-why-is-4-gpu-training-scaling-poorly",
+    "question": "Why is 4-GPU training scaling poorly?",
+    "category": "distributed_multi_gpu",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "nccl",
+      "fabric-manager"
+    ],
+    "expected_terms": [
+      "communication",
+      "all-reduce",
+      "nvlink"
+    ],
+    "reference_answer": "Poor four-GPU scaling usually means communication overhead is dominating the training step. The core checks are collective efficiency in NCCL, the ratio between compute and synchronization, and whether NVLink or the discovered fabric topology is healthy enough to keep traffic off slower paths.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-008-why-can-gpu-utilization-be-high-while-training-t",
+    "question": "Why can GPU utilization be high while training throughput stays low?",
+    "category": "training_optimization",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "dl-performance",
+      "gpudirect-storage"
+    ],
+    "expected_terms": [
+      "memory-bound",
+      "input pipeline",
+      "launch overhead"
+    ],
+    "reference_answer": "High utilization does not guarantee high throughput because the GPU can still be memory-bound or stalled by launch overhead, communication, or a slow input pipeline. The correct diagnosis is to separate compute limits from memory and data-delivery bottlenecks.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-018-for-a-client-fine-tuning-a-7b-model-on-prem-what",
+    "question": "For a client fine-tuning a 7B model on-prem, what hardware should we consider?",
+    "category": "hardware_topology",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "h100",
+      "a100",
+      "l40s"
+    ],
+    "expected_terms": [
+      "throughput",
+      "budget",
+      "multi-gpu"
+    ],
+    "reference_answer": "Hardware selection should balance training throughput, memory headroom, deployment flexibility, and budget. H100 favors large-scale training throughput, A100 remains a strong mature-platform option, and L40S is attractive when mixed-use deployment flexibility matters more.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-032-when-should-i-use-an-hpc-scheduler-like-slurm-ve",
+    "question": "When should I use an HPC scheduler like Slurm versus Kubernetes for AI workloads?",
+    "category": "cluster_operations",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "infra-cluster-ops",
+      "gpu-operator",
+      "slurm-workload-manager"
+    ],
+    "expected_terms": [
+      "slurm",
+      "kubernetes",
+      "batch",
+      "cluster"
+    ],
+    "reference_answer": "Use Slurm-style scheduling when the cluster is optimized for queued batch jobs and reserved compute resources. Use Kubernetes when the platform also needs repeatable container-native deployment, operators, and service-oriented cluster workflows.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-034-when-is-s3-compatible-object-storage-useful-for-",
+    "question": "When is S3-compatible object storage useful for AI datasets and checkpoints?",
+    "category": "storage_data_path",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "infra-storage",
+      "minio-object-storage"
+    ],
+    "expected_terms": [
+      "s3",
+      "object storage",
+      "datasets",
+      "checkpoints"
+    ],
+    "reference_answer": "S3-compatible object storage is useful for large datasets, checkpoints, and model artifacts when the platform needs durable shared storage that integrates with data lake style workflows. It is a good fit for scalable artifact management rather than only local disk usage.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-036-why-do-ci-cd-pipelines-matter-for-model-deployme",
+    "question": "Why do CI/CD pipelines matter for model deployment and MLOps?",
+    "category": "mlops_delivery",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "infra-mlops",
+      "docker-build-cicd"
+    ],
+    "expected_terms": [
+      "ci/cd",
+      "tests",
+      "promotion gates",
+      "deployment"
+    ],
+    "reference_answer": "CI/CD pipelines matter because model deployment needs automated builds, tests, promotion gates, registry publishing, and controlled rollouts. In MLOps, CI/CD is what turns an experimental model artifact into a repeatable deployment process.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-043-describe-the-end-to-end-pipeline-from-training-a",
+    "question": "Describe the end-to-end pipeline from training a model to serving it in production on an NVIDIA GPU cluster.",
+    "category": "inference_deployment",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "megatron-core",
+      "tensorrt",
+      "triton-inference-server",
+      "container-toolkit"
+    ],
+    "expected_terms": [
+      "training",
+      "export",
+      "optimization",
+      "TensorRT",
+      "Triton",
+      "container",
+      "deployment"
+    ],
+    "reference_answer": "The pipeline starts with distributed training using frameworks like Megatron-Core, followed by exporting the trained model to ONNX or TorchScript format. The exported model is then optimized with TensorRT for the target GPU (layer fusion, precision calibration, kernel tuning). The optimized engine is deployed to Triton Inference Server with a configured model repository, dynamic batching, and health monitoring. The entire stack runs in NGC containers managed by the NVIDIA Container Toolkit for GPU access.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-012-what-nvidia-stack-is-needed-to-deploy-training-w",
+    "question": "What NVIDIA stack is needed to deploy training workloads on Linux?",
+    "category": "deployment_runtime",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "corpus-backed",
+    "expected_sources": [
+      "cuda-install",
+      "container-toolkit"
+    ],
+    "expected_terms": [
+      "driver",
+      "cuda",
+      "container runtime"
+    ],
+    "reference_answer": "A standard Linux deployment path starts with a validated GPU driver, a compatible CUDA toolkit, and container runtime support when workloads run in containers. Version alignment across operating system, driver, CUDA, and libraries is a critical runtime requirement.",
+    "expected_tool_path": [
+      "nvidia_docs"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-051-what-is-nvidia",
+    "question": "What is NVIDIA?",
+    "category": "direct_chat",
+    "assistant_mode_expected": "direct_chat",
+    "response_mode_expected": "direct-chat",
+    "expected_sources": [],
+    "expected_terms": [
+      "technology company",
+      "gpu",
+      "ai"
+    ],
+    "reference_answer": "NVIDIA is a technology company best known for GPUs and accelerated computing products used in gaming, AI, and data center systems.",
+    "expected_tool_path": [
+      "direct_chat"
+    ],
+    "max_retries": 0,
+    "should_require_citations": false,
+    "should_use_fallback": false
+  },
+  {
+    "id": "agentic-054-what-changed-in-the-latest-cuda-release-this-wee",
+    "question": "What changed in the latest CUDA release this week?",
+    "category": "recency_fallback",
+    "assistant_mode_expected": "doc_rag",
+    "response_mode_expected": "web-backed",
+    "expected_sources": [],
+    "expected_terms": [],
+    "reference_answer": "A grounded answer should treat this as a recency-sensitive question that requires an external current source or should refuse if controlled fallback is unavailable.",
+    "expected_tool_path": [
+      "nvidia_docs",
+      "web_search"
+    ],
+    "max_retries": 2,
+    "should_require_citations": true,
+    "should_use_fallback": true
+  }
+]

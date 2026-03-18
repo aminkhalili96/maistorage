@@ -23,7 +23,8 @@ Build an assessment-ready agentic RAG assistant for NVIDIA AI infrastructure and
   - allows demo corpus bootstrap if the offline bundle is absent
   - intended for quick local iteration
 - `APP_MODE=assessment`
-  - requires `gemini-3.1-pro-preview`
+  - defaults to `gemini-2.5-flash` for app generation
+  - uses `gemini-3.1-pro-preview` only as the preferred live RAGAS judge when quota allows
   - requires `gemini-embedding-001`
   - requires `RETRIEVAL_DOCUMENT` and `RETRIEVAL_QUERY`
   - requires Pinecone configuration
@@ -118,15 +119,17 @@ For live assessment-mode validation in this workspace:
 
 ### Agent graph
 
-1. classify
-2. retrieve
+1. classify (+ optional query decomposition into sub-questions)
+2. retrieve (per sub-question if decomposed, then merge)
 3. document grading
-4. rewrite if needed
-5. fallback if needed
+4. rewrite if needed (LLM-powered, falls back to static expansion)
+5. fallback if needed (Tavily)
 6. generate
-7. grounding check
-8. answer quality check
-9. retry or finish
+7. self_reflect (Self-RAG: LLM scores relevance/groundedness/completeness 1-5)
+8. grounding check (citation markers + LLM hedging phrase detection)
+9. answer quality check
+10. post_generation_fallback (Tavily, if quality failed and Tavily not yet tried)
+11. retry or finish
 
 ### Retrieval policy
 
@@ -149,13 +152,19 @@ For live assessment-mode validation in this workspace:
 | Traditional RAG | Agentic RAG in this project |
 | --- | --- |
 | single retrieval pass | multi-step graph with retries |
-| fixed top-k | dynamic top-k by query class |
+| fixed top-k | adaptive top-k and confidence floor by query complexity |
 | no document vetting | document grading before synthesis |
-| no query rewrite | rewrite on low-confidence retrieval |
-| no explicit fallback policy | Tavily only on insufficient corpus evidence |
-| opaque answer generation | visible trace for classification, retrieval, grading, rewrite, grounding, answer quality |
+| no query rewrite | LLM-powered rewrite on low-confidence retrieval |
+| no explicit fallback policy | Tavily only on insufficient corpus evidence (proper LangGraph node) |
+| no self-evaluation | Self-RAG reflection node scores answer quality before grounding check |
+| opaque answer generation | visible trace for classification, retrieval, grading, rewrite, self-reflect, grounding, answer quality |
+| all events at end | progressive SSE streaming — trace events appear as each stage completes |
+| single question only | optional query decomposition for multi-part questions |
+| no caching | optional semantic cache for repeated queries |
 
 ## Trust Model
+
+The system implements a 4-layer answer mode hierarchy:
 
 - `corpus-backed`
   - answer stayed within the offline NVIDIA corpus
@@ -163,8 +172,22 @@ For live assessment-mode validation in this workspace:
 - `web-backed`
   - answer needed controlled Tavily fallback because the question was time-sensitive or out of corpus
   - should be labeled clearly and treated differently from corpus answers
+- `llm-knowledge`
+  - corpus and Tavily both exhausted, or question is a general AI/ML concept not specific to NVIDIA
+  - Gemini answers from its own general knowledge
+  - labeled with a purple badge in the UI to indicate the answer is not corpus- or web-grounded
 - `insufficient-evidence`
-  - the system refused to guess because it could not find grounded evidence
+  - the system refused to guess because it could not find grounded evidence after all layers were tried
+  - last resort; avoids hallucination
+
+**4-layer fallback architecture:**
+
+1. Corpus retrieval → grade → rewrite (up to 1x, LLM-powered) → generate → self-reflect → grounding/quality check
+2. Post-generation Tavily: if quality fails and Tavily has not yet been tried → retry with web results → `web-backed` (implemented as `post_generation_fallback` LangGraph node)
+3. LLM general knowledge: if all retrieval layers are exhausted → Gemini answers from its own knowledge → `llm-knowledge`
+4. Refusal: if the answer cannot be grounded at any layer → `insufficient-evidence`
+
+**Multi-turn query contextualization:** short follow-up questions (≤8 tokens) or questions starting with reference pronouns ("it", "this", "that", "why", "how", etc.) are automatically expanded by prepending the prior user turn to the retrieval query, so the corpus search has enough context to find relevant chunks even when the follow-up is implicit (e.g., "What about latency?" after a question about NVLink).
 
 Trust signals exposed in the UI:
 
@@ -182,7 +205,7 @@ Trust signals exposed in the UI:
 | Offline corpus snapshot | live crawl only | reproducible and safe for an interview demo |
 | Pinecone in assessment mode | in-memory only | closer to enterprise deployment and scalable indexing |
 | Agentic retrieval | one-shot RAG | better observability, control, and failure handling |
-| `gemini-3.1-pro-preview` + `gemini-embedding-001` | older Gemini models or local embeddings | strong reasoning with a stable retrieval embedding path |
+| `gemini-2.5-flash` + `gemini-embedding-001` | heavier Gemini models or local embeddings | better quota resilience for a live demo while preserving the same retrieval embedding path |
 | Controlled Tavily fallback | corpus-only or always-on web search | keeps the main story corpus-grounded while still handling recency |
 
 ## MaiStorage Business Framing
@@ -337,10 +360,53 @@ The full interview script and wording live in [interview-demo-playbook.md](/User
 - RAGAS still depends on runtime credentials and optional packages.
 - Docker is included as a hardening step, but the main focus remains the assessment workflow.
 
+## Completed Improvements (Post-Initial Build)
+
+### Plan A — Correctness & Hardening
+- Structured logging across `agent.py`, `retrieval.py`, `indexes.py`
+- Robust error handling: Tavily, Pinecone, index search all degrade gracefully
+- Thread-safe `get_services()` singleton (double-checked locking)
+- Expanded classification terms and adaptive retrieval parameters
+- `RerankConfig` dataclass for tunable reranking weights
+- Follow-up contextualization threshold raised to 8 tokens + pronoun detection
+- Comprehensive test coverage: agent flow gaps, classification coverage, API error handling, chunking
+
+### Plan A — UI Improvements
+- Clickable inline `[N]` citation references scroll to citation card
+- Conversation persistence via `localStorage` with "New chat" button
+- Copy-to-clipboard on every assistant message
+- Confidence percentage and `generation_degraded` warning in MetaBar
+- Thumbs up/down feedback buttons with `localStorage` persistence
+- Mobile-responsive layout
+- Error recovery "Retry" button
+
+### Plan B — Architecture Upgrades
+- `post_generation_fallback` LangGraph node (graph/non-graph parity)
+- LLM-powered query rewriting with static expansion fallback
+- Token-overlap citation enforcement in `_ensure_citations()`
+- LLM hedging phrase detection in `_grounding_check()`
+- `SemanticCache` with cosine similarity, LRU eviction, thread safety
+- `self_reflect` LangGraph node (Self-RAG scoring)
+- Progressive SSE streaming via `asyncio.Queue`
+- Query decomposition for multi-part questions
+
 ## Roadmap
 
-- cache repeated retrieval plans and repeated demo queries
-- parallelize or simplify validation calls to reduce latency
 - expand the golden benchmark set and keep refresh evaluation gated
 - promote only candidate indices that preserve retrieval quality
 - add live observability with LangSmith once runtime credentials are configured
+- parallelize sub-question retrieval in query decomposition
+- add streaming generation (token-by-token) when Gemini streaming API is available
+
+## Production Roadmap
+
+| Layer | What it would look like |
+|-------|------------------------|
+| Corpus refresh | Scheduled crawler checks source hashes weekly; only re-chunks changed docs; diff-based upsert to Pinecone |
+| Index promotion | New candidate index runs full retrieval benchmark + RAGAS before replacing prod namespace; rollback if metrics regress |
+| Observability | LangSmith traces all agent runs; dashboards for latency, fallback rate, grounding pass rate per query class |
+| Multi-tenancy | One Pinecone namespace per customer corpus; embedder and index config per-namespace; same agent graph |
+| Latency | Cache repeated retrieval plans (question hash → plan); stream generation starts before validation |
+| Confidence calibration | Replace binary pass/fail grounding with a 0–1 score; surface to UI as a confidence meter |
+
+**Multi-turn contextualization:** the system already handles short follow-up questions (≤8 tokens) or questions starting with reference pronouns ("it", "this", "that", "why", "how", etc.) by prepending the prior user turn to the retrieval query. In production this would be extended to maintain a sliding context window of the conversation to support richer multi-turn sessions.

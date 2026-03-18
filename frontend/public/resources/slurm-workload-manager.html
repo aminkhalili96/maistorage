@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Notes: Slurm Workload Manager</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 40px auto; max-width: 860px; line-height: 1.7; color: #1f2937; padding: 0 24px; }
+      h1, h2 { color: #111827; }
+      code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+      .meta { color: #6b7280; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>Slurm Workload Manager</h1>
+    <p class="meta">Offline notes derived from official Slurm documentation.</p>
+    <p>Slurm is a cluster workload manager designed for queued batch work. It allocates nodes, CPUs, memory, and GPUs to jobs, then launches the job steps that run inside those allocations. In AI clusters, it is a strong fit when teams want scheduled training jobs, reservations, partitions, and clear accounting for shared HPC resources.</p>
+    <p>In practice, users submit jobs with tools like <code>sbatch</code>, inspect queues with <code>squeue</code>, and launch parallel work with <code>srun</code>. Slurm is usually preferred when the main goal is controlled multi-node batch execution rather than always-on service orchestration.</p>
+    <h2>Why It Matters For AI Infrastructure</h2>
+    <p>Slurm aligns well with large training runs because it emphasizes predictable scheduling, job isolation, and cluster-level reservations. Compared with Kubernetes, it is often simpler when the environment is primarily a compute farm for queued training and simulation jobs.</p>
+    <h2>Primary References</h2>
+    <ul>
+      <li><a href="https://slurm.schedmd.com/overview.html">Slurm Overview</a></li>
+      <li><a href="https://slurm.schedmd.com/quickstart_admin.html">Slurm Quick Start Administrator Guide</a></li>
+      <li><a href="https://slurm.schedmd.com/sbatch.html">sbatch</a></li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Notes: Docker Build And CI</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 40px auto; max-width: 860px; line-height: 1.7; color: #1f2937; padding: 0 24px; }
+      h1, h2 { color: #111827; }
+      .meta { color: #6b7280; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>Docker Build And CI/CD</h1>
+    <p class="meta">Offline notes derived from official Docker documentation.</p>
+    <p>Docker provides a repeatable container build workflow that packages application code and runtime dependencies into an image. In AI systems, that matters because user-space libraries, serving stacks, and operational dependencies need to move predictably between development, test, and production environments.</p>
+    <p>Docker Build and BuildKit support layered builds, caching, and automated image creation, while CI pipelines can run tests, build images, and push them to a registry. In practice, AI delivery pipelines depend on this to turn model-serving code and container configuration into a repeatable deployment artifact.</p>
+    <h2>Why It Matters For AI Infrastructure</h2>
+    <p>Container builds and CI/CD reduce environment drift and make deployment repeatable. They are especially important when teams need promotion gates, image reproducibility, and controlled rollout of new serving versions.</p>
+    <h2>Primary References</h2>
+    <ul>
+      <li><a href="https://docs.docker.com/build/">Docker Build</a></li>
+      <li><a href="https://docs.docker.com/build/ci/github-actions/">Build and push Docker images with GitHub Actions</a></li>
+    </ul>
+  </body>
+</html>

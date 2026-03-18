@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Notes: BeeGFS</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 40px auto; max-width: 860px; line-height: 1.7; color: #1f2937; padding: 0 24px; }
+      h1, h2 { color: #111827; }
+      .meta { color: #6b7280; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>BeeGFS Parallel File System</h1>
+    <p class="meta">Offline notes derived from official BeeGFS documentation.</p>
+    <p>BeeGFS is a parallel file system built for high-throughput cluster storage. It separates metadata services from storage services and allows file contents to be striped across servers so many clients can read or write concurrently.</p>
+    <p>For AI workloads, BeeGFS is useful when many workers need a shared namespace with high aggregate bandwidth. It is stronger than simple local disks or a single NAS appliance when dataset readers and checkpoint writers must scale across many nodes.</p>
+    <h2>Why It Matters For AI Infrastructure</h2>
+    <p>When data loading stalls GPUs, the storage path can become the bottleneck. A parallel file system like BeeGFS helps when the problem is not just capacity, but shared bandwidth and concurrent access patterns across multiple training workers.</p>
+    <h2>Primary References</h2>
+    <ul>
+      <li><a href="https://doc.beegfs.io/latest/architecture/overview.html">BeeGFS Architecture Overview</a></li>
+      <li><a href="https://doc.beegfs.io/latest/introduction.html">BeeGFS Introduction</a></li>
+    </ul>
+  </body>
+</html>

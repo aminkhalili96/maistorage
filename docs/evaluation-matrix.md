@@ -10,10 +10,13 @@
 | RAGAS | answer relevancy | above agreed threshold | What NVIDIA stack is needed for deployment? | checks whether the answer addresses the question |
 | RAGAS | context precision | above agreed threshold | Why is 4-GPU training scaling poorly? | penalizes noisy retrieval |
 | RAGAS | context recall | above agreed threshold | What hardware should I consider for a 7B fine-tune? | validates evidence coverage |
-| Citations | support check | every factual paragraph has supporting citations | Any demo answer | required for Q1 bonus point |
-| Workflow | rewrite gating | rewrite only on low-confidence retrieval | Low-evidence distributed question | shows agentic control, not random retries |
-| Workflow | fallback gating | Tavily only on insufficiency or recency | latest driver/runtime question | keeps the corpus-backed story clean |
+| Citations | token-overlap support check | every factual paragraph has citations with ≥2 overlapping tokens | Any demo answer | required for Q1 bonus point; prevents mechanical force-adding |
+| Workflow | rewrite gating | rewrite only on low-confidence retrieval; LLM rewrite attempted first | Low-evidence distributed question | shows agentic control, not random retries |
+| Workflow | fallback gating | Tavily only on insufficiency or recency; `post_generation_fallback` node | latest driver/runtime question | keeps the corpus-backed story clean |
 | Workflow | retry limit | never exceeds configured retry count | low-evidence question | protects cost and latency |
+| Workflow | self-reflect | Self-RAG scores ≥3 on groundedness | Any corpus-backed answer | catches hallucinations before grounding check |
+| Workflow | grounding hedging | answer with "I believe" / "based on my knowledge" fails grounding | Any hedged answer | prevents LLM hedging from passing as grounded |
+| Workflow | progressive streaming | trace events arrive as each node completes, not all at end | any live chat run | polished demo experience |
 | Refresh | hash-based change detection | only changed sources are rebuilt | any source refresh | supports freshness without full rebuild |
 | Regression | benchmark stability | retrieval quality does not regress after refresh | full golden set | prevents silent quality drops |
 | Non-functional | streaming order | SSE events arrive in the intended order | any live chat run | required for a polished demo |
@@ -48,12 +51,35 @@ Use these as the release-style framing in the presentation:
 - Trust:
   - the live demo prompts surfaced citations, grounding status, answer-quality status, and rejected chunk counts
   - demo-query validation recorded citations, grounding pass, and answer-quality pass on all 4 rehearsed queries
+- Trajectory:
+  - the benchmark target is now a unified 50-question file:
+    - 46 corpus-backed doc/RAG questions
+    - 2 direct-chat routing questions
+    - 1 refusal case
+    - 1 recency-sensitive fallback case
+  - the trajectory artifact reports:
+    - assistant-mode accuracy
+    - response-mode accuracy
+    - tool-path accuracy
+    - retry-budget pass rate
+    - fallback correctness
 - RAGAS:
+  - the RAGAS dataset now targets the 46-question corpus-backed authored-reference subset of the unified benchmark
+  - release-style thresholds:
+    - `faithfulness >= 0.80`
+    - `answer_relevancy >= 0.55`
+    - `context_precision >= 0.75`
+    - `context_recall >= 0.70`
   - `faithfulness = 0.9103`
   - `answer_relevancy = 0.3804`
   - `context_precision = 0.8667`
   - `context_recall = 0.8`
-  - authored reference answers materially improved grounding coverage, but answer relevancy remains the weakest metric
+  - authored reference answers materially improved grounding coverage, but answer relevancy remains the weakest metric and still needs improvement
+  - the judge now defaults to `gemini-3.1-pro-preview`
+  - row generation now falls back to the local deterministic benchmark stack when live embedding calls are rate-limited
+  - the current remaining live blocker is Gemini 3.1 Pro judge quota itself, documented in:
+    - [20260316-043200](/Users/amin/dev/maistorage/data/evals/results/20260316-043200)
+  - a dedicated Gemini 3.1 Pro trajectory-and-answer judge path is now implemented and intentionally skips cleanly when credentials, flags, or quota are unavailable
 - Embedding models:
   - 3 real models were compared:
     - `gemini-embedding-001`

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Notes: MinIO / S3-Compatible Object Storage</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 40px auto; max-width: 860px; line-height: 1.7; color: #1f2937; padding: 0 24px; }
+      h1, h2 { color: #111827; }
+      .meta { color: #6b7280; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>MinIO And S3-Compatible Object Storage</h1>
+    <p class="meta">Offline notes derived from official MinIO documentation.</p>
+    <p>MinIO is an S3-compatible object storage platform often used for AI datasets, checkpoints, and model artifacts. It is valuable when the platform needs durable shared object storage, API compatibility with S3 tooling, and integration with data lake style workflows.</p>
+    <p>For AI infrastructure, object storage is usually a better fit for large datasets and artifacts than for latency-sensitive small-file metadata workloads. Teams often pair it with faster local or parallel file system storage depending on the data-access pattern.</p>
+    <h2>Why It Matters For AI Infrastructure</h2>
+    <p>Object storage is a strong choice when datasets, checkpoints, and model artifacts need durable shared storage that scales independently from compute. It complements local or parallel file systems rather than replacing every storage path in a training cluster.</p>
+    <h2>Primary References</h2>
+    <ul>
+      <li><a href="https://docs.min.io/enterprise/aistor-object-store/">AIStor Object Store</a></li>
+      <li><a href="https://docs.min.io/community/minio-object-store/administration/scaling/">MinIO Scaling</a></li>
+    </ul>
+  </body>
+</html>

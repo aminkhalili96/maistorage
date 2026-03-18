@@ -18,3 +18,22 @@ data/cache/
 data/evals/cache/
 data/ingestion/
 scripts/__pycache__/
+
+# Logs
+backend/logs/
+backend/backend_logs.txt
+frontend/frontend_logs.txt
+
+# Playwright
+.playwright-cli/
+.playwright-mcp/
+
+# Eval results (generated artifacts)
+data/evals/results/
+
+# Personal / working docs
+docs/PROJECT-TRACKER.md
+docs/presentation-brief.md
+
+# Screenshots
+Screenshot*.png

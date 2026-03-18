@@ -1,0 +1,37 @@
+[
+  {
+    "question": "When would Slurm be a better fit than Kubernetes for AI training clusters?",
+    "expected_sources": ["slurm-workload-manager", "infra-cluster-ops"],
+    "expected_terms": ["slurm", "batch", "queued", "reservations"]
+  },
+  {
+    "question": "Which Kubernetes workload primitives matter for AI infrastructure components?",
+    "expected_sources": ["kubernetes-workloads", "gpu-operator"],
+    "expected_terms": ["deployments", "daemonsets", "jobs", "statefulsets"]
+  },
+  {
+    "question": "Why would an AI platform choose BeeGFS for shared training data?",
+    "expected_sources": ["beegfs", "infra-storage"],
+    "expected_terms": ["beegfs", "parallel file system", "shared namespace", "bandwidth"]
+  },
+  {
+    "question": "What does Lustre add for large training clusters?",
+    "expected_sources": ["lustre", "infra-storage"],
+    "expected_terms": ["lustre", "parallel", "shared", "throughput"]
+  },
+  {
+    "question": "When is MinIO or S3-compatible object storage a good fit for AI datasets and checkpoints?",
+    "expected_sources": ["minio-object-storage", "infra-storage"],
+    "expected_terms": ["s3", "object storage", "datasets", "checkpoints"]
+  },
+  {
+    "question": "How should I think about Linux mdraid and RAID levels on AI servers?",
+    "expected_sources": ["linux-mdraid", "infra-storage"],
+    "expected_terms": ["mdraid", "raid 0", "raid 1", "raid 10"]
+  },
+  {
+    "question": "How do Docker build pipelines support CI/CD for AI model deployment?",
+    "expected_sources": ["docker-build-cicd", "infra-mlops"],
+    "expected_terms": ["docker", "buildkit", "ci", "registry"]
+  }
+]

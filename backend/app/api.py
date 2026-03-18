@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, BackgroundTasks
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.corpus import group_sources_by_family
@@ -12,9 +14,16 @@ router = APIRouter()
 
 
 @router.get("/health")
-def health() -> dict[str, str]:
-    settings = get_services().settings
-    return {"status": "ok", "mode": settings.app_mode}
+def health() -> dict[str, Any]:
+    services = get_services()
+    s = services.settings
+    chunk_count = services.index.count()
+    return {
+        "status": "ok" if chunk_count > 0 else "degraded",
+        "mode": s.app_mode,
+        "corpus_loaded": chunk_count > 0,
+        "indexed_chunks": chunk_count,
+    }
 
 
 @router.get("/api/sources")
@@ -63,5 +72,13 @@ def eval_ragas():
 
 @router.post("/api/chat/stream")
 async def chat_stream(request: ChatRequest):
+    if len(request.question) > 2000:
+        raise HTTPException(status_code=400, detail="Question exceeds maximum length of 2000 characters.")
+    if len(request.history) > 20:
+        raise HTTPException(status_code=400, detail="Conversation history exceeds maximum of 20 turns.")
+    if any(len(turn.content) > 5000 for turn in request.history):
+        raise HTTPException(status_code=400, detail="A history message exceeds maximum length of 5000 characters.")
     services = get_services()
+    if request.model and request.model not in services.settings.openai_allowed_models:
+        raise HTTPException(status_code=400, detail="Unsupported model.")
     return StreamingResponse(services.agent.stream(request), media_type="text/event-stream")

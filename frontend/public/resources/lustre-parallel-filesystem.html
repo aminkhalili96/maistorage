@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Notes: Lustre</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 40px auto; max-width: 860px; line-height: 1.7; color: #1f2937; padding: 0 24px; }
+      h1, h2 { color: #111827; }
+      .meta { color: #6b7280; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>Lustre Parallel File System</h1>
+    <p class="meta">Offline notes derived from official Lustre documentation.</p>
+    <p>Lustre is a parallel distributed file system designed for clusters that need a shared POSIX-style namespace at scale. It separates metadata handling from object storage targets and allows clients to access storage servers directly for high aggregate throughput.</p>
+    <p>In AI environments, Lustre is a fit when many training processes need the same dataset view and the platform needs strong shared-read bandwidth. It is frequently discussed for HPC and large-scale training clusters where local disks are insufficient for shared data access.</p>
+    <h2>Why It Matters For AI Infrastructure</h2>
+    <p>Lustre matters when the challenge is coordinating shared data access at cluster scale. It is especially relevant when training jobs span many nodes and the data path must support both a shared namespace and high parallel throughput.</p>
+    <h2>Primary References</h2>
+    <ul>
+      <li><a href="https://wiki.lustre.org/Understanding_Lustre_Internals">Understanding Lustre Internals</a></li>
+      <li><a href="https://wiki.lustre.org/Lustre_Architecture">Lustre Architecture</a></li>
+    </ul>
+  </body>
+</html>

@@ -3,35 +3,210 @@
     "question": "Why is 4-GPU training scaling poorly?",
     "query_class": "distributed_multi_gpu",
     "expected_sources": ["nccl", "fabric-manager"],
-    "expected_terms": ["all-reduce", "communication", "nvlink"],
-    "reference_answer": "Multi-GPU scaling usually degrades when communication overhead starts to dominate each step. The first things to check are the all-reduce pattern, the interconnect and topology between GPUs, and whether NCCL or the fabric is forcing traffic onto a slower path than expected."
+    "expected_terms": ["communication", "all-reduce", "nvlink"],
+    "reference_answer": "Poor four-GPU scaling usually means communication overhead is dominating the training step. The core checks are collective efficiency in NCCL, the ratio between compute and synchronization, and whether NVLink or the discovered fabric topology is healthy enough to keep traffic off slower paths."
+  },
+  {
+    "question": "What makes collective communication overhead hurt multi-GPU scaling?",
+    "query_class": "distributed_multi_gpu",
+    "expected_sources": ["nccl"],
+    "expected_terms": ["collective", "all-reduce", "synchronization"],
+    "reference_answer": "Collective communication hurts scaling when synchronization time grows faster than useful compute. As GPU count rises, the all-reduce path, topology, and the balance between computation and communication become the primary limiters."
+  },
+  {
+    "question": "How do NVLink and NVSwitch affect tightly coupled multi-GPU workloads?",
+    "query_class": "distributed_multi_gpu",
+    "expected_sources": ["fabric-manager"],
+    "expected_terms": ["nvlink", "nvswitch", "topology"],
+    "reference_answer": "NVLink and NVSwitch reduce communication bottlenecks for tightly coupled multi-GPU jobs, but only when the fabric is configured correctly and topology discovery is healthy. Misconfiguration or degraded fabric management can still limit scaling."
+  },
+  {
+    "question": "Why can fabric management issues degrade scaling even when kernels are efficient?",
+    "query_class": "distributed_multi_gpu",
+    "expected_sources": ["fabric-manager"],
+    "expected_terms": ["fabric", "drivers", "topology"],
+    "reference_answer": "Efficient compute kernels are not enough if the NVLink or NVSwitch fabric is unhealthy. Fabric management problems, incompatible drivers, or poor topology discovery can force a slower communication path and reduce scaling."
+  },
+  {
+    "question": "Why does the ratio between compute work and synchronization matter as GPU count increases?",
+    "query_class": "distributed_multi_gpu",
+    "expected_sources": ["nccl"],
+    "expected_terms": ["compute", "synchronization", "communication"],
+    "reference_answer": "As GPU count increases, fixed communication costs are paid more often and can dominate each step if compute per synchronization is too small. Strong scaling works best when there is enough compute work to amortize collective costs."
   },
   {
     "question": "When should I use mixed precision training?",
     "query_class": "training_optimization",
     "expected_sources": ["dl-performance"],
     "expected_terms": ["tensor cores", "loss scaling", "bf16"],
-    "reference_answer": "Use mixed precision when the model and hardware can benefit from Tensor Core math without sacrificing convergence. The common pattern is FP16 or BF16 for most compute, while keeping numerically sensitive values in higher precision and using loss scaling when FP16 underflow is a risk."
+    "reference_answer": "Use mixed precision when the workload has enough matrix math to benefit from Tensor Cores and the model can tolerate lower precision with appropriate safeguards. FP16 often needs loss scaling, while BF16 reduces some numerical risk with a similar throughput objective."
   },
   {
-    "question": "Why is GPU utilization high but throughput low?",
+    "question": "What is the main tradeoff when enabling mixed precision?",
+    "query_class": "training_optimization",
+    "expected_sources": ["dl-performance"],
+    "expected_terms": ["speed", "numerical stability", "bf16"],
+    "reference_answer": "The main tradeoff is speed versus numerical stability. Mixed precision can improve throughput, but numerically sensitive models may need BF16 or loss scaling to avoid instability."
+  },
+  {
+    "question": "Why can GPU utilization be high while training throughput stays low?",
     "query_class": "training_optimization",
     "expected_sources": ["dl-performance", "gpudirect-storage"],
     "expected_terms": ["memory-bound", "input pipeline", "launch overhead"],
-    "reference_answer": "High utilization does not guarantee high training throughput because the GPU can still be stalled on memory, launch overhead, or input delivery. A common diagnosis path is to check whether kernels are memory-bound, whether the input pipeline or storage path is starving the device, and whether launch and synchronization overhead are reducing useful work per step."
+    "reference_answer": "High utilization does not guarantee high throughput because the GPU can still be memory-bound or stalled by launch overhead, communication, or a slow input pipeline. The correct diagnosis is to separate compute limits from memory and data-delivery bottlenecks."
+  },
+  {
+    "question": "How do I tell whether a workload is compute-bound, memory-bound, or blocked outside the GPU?",
+    "query_class": "training_optimization",
+    "expected_sources": ["dl-performance"],
+    "expected_terms": ["compute-bound", "memory-bound", "launch overhead"],
+    "reference_answer": "Start by deciding whether the device is limited by arithmetic throughput, memory traffic, or something outside the GPU such as launch overhead or input delivery. That diagnosis determines whether you should optimize kernels, memory behavior, or the surrounding pipeline."
+  },
+  {
+    "question": "Why does insufficient data feeding make utilization look unstable?",
+    "query_class": "training_optimization",
+    "expected_sources": ["gpudirect-storage"],
+    "expected_terms": ["input pipeline", "throughput", "storage"],
+    "reference_answer": "If the input pipeline cannot feed the device fast enough, GPU utilization can oscillate while end-to-end throughput falls. Storage and loader design matter because data starvation can look like poor GPU efficiency even when the kernels themselves are fine."
+  },
+  {
+    "question": "Why does the storage path matter for training throughput on large datasets?",
+    "query_class": "training_optimization",
+    "expected_sources": ["gpudirect-storage"],
+    "expected_terms": ["storage", "throughput", "workers"],
+    "reference_answer": "The storage path matters because many workers can contend for data delivery, and if storage cannot keep up the whole training job slows down. On large datasets, input throughput becomes part of the end-to-end performance budget."
   },
   {
     "question": "What NVIDIA stack is needed to deploy training workloads on Linux?",
     "query_class": "deployment_runtime",
     "expected_sources": ["cuda-install", "container-toolkit"],
     "expected_terms": ["driver", "cuda", "container runtime"],
-    "reference_answer": "A minimal Linux training stack needs a compatible NVIDIA driver, the CUDA runtime or toolkit that matches that driver, and the NVIDIA container stack when workloads run in containers. In practice that means validating the host driver first, then installing CUDA user-space components and the NVIDIA Container Toolkit or operator path that exposes GPUs to the runtime."
+    "reference_answer": "A standard Linux deployment path starts with a validated GPU driver, a compatible CUDA toolkit, and container runtime support when workloads run in containers. Version alignment across operating system, driver, CUDA, and libraries is a critical runtime requirement."
+  },
+  {
+    "question": "Why are driver and CUDA mismatches a common source of runtime failure?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["cuda-install"],
+    "expected_terms": ["driver", "cuda", "version alignment"],
+    "reference_answer": "Driver and CUDA mismatches break runtime compatibility because user-space libraries and the host driver need to align. If the versions drift, workloads may fail even though the system appears to have all the right components installed."
+  },
+  {
+    "question": "What should a repeatable Linux GPU deployment path include?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["cuda-install", "container-toolkit"],
+    "expected_terms": ["validated gpu drivers", "cuda toolkit", "container runtime"],
+    "reference_answer": "A repeatable Linux deployment path includes validated GPU drivers, a compatible CUDA toolkit, and container runtime support when needed. The goal is to reduce drift and keep the operating system, driver, and libraries aligned."
+  },
+  {
+    "question": "What do GPU-enabled containers require on the host?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["container-toolkit"],
+    "expected_terms": ["host driver stack", "container runtime", "devices"],
+    "reference_answer": "GPU-enabled containers still need a host driver stack and the NVIDIA container runtime so they can access devices and libraries safely. Containers package user-space software, but the host remains responsible for exposing working GPU support."
+  },
+  {
+    "question": "Why does the NVIDIA container runtime matter for GPU workloads?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["container-toolkit"],
+    "expected_terms": ["access devices", "libraries", "repeatable"],
+    "reference_answer": "The NVIDIA container runtime is what safely exposes GPU devices and the necessary libraries into a containerized workload. It helps make deployments more repeatable and reduces environment drift across hosts and clusters."
+  },
+  {
+    "question": "Why can containerized AI stacks make cluster deployment more repeatable?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["container-toolkit"],
+    "expected_terms": ["environment drift", "repeatable", "containers"],
+    "reference_answer": "Containers reduce environment drift by packaging the user-space stack in a consistent way. With the host driver stack and NVIDIA runtime in place, that makes cluster deployment more repeatable than hand-built environments."
+  },
+  {
+    "question": "When should I use the GPU Operator on Kubernetes?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["gpu-operator"],
+    "expected_terms": ["kubernetes", "drivers", "device plugins"],
+    "reference_answer": "Use the GPU Operator when you need repeatable GPU cluster operations on Kubernetes instead of managing every node by hand. It is especially helpful when the platform needs to automate driver, device plugin, and supporting component deployment."
+  },
+  {
+    "question": "What does the GPU Operator simplify in a Kubernetes environment?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["gpu-operator"],
+    "expected_terms": ["drivers", "device plugins", "monitoring"],
+    "reference_answer": "The GPU Operator simplifies deployment of drivers, device plugins, monitoring, and related supporting components. It turns GPU enablement into a repeatable cluster operation instead of a host-by-host task."
+  },
+  {
+    "question": "Why is the GPU Operator better than manual host-by-host setup for clusters?",
+    "query_class": "deployment_runtime",
+    "expected_sources": ["gpu-operator"],
+    "expected_terms": ["repeatable", "cluster operations", "manual"],
+    "reference_answer": "The operator is better for clusters because it standardizes repeated GPU enablement tasks and reduces manual node-level work. That matters when the solution needs repeatable operations rather than one-off machine setup."
   },
   {
     "question": "For a client fine-tuning a 7B model on-prem, what hardware should we consider?",
     "query_class": "hardware_topology",
     "expected_sources": ["h100", "a100", "l40s"],
     "expected_terms": ["throughput", "budget", "multi-gpu"],
-    "reference_answer": "Hardware selection for a 7B fine-tune should balance memory headroom, throughput targets, and budget. H100-class systems are strongest when you need the highest training throughput or larger multi-GPU scaling, A100 remains a strong enterprise training option, and L40S can be attractive when cost and mixed training-inference usage matter more than peak large-scale training performance."
+    "reference_answer": "Hardware selection should balance training throughput, memory headroom, deployment flexibility, and budget. H100 favors large-scale training throughput, A100 remains a strong mature-platform option, and L40S is attractive when mixed-use deployment flexibility matters more."
+  },
+  {
+    "question": "When is an H100-class system the strongest fit?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["h100"],
+    "expected_terms": ["large-scale training throughput", "newer precision support", "dense multi-gpu"],
+    "reference_answer": "H100-class systems are strongest when the client prioritizes large-scale training throughput, newer precision support, and dense multi-GPU performance. The tradeoff is higher infrastructure cost and stronger power, cooling, and networking demands."
+  },
+  {
+    "question": "Why are H100-class systems attractive but expensive?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["h100"],
+    "expected_terms": ["higher infrastructure cost", "power", "cooling"],
+    "reference_answer": "H100 systems are attractive because they deliver very strong large-scale training throughput and modern precision support. They are expensive because the surrounding infrastructure requirements for power, cooling, and networking are correspondingly higher."
+  },
+  {
+    "question": "When is A100 still a reasonable platform choice?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["a100"],
+    "expected_terms": ["mature ecosystem", "strong performance", "budget"],
+    "reference_answer": "A100 remains a reasonable choice when the team wants strong performance and mature ecosystem support without moving immediately to the newest platform. Final selection still depends on workload scale, budget, and availability."
+  },
+  {
+    "question": "When is L40S more attractive than a pure large-scale training GPU?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["l40s"],
+    "expected_terms": ["inference", "visualization", "mixed-use"],
+    "reference_answer": "L40S is more attractive when the workload leans toward inference, visualization, or mixed-use acceleration instead of the most demanding large-scale training jobs. The key tradeoff is training throughput versus deployment flexibility."
+  },
+  {
+    "question": "How should I think about throughput versus deployment flexibility when comparing H100, A100, and L40S?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["h100", "a100", "l40s"],
+    "expected_terms": ["throughput", "deployment flexibility", "budget"],
+    "reference_answer": "Use H100 when peak large-scale training throughput is the main objective, A100 when you want strong established performance with a mature ecosystem, and L40S when flexibility for inference, visualization, or mixed-use deployment matters more than peak training speed."
+  },
+  {
+    "question": "Why does large-model training often need data, tensor, and pipeline parallelism together?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["megatron-core"],
+    "expected_terms": ["data", "tensor", "pipeline"],
+    "reference_answer": "Large models often exceed the memory and communication envelope of a single parallelism strategy. Combining data, tensor, and pipeline parallelism lets the system balance memory limits, model size, and communication cost across the cluster."
+  },
+  {
+    "question": "How do memory limits and communication cost shape large-model parallelism strategy?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["megatron-core"],
+    "expected_terms": ["memory limits", "communication cost", "parallelism"],
+    "reference_answer": "Parallelism strategy depends on memory limits and communication cost because both determine how the model can be partitioned efficiently. The best design minimizes unnecessary communication while fitting the model across the available devices."
+  },
+  {
+    "question": "What should I look at when choosing a parallelism strategy for a large model?",
+    "query_class": "hardware_topology",
+    "expected_sources": ["megatron-core"],
+    "expected_terms": ["model size", "memory limits", "communication cost"],
+    "reference_answer": "Look at model size, memory limits, communication cost, and the topology of the available system. Those factors determine whether data, tensor, pipeline, or a combination of them will be the most practical design."
+  },
+  {
+    "question": "Why do topology and collective performance matter in large-model training design?",
+    "query_class": "distributed_multi_gpu",
+    "expected_sources": ["megatron-core", "nccl"],
+    "expected_terms": ["topology", "collective performance", "communication cost"],
+    "reference_answer": "Topology and collective performance matter because large-model training relies on frequent communication across many devices. If the collective path is weak or the topology is poor, communication cost can dominate and undermine the chosen parallelism strategy."
   }
 ]

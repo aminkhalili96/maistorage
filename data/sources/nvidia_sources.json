@@ -30,17 +30,18 @@
   },
   {
     "id": "nccl",
-    "title": "NCCL Documentation",
-    "url": "https://docs.nvidia.com/deeplearning/nccl/",
+    "title": "NCCL Developer Guide",
+    "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html",
     "doc_family": "distributed",
     "doc_type": "html",
-    "crawl_prefix": "https://docs.nvidia.com/deeplearning/nccl/",
+    "crawl_prefix": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/",
+    "pdf_url": "https://docs.nvidia.com/deeplearning/nccl/archives/nccl_2212/pdf/NCCL-Developer-Guide.pdf",
     "product_tags": ["multi-gpu", "communication", "nccl"]
   },
   {
     "id": "nsight-compute",
     "title": "Nsight Compute Profiling Guide",
-    "url": "https://docs.nvidia.com/nsight-compute/2022.3/ProfilingGuide/index.html",
+    "url": "https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html",
     "doc_family": "core",
     "doc_type": "html",
     "crawl_prefix": "https://docs.nvidia.com/nsight-compute/",
@@ -50,10 +51,10 @@
   {
     "id": "cuda-install",
     "title": "CUDA Installation Guide for Linux",
-    "url": "https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html",
+    "url": "https://docs.nvidia.com/cuda/cuda-installation-guide-linux/",
     "doc_family": "infrastructure",
     "doc_type": "html",
-    "crawl_prefix": "https://docs.nvidia.com/datacenter/tesla/",
+    "crawl_prefix": "https://docs.nvidia.com/cuda/cuda-installation-guide-linux/",
     "product_tags": ["linux", "drivers", "deployment"]
   },
   {
@@ -158,38 +159,206 @@
   },
   {
     "id": "h100",
-    "title": "NVIDIA H100",
+    "title": "NVIDIA H100 Tensor Core GPU",
     "url": "https://www.nvidia.com/en-us/data-center/h100/",
     "doc_family": "hardware",
-    "doc_type": "product",
+    "doc_type": "markdown",
     "crawl_prefix": "https://www.nvidia.com/en-us/data-center/h100/",
-    "product_tags": ["h100", "hardware", "sizing"]
+    "product_tags": ["h100", "hardware", "sizing", "hopper", "nvlink", "hbm3"]
   },
   {
     "id": "h200",
-    "title": "NVIDIA H200",
+    "title": "NVIDIA H200 Tensor Core GPU",
     "url": "https://www.nvidia.com/en-us/data-center/h200/",
     "doc_family": "hardware",
-    "doc_type": "product",
+    "doc_type": "markdown",
     "crawl_prefix": "https://www.nvidia.com/en-us/data-center/h200/",
-    "product_tags": ["h200", "hardware", "sizing"]
+    "product_tags": ["h200", "hardware", "sizing", "hopper", "hbm3e", "inference"]
   },
   {
     "id": "a100",
-    "title": "NVIDIA A100",
+    "title": "NVIDIA A100 Tensor Core GPU",
     "url": "https://www.nvidia.com/en-us/data-center/a100/",
     "doc_family": "hardware",
-    "doc_type": "product",
+    "doc_type": "markdown",
     "crawl_prefix": "https://www.nvidia.com/en-us/data-center/a100/",
-    "product_tags": ["a100", "hardware", "sizing"]
+    "product_tags": ["a100", "hardware", "sizing", "ampere", "hbm2e", "mig"]
   },
   {
     "id": "l40s",
-    "title": "NVIDIA L40S",
+    "title": "NVIDIA L40S GPU",
     "url": "https://www.nvidia.com/en-us/data-center/l40s/",
     "doc_family": "hardware",
-    "doc_type": "product",
+    "doc_type": "markdown",
     "crawl_prefix": "https://www.nvidia.com/en-us/data-center/l40s/",
-    "product_tags": ["l40s", "hardware", "inference"]
+    "product_tags": ["l40s", "hardware", "inference", "ada-lovelace", "gddr6"]
+  },
+  {
+    "id": "infra-platforms",
+    "title": "AI Server Platform Design Notes",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#ai-server-platform-design",
+    "doc_family": "hardware",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md",
+    "product_tags": ["server", "epyc", "xeon", "ram", "pcie", "nvlink"]
+  },
+  {
+    "id": "infra-cluster-ops",
+    "title": "Cluster Management And Linux Operations Notes",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#cluster-management-and-linux-operations",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md",
+    "product_tags": ["slurm", "kubernetes", "linux", "drivers", "cuda"]
+  },
+  {
+    "id": "infra-storage",
+    "title": "Data Path And Storage Notes",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#data-path-and-storage",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md",
+    "product_tags": ["parallel-file-system", "lustre", "beegfs", "gpfs", "s3", "raid"]
+  },
+  {
+    "id": "infra-mlops",
+    "title": "Containerization And Delivery Notes",
+    "url": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md#containerization-and-delivery",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://github.com/aminkhalili96/maistorage/blob/main/docs/rag-supplemental-field-guide.md",
+    "product_tags": ["docker", "containers", "ci/cd", "mlops", "deployment"]
+  },
+  {
+    "id": "slurm-workload-manager",
+    "title": "Slurm Workload Manager for GPU Clusters",
+    "url": "/resources/slurm-workload-manager",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/slurm-workload-manager",
+    "product_tags": ["slurm", "scheduler", "batch", "cluster", "gres", "sbatch"]
+  },
+  {
+    "id": "kubernetes-workloads",
+    "title": "Kubernetes for AI and GPU Workloads",
+    "url": "/resources/kubernetes-workloads",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/kubernetes-workloads",
+    "product_tags": ["kubernetes", "deployment", "daemonset", "job", "statefulset", "gpu-operator"]
+  },
+  {
+    "id": "beegfs",
+    "title": "BeeGFS Parallel File System for AI Storage",
+    "url": "/resources/beegfs",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/beegfs",
+    "product_tags": ["beegfs", "parallel-file-system", "storage", "throughput", "striping"]
+  },
+  {
+    "id": "lustre",
+    "title": "Lustre Parallel File System for AI and HPC Storage",
+    "url": "/resources/lustre",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/lustre",
+    "product_tags": ["lustre", "parallel-file-system", "storage", "throughput", "ost", "mds"]
+  },
+  {
+    "id": "minio-object-storage",
+    "title": "MinIO and S3-Compatible Object Storage for AI",
+    "url": "/resources/minio-object-storage",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/minio-object-storage",
+    "product_tags": ["minio", "s3", "object-storage", "datasets", "checkpoints", "erasure-coding"]
+  },
+  {
+    "id": "linux-mdraid",
+    "title": "Linux mdraid and RAID Configuration for AI Servers",
+    "url": "/resources/linux-mdraid",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/linux-mdraid",
+    "product_tags": ["raid", "mdraid", "mdadm", "storage", "redundancy", "nvme"]
+  },
+  {
+    "id": "docker-build-cicd",
+    "title": "Docker Build and CI/CD for AI Model Deployment",
+    "url": "/resources/docker-build-cicd",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/docker-build-cicd",
+    "product_tags": ["docker", "buildkit", "ci/cd", "containers", "registry", "ngc"]
+  },
+  {
+    "id": "tensorrt",
+    "title": "NVIDIA TensorRT Developer Guide",
+    "url": "https://docs.nvidia.com/deeplearning/tensorrt/latest/index.html",
+    "doc_family": "inference-optimization",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/deeplearning/tensorrt/",
+    "pdf_url": "https://docs.nvidia.com/deeplearning/tensorrt/archives/tensorrt-1040/pdf/TensorRT-Developer-Guide.pdf",
+    "product_tags": ["tensorrt", "inference", "optimization", "quantization", "int8", "fp16", "deployment"]
+  },
+  {
+    "id": "triton-inference-server",
+    "title": "NVIDIA Triton Inference Server User Guide",
+    "url": "https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html",
+    "doc_family": "inference-serving",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/deeplearning/triton-inference-server/",
+    "pdf_url": "https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton-inference-server-2490/pdf/Triton-Inference-Server-User-Guide.pdf",
+    "product_tags": ["triton", "inference-server", "model-serving", "tensorrt", "onnx", "deployment"]
+  },
+  {
+    "id": "sharp",
+    "title": "NVIDIA SHARP — Scalable Hierarchical Aggregation and Reduction Protocol",
+    "url": "https://docs.nvidia.com/networking/display/sharpv3120",
+    "doc_family": "distributed",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/networking/display/sharpv3120",
+    "pdf_url": "https://docs.nvidia.com/networking/display/nvidia-scalable-hierarchical-aggregation-and-reduction-protocol-sharp-rev-3-12-0.0.pdf",
+    "product_tags": ["sharp", "infiniband", "collective-ops", "allreduce", "mpi", "nccl", "multi-node-training", "in-network-computing"]
+  },
+  {
+    "id": "mlnx-ofed",
+    "title": "NVIDIA MLNX_OFED — InfiniBand and RoCE Driver Stack",
+    "url": "https://docs.nvidia.com/networking/display/mlnxofedv24100700",
+    "doc_family": "networking",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/networking/display/mlnxofedv24100700",
+    "pdf_url": "https://docs.nvidia.com/nvidia-mlnx-ofed-documentation-v24-01-0-3-3-1.pdf",
+    "product_tags": ["infiniband", "mlnx-ofed", "rdma", "connectx", "networking", "roce", "multi-node"]
+  },
+  {
+    "id": "nvidia-ai-enterprise",
+    "title": "NVIDIA AI Enterprise User Guide v5.0",
+    "url": "https://docs.nvidia.com/ai-enterprise/index.html",
+    "doc_family": "enterprise-platform",
+    "doc_type": "html",
+    "crawl_prefix": "https://docs.nvidia.com/ai-enterprise/",
+    "pdf_url": "https://docs.nvidia.com/ai-enterprise/5.0/pdf/nvidia-ai-enterprise-user-guide.pdf",
+    "product_tags": ["ai-enterprise", "nvaie", "vgpu", "mlops", "deployment", "ngc", "kubernetes"]
+  },
+  {
+    "id": "enterprise-reference-architecture",
+    "title": "NVIDIA Enterprise Reference Architecture Whitepaper",
+    "url": "https://docs.nvidia.com/enterprise-reference-architectures/white-paper.pdf",
+    "doc_family": "architecture-whitepaper",
+    "doc_type": "pdf",
+    "crawl_prefix": "https://docs.nvidia.com/enterprise-reference-architectures/",
+    "pdf_url": "https://docs.nvidia.com/enterprise-reference-architectures/white-paper.pdf",
+    "product_tags": ["hgx", "dgx", "llm-training", "rag", "inference", "nvlink", "reference-architecture", "multi-gpu"]
+  },
+  {
+    "id": "nvidia-nim",
+    "title": "NVIDIA NIM — Inference Microservices",
+    "url": "https://docs.nvidia.com/nim/",
+    "doc_family": "inference-serving",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://docs.nvidia.com/nim/",
+    "product_tags": ["nim", "inference", "microservices", "deployment", "containerized-inference", "model-serving"]
   }
 ]

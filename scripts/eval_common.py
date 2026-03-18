@@ -21,7 +21,7 @@ from app.services.agent import AgentService
 from app.services.chunking import chunk_html_document, chunk_pdf_document
 from app.services.evaluation import EvaluationService
 from app.services.indexes import SearchIndex
-from app.services.providers import Embedder, GeminiReasoner, TavilyClient, build_embedder, tokenize
+from app.services.providers import Embedder, OpenAIReasoner, TavilyClient, build_embedder, tokenize
 from app.services.retrieval import RetrievalService, grade_results, rerank_results, rewrite_query
 
 
@@ -154,8 +154,8 @@ class CachedEmbedder:
         self.delegate = delegate
         self.cache_root = cache_root
         self.provider = provider or getattr(delegate, "provider", settings.embedder_provider)
-        self.model = model or getattr(delegate, "model", settings.gemini_embedding_model if settings.embedder_provider == "google" else "keyword")
-        self.dimensions = dimensions or getattr(delegate, "dimensions", settings.gemini_embedding_dimensions if settings.embedder_provider == "google" else 128)
+        self.model = model or getattr(delegate, "model", settings.openai_embedding_model if settings.embedder_provider == "openai" else "keyword")
+        self.dimensions = dimensions or getattr(delegate, "dimensions", settings.openai_embedding_dimensions if settings.embedder_provider == "openai" else 128)
         self.document_task = document_task or getattr(delegate, "document_task_type", "documents")
         self.query_task = query_task or getattr(delegate, "query_task_type", "query")
 
@@ -262,7 +262,7 @@ class PineconeHostedEmbedder:
 
 
 class TrackingReasoner:
-    def __init__(self, delegate: GeminiReasoner) -> None:
+    def __init__(self, delegate: OpenAIReasoner) -> None:
         self.delegate = delegate
         self.reset()
 
@@ -381,7 +381,7 @@ class ExperimentStack:
     retrieval: RetrievalService
     agent: AgentService
     evaluation: EvaluationService
-    reasoner: TrackingReasoner | GeminiReasoner
+    reasoner: TrackingReasoner | OpenAIReasoner
     tavily: TrackingTavilyClient | TavilyClient | DisabledTavilyClient
 
 
@@ -391,9 +391,9 @@ def build_local_stack(
     chunks: list[ChunkRecord],
     *,
     cache_root: Path,
-    embedder_provider: str = "google",
+    embedder_provider: str = "openai",
     embedder_model: str | None = None,
-    gemini_embedding_dimensions: int = 3072,
+    openai_embedding_dimensions: int = 3072,
     pinecone_embedding_dimensions: int = 1024,
     pinecone_document_task_type: str = "passage",
     pinecone_query_task_type: str = "query",
@@ -405,7 +405,7 @@ def build_local_stack(
     experiment_settings = local_settings(
         settings,
         embedder_provider=embedder_provider,
-        gemini_embedding_dimensions=gemini_embedding_dimensions,
+        openai_embedding_dimensions=openai_embedding_dimensions,
         use_tavily_fallback=use_tavily_fallback,
     )
     if embedder_provider == "pinecone":
@@ -436,8 +436,8 @@ def build_local_stack(
         embedder.reset()
 
     retrieval = RetrievalService(experiment_settings, sources, index)
-    base_reasoner = GeminiReasoner(experiment_settings)
-    reasoner: TrackingReasoner | GeminiReasoner = TrackingReasoner(base_reasoner) if track_calls else base_reasoner
+    base_reasoner = OpenAIReasoner(experiment_settings)
+    reasoner: TrackingReasoner | OpenAIReasoner = TrackingReasoner(base_reasoner) if track_calls else base_reasoner
     if track_calls and isinstance(reasoner, TrackingReasoner):
         reasoner.reset()
 

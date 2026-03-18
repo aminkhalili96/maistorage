@@ -46,9 +46,13 @@ def test_ingestion_fixture_produces_expected_chunk_count_and_metadata(dev_settin
     html = """
     <html><body>
       <h1>Overview</h1>
-      <p>Mixed precision training improves throughput on Tensor Cores.</p>
+      <p>Mixed precision training improves throughput on Tensor Cores by using FP16 for
+      compute and FP32 for weight accumulation, reducing memory footprint while maintaining
+      numerical stability across the full training run on NVIDIA GPUs.</p>
       <h2>Scaling</h2>
-      <p>NCCL all-reduce can become the bottleneck when 4-GPU training scales poorly.</p>
+      <p>NCCL all-reduce can become the communication bottleneck when scaling beyond four GPUs,
+      as the cross-GPU bandwidth saturates the PCIe or NVLink interconnect during gradient
+      synchronization across nodes in a distributed training cluster.</p>
     </body></html>
     """
     (html_root / "root.html").write_text(html)

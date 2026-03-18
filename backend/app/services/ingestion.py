@@ -12,7 +12,7 @@ from pypdf import PdfReader
 from app.config import Settings
 from app.corpus import load_corpus_manifest, load_normalized_chunks
 from app.models import ChunkRecord, DocumentSource, IngestRequest, IngestionStatus
-from app.services.chunking import chunk_html_document, chunk_pdf_document
+from app.services.chunking import chunk_html_document, chunk_markdown_document, chunk_pdf_document
 from app.services.indexes import SearchIndex
 
 
@@ -31,6 +31,12 @@ class IngestionService:
         self.manifest = load_corpus_manifest(settings.corpus_manifest_path)
         self.status = IngestionStatus(snapshot_id=self.manifest.get("snapshot_id"))
 
+    def _count_per_source(self, chunks: list[ChunkRecord]) -> dict[str, int]:
+        counts: dict[str, int] = defaultdict(int)
+        for c in chunks:
+            counts[c.source_id] += 1
+        return dict(counts)
+
     def bootstrap_local_corpus(self) -> None:
         if self.index.count() > 0:
             return
@@ -38,19 +44,19 @@ class IngestionService:
         if normalized_chunks:
             self.index.upsert(normalized_chunks)
             self.status.loaded_demo_corpus = False
-            self.status.chunk_counts["normalized"] = len(normalized_chunks)
+            self.status.chunk_counts = self._count_per_source(normalized_chunks)
             self.status.updated_at = datetime.now(UTC).isoformat()
             self.status.last_refresh_at = self.manifest.get("retrieved_at")
             return
 
-        if self.settings.raw_html_root.exists() or self.settings.raw_pdf_root.exists():
+        if self.settings.raw_html_root.exists() or self.settings.raw_pdf_root.exists() or self.settings.raw_md_root.exists():
             all_chunks: list[ChunkRecord] = []
             for source in self.sources:
                 all_chunks.extend(self._normalize_local_source(source))
             if all_chunks:
                 self.index.upsert(all_chunks)
                 self.status.loaded_demo_corpus = False
-                self.status.chunk_counts["normalized"] = len(all_chunks)
+                self.status.chunk_counts = self._count_per_source(all_chunks)
                 self.status.updated_at = datetime.now(UTC).isoformat()
                 self.status.last_refresh_at = self.manifest.get("retrieved_at")
                 return
@@ -63,7 +69,7 @@ class IngestionService:
             return
         self.index.upsert(self.demo_chunks)
         self.status.loaded_demo_corpus = True
-        self.status.chunk_counts["demo"] = len(self.demo_chunks)
+        self.status.chunk_counts = self._count_per_source(self.demo_chunks)
         self.status.updated_at = datetime.now(UTC).isoformat()
 
     def get_status(self) -> IngestionStatus:
@@ -168,6 +174,20 @@ class IngestionService:
                         title=f"{source.title} PDF",
                     )
                 )
+
+        source_md_root = self.settings.raw_md_root / source.id
+        if source_md_root.exists():
+            for md_path in sorted(source_md_root.glob("*.md")):
+                md_text = md_path.read_text(encoding="utf-8")
+                if md_text.strip():
+                    records.extend(
+                        chunk_markdown_document(
+                            bound_source,
+                            source.url,
+                            md_text,
+                            updated_at=retrieved_at,
+                        )
+                    )
 
         if records:
             lines = [record.model_dump_json() for record in records]

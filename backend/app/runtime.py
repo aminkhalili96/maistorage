@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import logging
+import threading
 from dataclasses import dataclass
-from functools import lru_cache
 
 from app.config import Settings, get_settings
 from app.corpus import load_demo_chunks, load_sources
@@ -10,8 +11,43 @@ from app.services.agent import AgentService
 from app.services.evaluation import EvaluationService
 from app.services.indexes import InMemoryHybridIndex, PineconeHybridIndex, SearchIndex
 from app.services.ingestion import IngestionService
-from app.services.providers import GeminiReasoner, TavilyClient, build_embedder
+from app.services.providers import OpenAIReasoner, TavilyClient, build_embedder
 from app.services.retrieval import RetrievalService
+
+_log = logging.getLogger("maistorage.runtime")
+
+_services_lock = threading.Lock()
+_services_instance: AppServices | None = None
+
+
+def _validate_langsmith(settings: Settings) -> Settings:
+    """Ping the LangSmith API and disable tracing if the key is invalid.
+
+    Returns a (possibly updated) Settings object so the caller can rely on
+    ``settings.langsmith_tracing`` being accurate from startup onward.
+    """
+    if not settings.langsmith_tracing or not settings.langsmith_api_key:
+        return settings
+    try:
+        import httpx  # soft dependency — only needed at startup
+        resp = httpx.get(
+            "https://api.smith.langchain.com/api/v1/workspaces",
+            headers={"X-API-Key": settings.langsmith_api_key},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            _log.info(
+                "LangSmith tracing active — project: %s",
+                settings.langsmith_project or "(default)",
+            )
+            return settings
+        _log.warning(
+            "LangSmith API key rejected (HTTP %s). Tracing disabled.",
+            resp.status_code,
+        )
+    except Exception as exc:
+        _log.warning("LangSmith reachability check failed (%s). Tracing disabled.", exc)
+    return settings.model_copy(update={"langsmith_tracing": False})
 
 
 @dataclass(slots=True)
@@ -25,12 +61,12 @@ class AppServices:
     evaluation: EvaluationService
 
 
-@lru_cache(maxsize=1)
-def get_services() -> AppServices:
+def _build_services() -> AppServices:
     settings = get_settings()
     validation_errors = settings.validate_runtime()
     if validation_errors:
         raise RuntimeError(" | ".join(validation_errors))
+    settings = _validate_langsmith(settings)  # warn loudly if the key is bad/expired
     sources = load_sources(settings.source_manifest_path)
     demo_chunks = load_demo_chunks(settings.demo_corpus_path)
     embedder = build_embedder(settings)
@@ -49,9 +85,9 @@ def get_services() -> AppServices:
     retrieval = RetrievalService(settings, sources, index)
     ingestion = IngestionService(settings, index, sources, demo_chunks)
     ingestion.bootstrap_local_corpus()
-    reasoner = GeminiReasoner(settings)
+    reasoner = OpenAIReasoner(settings)
     tavily = TavilyClient(settings)
-    agent = AgentService(settings, retrieval, reasoner, tavily)
+    agent = AgentService(settings, retrieval, reasoner, tavily, embedder=embedder)
     evaluation = EvaluationService(settings, settings.golden_questions_path, retrieval, agent)
 
     return AppServices(
@@ -63,3 +99,30 @@ def get_services() -> AppServices:
         agent=agent,
         evaluation=evaluation,
     )
+
+
+def get_services() -> AppServices:
+    """Thread-safe singleton accessor for AppServices.
+
+    Uses double-checked locking to avoid redundant initialization under
+    concurrent first requests while keeping the fast path lock-free.
+    """
+    global _services_instance
+    if _services_instance is not None:
+        return _services_instance
+    with _services_lock:
+        if _services_instance is not None:
+            return _services_instance
+        _services_instance = _build_services()
+        return _services_instance
+
+
+def reset_services() -> None:
+    """Reset the singleton — used by tests that modify env vars between runs."""
+    global _services_instance
+    with _services_lock:
+        _services_instance = None
+
+
+# Backwards-compatible shim so existing code calling get_services.cache_clear() still works.
+get_services.cache_clear = reset_services  # type: ignore[attr-defined]

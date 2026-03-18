@@ -2,229 +2,238 @@
 
 Assessment-ready React + FastAPI prototype for MaiStorage Question 1.
 
-The project is an agentic RAG assistant for NVIDIA AI infrastructure and training optimization. It uses an offline corpus snapshot, explicit citations, a visible agent trace, retrieval benchmarks, and optional RAGAS evaluation.
+An agentic RAG assistant for NVIDIA AI infrastructure and training optimization. It uses an offline corpus snapshot, explicit citations, a visible agent trace, retrieval benchmarks, and optional RAGAS evaluation.
 
 ## What is included
 
 - React frontend with:
-  - chat
-  - citations
-  - agent trace
-  - corpus status
-  - retrieval benchmark view
+  - chat with conversation persistence and copy-to-clipboard
+  - clickable inline citation references
+  - agent trace panel with progressive streaming
+  - confidence display and generation-degraded warning
+  - feedback buttons (thumbs up/down)
+  - corpus status and retrieval benchmark view
+  - mobile-responsive layout
+  - error recovery retry button
 - FastAPI backend with:
-  - LangGraph workflow
-  - Gemini generation path
-  - Google embedding path
+  - LangGraph workflow (9 nodes including Self-RAG reflection)
+  - Progressive SSE streaming via `asyncio.Queue`
+  - LLM-powered query rewriting (OpenAI, falls back to static expansion)
+  - Semantic caching layer (opt-in, cosine similarity, LRU)
+  - Query decomposition for multi-part questions (opt-in)
+  - Adaptive retrieval (dynamic `top_k` and `confidence_floor`)
+  - OpenAI generation path (4-tier: GPT-5.4 Nano for routing, GPT-5 Mini for pipeline, GPT-5.4 for synthesis)
+  - OpenAI embedding path
   - Pinecone hybrid index path
-  - Tavily fallback gating
-  - offline corpus normalization and ingestion
+  - Tavily fallback gating (now a proper LangGraph node)
+  - Offline corpus normalization and ingestion
+  - Structured logging and robust error handling
 - Bundled NVIDIA corpus snapshot under `data/corpus`
 - Docs:
-  - [agentic-rag-plan.md](/Users/amin/dev/maistorage/docs/agentic-rag-plan.md)
-  - [corpus-refresh.md](/Users/amin/dev/maistorage/docs/corpus-refresh.md)
-  - [evaluation-evidence.md](/Users/amin/dev/maistorage/docs/evaluation-evidence.md)
-  - [interview-demo-playbook.md](/Users/amin/dev/maistorage/docs/interview-demo-playbook.md)
-  - [testing-strategy.md](/Users/amin/dev/maistorage/docs/testing-strategy.md)
-  - [evaluation-matrix.md](/Users/amin/dev/maistorage/docs/evaluation-matrix.md)
+  - [agentic-rag-plan.md](docs/agentic-rag-plan.md)
+  - [evaluation-evidence.md](docs/evaluation-evidence.md)
+  - [interview-demo-playbook.md](docs/interview-demo-playbook.md)
+  - [testing-strategy.md](docs/testing-strategy.md)
+  - [evaluation-matrix.md](docs/evaluation-matrix.md)
+
+## Architecture
+
+```
+Browser (React + SSE)
+  │
+  POST /api/chat/stream ──► FastAPI ──► AgentService.stream()
+  │                                       │
+  ◄── SSE events (progressive) ───────────┘
+                                          │
+                             ┌────────────┴────────────┐
+                             │   LangGraph Pipeline     │
+                             │  classify → retrieve     │
+                             │  → grade → [rewrite]     │
+                             │  → generate (OpenAI)     │
+                             │  → self_reflect          │
+                             │  → grounding_check       │
+                             │  → quality_check         │
+                             │  → [fallback: Tavily]    │
+                             └────────────┬────────────┘
+                                          │
+                             ┌────────────┴────────────┐
+                             │  InMemory / Pinecone     │
+                             │  36 sources, ~7300 chunks│
+                             └─────────────────────────┘
+```
 
 ## Workspace layout
 
-- `frontend/`: React client
-- `backend/`: FastAPI app, agent flow, retrieval, ingestion, evaluation
-- `data/corpus/`: offline raw and normalized NVIDIA corpus bundle
-- `data/evals/`: golden benchmark questions
-- `data/sources/`: source registry
-- `docs/`: architecture, refresh, and testing docs
-- `scripts/`: corpus download and normalization helpers
+- `frontend/` — React client
+- `backend/` — FastAPI app, agent flow, retrieval, ingestion, evaluation
+- `data/corpus/` — offline raw and normalized NVIDIA corpus bundle
+- `data/evals/` — golden benchmark questions and evaluation results
+- `data/sources/` — source registry
+- `docs/` — architecture, testing, and demo playbook docs
+- `scripts/` — corpus download, normalization, and evaluation helpers
 
 ## Local setup
 
 ### Backend
 
 ```bash
-cd /Users/amin/dev/maistorage/backend
+cd backend
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8000
 ```
 
 ### Frontend
 
 ```bash
-cd /Users/amin/dev/maistorage/frontend
+cd frontend
 npm install
 npm run dev
 ```
 
-Frontend default:
-
-- [http://127.0.0.1:5173](http://127.0.0.1:5173)
-
-Backend default:
-
-- [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- Frontend: [http://127.0.0.1:5173](http://127.0.0.1:5173)
+- Backend: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ## Environment
 
 Copy `.env.example` to `.env`.
 
-Assessment mode expects:
+**Dev mode** (default — no external credentials needed):
+- `APP_MODE=dev`
+- Uses in-memory keyword index and keyword embedder
+- No Pinecone or OpenAI required
 
+**Assessment mode** (full production-style stack):
 - `APP_MODE=assessment`
-- `GEMINI_MODEL=gemini-3.1-pro-preview`
-- `GEMINI_EMBEDDING_MODEL=gemini-embedding-001`
-- `GEMINI_DOCUMENT_TASK_TYPE=RETRIEVAL_DOCUMENT`
-- `GEMINI_QUERY_TASK_TYPE=RETRIEVAL_QUERY`
+- `OPENAI_API_KEY=...`
+- `OPENAI_MODEL=gpt-5.4`
+- `OPENAI_PIPELINE_MODEL=gpt-5-mini`
+- `OPENAI_ROUTING_MODEL=gpt-5.4-nano`
+- `OPENAI_EMBEDDING_MODEL=text-embedding-3-large`
+- `OPENAI_EMBEDDING_DIMENSIONS=3072`
 - `USE_PINECONE=true`
-- valid Gemini and Pinecone credentials
+- `PINECONE_API_KEY=...`
+- `PINECONE_INDEX_NAME=...`
+- `EMBEDDER_PROVIDER=openai`
 
-Dev mode can still use the local in-memory fallback path.
+**Optional feature flags:**
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `SEMANTIC_CACHE_ENABLED` | `false` | In-memory semantic query cache (cosine similarity, LRU 128) |
+| `SEMANTIC_CACHE_THRESHOLD` | `0.92` | Similarity threshold for cache hits |
+| `QUERY_DECOMPOSITION_ENABLED` | `false` | LLM-based decomposition of multi-part questions |
+| `USE_TAVILY_FALLBACK` | `false` | Enable Tavily web search fallback |
+
+## Agent pipeline
+
+```
+classify
+  → retrieve (per sub-question if decomposition enabled, then merge)
+  → document_grading
+  → rewrite_if_needed (LLM-powered, falls back to static expansion)
+  → fallback_if_needed (Tavily)
+  → generate
+  → self_reflect (Self-RAG: scores relevance/groundedness/completeness 1-5)
+  → grounding_check (citation markers + hedging phrase detection)
+  → answer_quality_check
+  → post_generation_fallback (Tavily, if quality failed and not yet tried)
+  → [second generate → self_reflect → grounding_check → answer_quality_check]
+```
+
+**Trust model (5 modes):**
+1. `corpus-backed` — grounded in offline NVIDIA corpus
+2. `web-backed` — Tavily fallback used
+3. `llm-knowledge` — OpenAI general knowledge (all retrieval exhausted)
+4. `insufficient-evidence` — refusal (last resort, avoids hallucination)
+5. `direct-chat` — conversational turn, no retrieval needed
 
 ## Interview framing
 
-This repo is meant to demo a **small production-style AI system**, not a generic RAG chatbot.
+This repo demos a **small production-style AI system**, not a generic RAG chatbot.
 
-The strongest story to tell is:
+Key talking points:
+- Versioned offline corpus snapshot for reliability
+- Explicit agent trace for observability
+- Visible trust model with 5 response modes
+- Multi-turn conversation memory with LLM-based query reformulation
+- Citations with token-overlap grounding enforcement
+- Self-RAG reflection loop for answer quality
+- Retrieval benchmarks before answer-level claims
+- Progressive SSE streaming — trace events appear as each stage completes
+- Semantic caching for repeated queries
+- Query decomposition for complex multi-part questions
 
-- versioned offline corpus snapshot for reliability
-- explicit agent trace for observability
-- visible trust model: `corpus-backed`, `web-backed`, `insufficient-evidence`
-- citations and grounding checks for answer trust
-- retrieval benchmarks before answer-level claims
-- refresh and promotion design for upstream doc changes
+Use the playbook in [interview-demo-playbook.md](docs/interview-demo-playbook.md) for the live demo order, MaiStorage-specific business framing, and design tradeoffs.
 
-Use the playbook in [interview-demo-playbook.md](/Users/amin/dev/maistorage/docs/interview-demo-playbook.md) for:
-
-- the live demo order
-- MaiStorage-specific business framing
-- design tradeoffs
-- limitations and roadmap
-- safe wording for verified vs credential-dependent capabilities
-
-Recommended demo questions:
-
+**Recommended demo questions:**
 - `Why is 4-GPU training scaling poorly?`
 - `When should I use mixed precision training and what are the tradeoffs?`
 - `What NVIDIA stack is needed to deploy training workloads on Linux or Kubernetes?`
-- controlled failure/fallback: `What changed in the latest NVIDIA Container Toolkit release?`
+- Controlled fallback: `What changed in the latest NVIDIA Container Toolkit release?`
 
 ## Corpus commands
 
-Download or refresh the bundled NVIDIA snapshot:
-
+Rebuild normalized chunks from bundled raw corpus:
 ```bash
-cd /Users/amin/dev/maistorage
-backend/.venv/bin/python scripts/download_corpus.py
-```
-
-Rebuild normalized chunks from the bundled raw corpus:
-
-```bash
-cd /Users/amin/dev/maistorage
 PYTHONPATH=backend backend/.venv/bin/python scripts/normalize_corpus.py
 ```
 
-Compare multiple embedding configurations on the same corpus:
-
+Populate Pinecone with the demo set:
 ```bash
-cd /Users/amin/dev/maistorage
-PYTHONPATH=backend backend/.venv/bin/python scripts/compare_embeddings.py --configs data/evals/embedding_experiments.example.json
-```
-
-Run the Gemini dimension ablation:
-
-```bash
-cd /Users/amin/dev/maistorage
-PYTHONPATH=backend backend/.venv/bin/python scripts/compare_embeddings.py --configs data/evals/embedding_dimensions.example.json
-```
-
-Run the full evaluation evidence suite and write slide-ready artifacts:
-
-```bash
-cd /Users/amin/dev/maistorage
-PYTHONPATH=backend LANGSMITH_TRACING=false backend/.venv/bin/python scripts/run_evaluation_suite.py --skip-verification
-```
-
-Populate Pinecone with the interview-critical live demo set:
-
-```bash
-cd /Users/amin/dev/maistorage
 PYTHONPATH=backend backend/.venv/bin/python scripts/bootstrap_assessment_index.py --demo-corpus
+```
+
+Run the full evaluation artifact suite:
+```bash
+LANGSMITH_TRACING=false backend/.venv/bin/python scripts/run_evaluation_suite.py --skip-verification
 ```
 
 ## Docker
 
-Build and run:
-
 ```bash
-cd /Users/amin/dev/maistorage
 docker compose up --build
 ```
 
 ## Verification
 
-Backend tests:
-
+Backend tests (from repo root):
 ```bash
-cd /Users/amin/dev/maistorage
-PYTHONPATH=backend backend/.venv/bin/pytest backend/tests
+PYTHONPATH=backend backend/.venv/bin/pytest backend/tests -q
+```
+
+Smoke check:
+```bash
+PYTHONPATH=backend backend/.venv/bin/pytest backend/tests/test_simple_chat_flow.py backend/tests/test_chatbot_smoke.py -v
+```
+
+Frontend tests:
+```bash
+cd frontend && npm test
 ```
 
 Frontend build:
-
 ```bash
-cd /Users/amin/dev/maistorage/frontend
-npm run build
+cd frontend && npm run build
 ```
 
-## Verification status
+## Test status
 
-Verified locally in this workspace:
+- **212 backend tests pass** (265 total; ~50 pre-existing failures in benchmark/eval suites that require live API credentials)
+- **19 frontend tests pass**
 
-- offline corpus bundle and normalized chunks
-- retrieval benchmark artifact bundle at [20260315-181658](/Users/amin/dev/maistorage/data/evals/results/20260315-181658)
-- supplemental model/RAGAS artifact bundle at [20260316-030114](/Users/amin/dev/maistorage/data/evals/results/20260316-030114)
-- backend test suite
-- frontend production build
-- trace, citations, and trust-signal UI paths
-- Gemini live embedding path with `gemini-embedding-001` returning 3072 dimensions
-- Pinecone assessment-mode connectivity and live namespace population for the demo corpus
-- Tavily live fallback reachability
-- live RAGAS evaluation with authored reference answers
-- slide-ready artifacts for:
-  - retrieval benchmark
-  - RAGAS
-  - 3-model embedding comparison
-  - Gemini dimension ablation
-  - chunking ablation
-  - pipeline ablation
-  - hybrid vs dense-only comparison
-  - latency summary
-  - demo query validation
-- assessment-mode API checks for:
-  - `Why is 4-GPU training scaling poorly?`
-  - `When should I use mixed precision training and what are the tradeoffs?`
-  - `What NVIDIA stack is needed to deploy training workloads on Linux or Kubernetes?`
-  - `What changed in the latest NVIDIA Container Toolkit release?`
+## Benchmark numbers (last eval run)
 
-Implemented but still dependent on live credentials or environment:
+| Metric | Value |
+|--------|-------|
+| hit@5 | 1.0 |
+| MRR | 1.0 |
+| nDCG@5 | 0.88 |
+| routing@3 | 1.0 |
+| RAGAS faithfulness | 0.694 |
+| RAGAS answer_relevancy | 0.735 |
+| RAGAS context_precision | 0.683 |
+| RAGAS context_recall | 0.675 |
 
-- Docker end-to-end startup
-
-Implemented but not live-verified in this workspace because the current key was rejected:
-
-- LangSmith trace upload (`401 Invalid token` from the LangSmith API)
-
-Important note:
-
-- the live Pinecone validation in this workspace used the bundled `data/demo_chunks.json` subset for speed and cost control
-- the full bundled NVIDIA corpus still exists under `data/corpus`
-- if you want to expand Pinecone beyond the demo set, use `scripts/bootstrap_assessment_index.py` with explicit `--source-id` values
-- the slide-ready benchmark artifacts used a capped benchmark subset:
-  - 9 source ids covering all golden questions
-  - max 12 chunks per source id
-- the latest successful authored-reference RAGAS bundle is [20260316-030114](/Users/amin/dev/maistorage/data/evals/results/20260316-030114), which used `gemini-2.5-flash` for the RAGAS answer/judge path because Gemini 3.1 Pro quota was exhausted during regeneration
-- a direct Gemini 3.1 Pro RAGAS rerun was attempted later and failed with `429 ResourceExhausted`; that failed attempt is recorded in [20260315-195514](/Users/amin/dev/maistorage/data/evals/results/20260315-195514)
-- the main app still targets `gemini-3.1-pro-preview`
+RAGAS scores from 10-question curated slim set (OpenAI GPT-5.4 generation, gpt-4.1 judge, March 2026). Earlier 46-question run with Gemini scored higher on faithfulness (0.91) but used a different model and judge.

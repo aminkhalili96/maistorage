@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Notes: Linux mdraid</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; margin: 40px auto; max-width: 860px; line-height: 1.7; color: #1f2937; padding: 0 24px; }
+      h1, h2 { color: #111827; }
+      .meta { color: #6b7280; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>Linux mdraid And RAID Levels</h1>
+    <p class="meta">Offline notes derived from official Ubuntu Server and Linux mdraid documentation.</p>
+    <p>Linux software RAID is commonly managed through mdraid and the <code>mdadm</code> tool. RAID 0 emphasizes throughput without redundancy, RAID 1 mirrors data for protection, RAID 5 and RAID 6 use parity for resilience with capacity tradeoffs, and RAID 10 combines mirrored protection with stronger performance at higher disk cost.</p>
+    <p>For AI servers, RAID decisions are usually about local dataset caches, scratch space, and checkpoint durability. RAID does not replace a shared storage architecture, but it does influence local server performance, rebuild behavior, and data protection tradeoffs.</p>
+    <h2>Why It Matters For AI Infrastructure</h2>
+    <p>Operators need to understand whether the local storage path is optimized for speed, redundancy, or a balance of both. That decision affects node rebuilds, data safety, and the reliability of local caches used by training or preprocessing jobs.</p>
+    <h2>Primary References</h2>
+    <ul>
+      <li><a href="https://documentation.ubuntu.com/server/how-to/storage/manage-raid/">Ubuntu Server: Manage RAID</a></li>
+    </ul>
+  </body>
+</html>

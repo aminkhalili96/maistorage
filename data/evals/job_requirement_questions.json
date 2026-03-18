@@ -1,0 +1,74 @@
+[
+  {
+    "question": "How should I explain cluster networking and storage throughput concerns for AI training infrastructure?",
+    "expected_sources": ["nccl", "fabric-manager", "gpudirect-storage"],
+    "expected_terms": ["communication", "storage", "throughput"],
+    "reference_answer": "Cluster networking and storage throughput both shape end-to-end AI training efficiency. Communication overhead across the fabric can limit scaling, while weak storage throughput or a slow input pipeline can starve GPUs even when the compute stack is healthy."
+  },
+  {
+    "question": "What server components matter for AI server design, including motherboards, EPYC or Xeon CPUs, RAM, PCIe, and NVLink?",
+    "expected_sources": ["infra-platforms"],
+    "expected_terms": ["motherboard", "epyc", "xeon", "pcie", "nvlink"],
+    "reference_answer": "AI server design depends on motherboard expansion options, enterprise CPU lane and memory capacity, sufficient RAM for host-side pipelines, PCIe for host-to-device attachment, and NVLink when the workload needs stronger GPU-to-GPU communication bandwidth."
+  },
+  {
+    "question": "How do you troubleshoot hardware performance or software compatibility bottlenecks on GPU servers?",
+    "expected_sources": ["infra-cluster-ops", "cuda-install", "dl-performance"],
+    "expected_terms": ["version drift", "compatibility", "bottlenecks"],
+    "reference_answer": "Troubleshooting GPU server bottlenecks starts with isolating whether the problem comes from communication, storage throughput, or software compatibility. Version drift, bad node images, driver mismatches, and storage-path issues are common causes of operational problems."
+  },
+  {
+    "question": "What should I know about multi-GPU configurations for AI workloads?",
+    "expected_sources": ["nccl", "megatron-core", "infra-platforms"],
+    "expected_terms": ["multi-gpu", "communication", "parallelism"],
+    "reference_answer": "Multi-GPU design depends on communication overhead, interconnect quality, and the chosen parallelism strategy. Teams need to balance NCCL collective performance, topology, and combinations of data, tensor, or pipeline parallelism."
+  },
+  {
+    "question": "When should I use an HPC scheduler like Slurm versus Kubernetes for AI workloads?",
+    "expected_sources": ["infra-cluster-ops", "gpu-operator"],
+    "expected_terms": ["slurm", "kubernetes", "batch", "cluster"],
+    "reference_answer": "Use Slurm-style scheduling when the cluster is optimized for queued batch jobs and reserved compute resources. Use Kubernetes when the platform also needs repeatable container-native deployment, operators, and service-oriented cluster workflows."
+  },
+  {
+    "question": "What Linux skills matter for AI servers, including driver installation and CUDA toolkit compatibility?",
+    "expected_sources": ["cuda-install", "infra-cluster-ops"],
+    "expected_terms": ["linux", "driver", "cuda", "compatibility"],
+    "reference_answer": "Linux GPU operations depend on correct driver installation, CUDA toolkit compatibility, and version alignment across the host image. Strong Linux skills matter because node-level drift and bad software combinations are frequent causes of runtime failure."
+  },
+  {
+    "question": "Why would an AI team use a parallel file system like Lustre or BeeGFS?",
+    "expected_sources": ["infra-storage"],
+    "expected_terms": ["parallel file systems", "lustre", "beegfs", "bandwidth"],
+    "reference_answer": "Parallel file systems such as Lustre or BeeGFS are useful when many training workers need shared, high-throughput access to the same dataset namespace. They are chosen for aggregate bandwidth and shared-namespace behavior, not just single-node convenience."
+  },
+  {
+    "question": "When is S3-compatible object storage useful for AI datasets and checkpoints?",
+    "expected_sources": ["infra-storage"],
+    "expected_terms": ["s3", "object storage", "datasets", "checkpoints"],
+    "reference_answer": "S3-compatible object storage is useful for large datasets, checkpoints, and model artifacts when the platform needs durable shared storage that integrates with data lake style workflows. It is a good fit for scalable artifact management rather than only local disk usage."
+  },
+  {
+    "question": "What RAID levels should I compare for AI server redundancy and performance?",
+    "expected_sources": ["infra-storage"],
+    "expected_terms": ["raid 0", "raid 1", "raid 5", "raid 10"],
+    "reference_answer": "RAID 0 favors throughput with no redundancy, RAID 1 mirrors for safety, RAID 5 and RAID 6 trade capacity for parity-based resilience, and RAID 10 balances mirrored protection with stronger performance at higher disk cost. The right choice depends on speed, rebuild safety, and redundancy requirements."
+  },
+  {
+    "question": "Why does Docker-style containerization matter for deploying AI containers?",
+    "expected_sources": ["infra-mlops", "container-toolkit"],
+    "expected_terms": ["docker", "containerization", "environment drift", "repeatable"],
+    "reference_answer": "Docker-style containerization matters because it packages AI dependencies and serving stacks in a repeatable way that reduces environment drift. Containers improve portability, but they still depend on a correct host GPU driver stack and runtime configuration."
+  },
+  {
+    "question": "Why do CI/CD pipelines matter for model deployment and MLOps?",
+    "expected_sources": ["infra-mlops"],
+    "expected_terms": ["ci/cd", "tests", "promotion gates", "deployment"],
+    "reference_answer": "CI/CD pipelines matter because model deployment needs automated builds, tests, promotion gates, registry publishing, and controlled rollouts. In MLOps, CI/CD is what turns an experimental model artifact into a repeatable deployment process."
+  },
+  {
+    "question": "How should I compare H100, A100, and L40S for AI workloads?",
+    "expected_sources": ["h100", "a100", "l40s"],
+    "expected_terms": ["h100", "a100", "l40s", "throughput", "flexibility"],
+    "reference_answer": "Use H100 when peak large-scale training throughput is the main objective, A100 when you want strong established performance with a mature ecosystem, and L40S when deployment flexibility for inference or mixed-use acceleration matters more than peak training speed."
+  }
+]

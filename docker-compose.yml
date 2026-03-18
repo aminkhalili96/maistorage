@@ -9,6 +9,11 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
 
   frontend:
     build:
@@ -20,3 +25,8 @@ services:
       - "4173:80"
     depends_on:
       - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M

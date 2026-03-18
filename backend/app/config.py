@@ -8,6 +8,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+ALLOWED_OPENAI_MODELS = (
+    "gpt-5.4-nano",
+    "gpt-5-mini",
+    "gpt-5.4",
+)
+
 
 def _as_bool(value: str | None, default: bool = False) -> bool:
     if value is None:
@@ -16,16 +22,29 @@ def _as_bool(value: str | None, default: bool = False) -> bool:
 
 
 @dataclass(slots=True)
+class RerankConfig:
+    """Weights and caps used by rerank_results(). Extracted here so they can be
+    tuned explicitly and tested independently of the retrieval logic."""
+    lexical_overlap_weight: float = 0.28
+    family_bonus: float = 0.14
+    hardware_family_bonus: float = 0.22
+    metadata_bonus: float = 0.06
+    tag_bonus: float = 0.08
+    max_per_source: int = 3
+
+
+@dataclass(slots=True)
 class Settings:
     project_root: Path
     app_mode: str
     api_title: str
-    gemini_api_key: str | None
-    gemini_model: str
-    gemini_embedding_model: str
-    gemini_embedding_dimensions: int
-    gemini_embedding_document_task_type: str
-    gemini_embedding_query_task_type: str
+    openai_api_key: str | None
+    openai_model: str
+    openai_pipeline_model: str
+    openai_routing_model: str
+    openai_allowed_models: tuple[str, ...]
+    openai_embedding_model: str
+    openai_embedding_dimensions: int
     pinecone_api_key: str | None
     pinecone_index_name: str | None
     pinecone_namespace: str
@@ -39,6 +58,7 @@ class Settings:
     corpus_root: Path
     raw_html_root: Path
     raw_pdf_root: Path
+    raw_md_root: Path
     raw_doc_root: Path
     normalized_doc_root: Path
     corpus_manifest_path: Path
@@ -46,10 +66,26 @@ class Settings:
     source_manifest_path: Path
     golden_questions_path: Path
     cors_origin: str
+    rerank_config: RerankConfig
+    semantic_cache_enabled: bool
+    semantic_cache_threshold: float
+    decomposition_enabled: bool
+    openai_temperature: float
+    openai_timeout: float
+    tavily_timeout: float
+    embedder_timeout: float
 
     @property
     def generation_model(self) -> str:
-        return self.gemini_model
+        return self.openai_model
+
+    @property
+    def pipeline_model(self) -> str:
+        return self.openai_pipeline_model
+
+    @property
+    def routing_model(self) -> str:
+        return self.openai_routing_model
 
     @property
     def is_assessment_mode(self) -> bool:
@@ -60,14 +96,12 @@ class Settings:
         if not self.is_assessment_mode:
             return errors
 
-        if not self.gemini_api_key:
-            errors.append("GEMINI_API_KEY is required in assessment mode.")
-        if self.gemini_model != "gemini-3.1-pro-preview":
-            errors.append("Assessment mode requires GEMINI_MODEL=gemini-3.1-pro-preview.")
-        if self.gemini_embedding_model != "gemini-embedding-001":
-            errors.append("Assessment mode requires GEMINI_EMBEDDING_MODEL=gemini-embedding-001.")
-        if self.embedder_provider != "google":
-            errors.append("Assessment mode requires EMBEDDER_PROVIDER=google.")
+        if not self.openai_api_key:
+            errors.append("OPENAI_API_KEY is required in assessment mode.")
+        if self.openai_model not in self.openai_allowed_models:
+            errors.append("Assessment mode requires OPENAI_MODEL to be an allowed OpenAI model.")
+        if self.embedder_provider != "openai":
+            errors.append("Assessment mode requires EMBEDDER_PROVIDER=openai.")
         if not self.use_pinecone:
             errors.append("Assessment mode requires USE_PINECONE=true.")
         if not self.pinecone_api_key or not self.pinecone_index_name:
@@ -89,21 +123,23 @@ def get_settings() -> Settings:
     corpus_root = project_root / os.getenv("CORPUS_ROOT", "data/corpus")
     raw_html_root = corpus_root / "raw/html"
     raw_pdf_root = corpus_root / "raw/pdfs"
+    raw_md_root = corpus_root / "raw/markdown"
     raw_doc_root = project_root / os.getenv("RAW_DOC_ROOT", "data/corpus/raw")
     normalized_doc_root = project_root / os.getenv("NORMALIZED_DOC_ROOT", "data/corpus/normalized")
-    embedder_provider = os.getenv("EMBEDDER_PROVIDER", "google" if app_mode == "assessment" else "keyword")
+    embedder_provider = os.getenv("EMBEDDER_PROVIDER", "openai" if app_mode == "assessment" else "keyword")
     use_pinecone = _as_bool(os.getenv("USE_PINECONE"), default=app_mode == "assessment")
 
     return Settings(
         project_root=project_root,
         app_mode=app_mode,
         api_title="NVIDIA AI Infrastructure Agentic RAG",
-        gemini_api_key=os.getenv("GEMINI_API_KEY"),
-        gemini_model=os.getenv("GEMINI_MODEL", "gemini-3.1-pro-preview"),
-        gemini_embedding_model=os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001"),
-        gemini_embedding_dimensions=int(os.getenv("GEMINI_EMBEDDING_DIMENSIONS", "3072")),
-        gemini_embedding_document_task_type=os.getenv("GEMINI_DOCUMENT_TASK_TYPE", "RETRIEVAL_DOCUMENT"),
-        gemini_embedding_query_task_type=os.getenv("GEMINI_QUERY_TASK_TYPE", "RETRIEVAL_QUERY"),
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        openai_model=os.getenv("OPENAI_MODEL", "gpt-5.4"),
+        openai_pipeline_model=os.getenv("OPENAI_PIPELINE_MODEL", "gpt-5-mini"),
+        openai_routing_model=os.getenv("OPENAI_ROUTING_MODEL", "gpt-5.4-nano"),
+        openai_allowed_models=ALLOWED_OPENAI_MODELS,
+        openai_embedding_model=os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large"),
+        openai_embedding_dimensions=int(os.getenv("OPENAI_EMBEDDING_DIMENSIONS", "3072")),
         pinecone_api_key=os.getenv("PINECONE_API_KEY"),
         pinecone_index_name=os.getenv("PINECONE_INDEX_NAME"),
         pinecone_namespace=os.getenv("PINECONE_NAMESPACE", "nvidia-rag"),
@@ -117,11 +153,20 @@ def get_settings() -> Settings:
         corpus_root=corpus_root,
         raw_html_root=raw_html_root,
         raw_pdf_root=raw_pdf_root,
+        raw_md_root=raw_md_root,
         raw_doc_root=raw_doc_root,
         normalized_doc_root=normalized_doc_root,
         corpus_manifest_path=project_root / os.getenv("CORPUS_MANIFEST_PATH", "data/corpus/manifest.json"),
         demo_corpus_path=project_root / os.getenv("DEMO_CORPUS_PATH", "data/demo_chunks.json"),
         source_manifest_path=project_root / "data/sources/nvidia_sources.json",
-        golden_questions_path=project_root / "data/evals/golden_questions.json",
+        golden_questions_path=project_root / "data/evals/ragas_slim_10.json",
         cors_origin=os.getenv("FRONTEND_ORIGIN", "http://127.0.0.1:5173"),
+        rerank_config=RerankConfig(),
+        semantic_cache_enabled=_as_bool(os.getenv("SEMANTIC_CACHE_ENABLED"), default=False),
+        semantic_cache_threshold=float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.92")),
+        decomposition_enabled=_as_bool(os.getenv("QUERY_DECOMPOSITION_ENABLED"), default=False),
+        openai_temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.2")),
+        openai_timeout=float(os.getenv("OPENAI_TIMEOUT", "60.0")),
+        tavily_timeout=float(os.getenv("TAVILY_TIMEOUT", "30.0")),
+        embedder_timeout=float(os.getenv("EMBEDDER_TIMEOUT", "30.0")),
     )

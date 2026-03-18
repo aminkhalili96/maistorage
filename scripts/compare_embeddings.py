@@ -85,7 +85,7 @@ def run_comparison(
             "retrieval_rows": [row.model_dump() for row in retrieval_rows],
         }
 
-        if include_ragas and experiment_settings.gemini_api_key and provider == "google":
+        if include_ragas and experiment_settings.openai_api_key and provider == "openai":
             result["ragas"] = summarize_ragas(stack.evaluation.run_ragas())
 
         report.append(result)

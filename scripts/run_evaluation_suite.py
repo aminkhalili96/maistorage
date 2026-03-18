@@ -4,20 +4,37 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 from statistics import mean
 from typing import Any
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+BACKEND_ROOT = PROJECT_ROOT / "backend"
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
+
 from app.config import get_settings
+from app.corpus import load_demo_chunks, load_sources
 from app.models import ChatRequest
+from app.services.agent import AgentService
+from app.services.evaluation import EvaluationService
+from app.services.indexes import InMemoryHybridIndex
+from app.services.ingestion import IngestionService
+from app.services.providers import OpenAIReasoner, KeywordEmbedder, TavilyClient
+from app.services.retrieval import RetrievalService
 from app.services.retrieval import grade_results, rerank_results
 
 from compare_embeddings import run_comparison
 from eval_common import (
+    DisabledTavilyClient,
+    ExperimentStack,
     TrackingEmbedder,
     TrackingReasoner,
     TrackingTavilyClient,
+    WeightedInMemoryIndex,
     aggregate_retrieval_rows,
     benchmark_source_ids,
     build_local_stack,
@@ -46,6 +63,70 @@ PIPELINE_MODES = [
     ("retrieval_grading_rewrite", "Retrieval + grading + rewrite"),
     ("full_agentic", "Retrieval + grading + rewrite + fallback gating"),
 ]
+
+
+def _build_stack_with_keyword_fallback(
+    settings: Any,
+    sources: list[Any],
+    chunks: list[Any],
+    *,
+    cache_root: Path,
+    notes_on_fallback: str,
+    **kwargs: Any,
+) -> tuple[ExperimentStack, str]:
+    try:
+        return (
+            build_local_stack(
+                settings,
+                sources,
+                chunks,
+                cache_root=cache_root,
+                **kwargs,
+            ),
+            "configured",
+        )
+    except Exception:
+        offline_settings = replace(
+            settings,
+            app_mode="dev",
+            use_pinecone=False,
+            langsmith_tracing=False,
+            openai_api_key=None,
+            use_tavily_fallback=False,
+            embedder_provider="keyword",
+        )
+        lexical_weight = float(kwargs.get("lexical_weight", 0.55))
+        dense_weight = float(kwargs.get("dense_weight", 0.45))
+        track_calls = bool(kwargs.get("track_calls", False))
+        raw_embedder = KeywordEmbedder()
+        embedder = TrackingEmbedder(raw_embedder) if track_calls else raw_embedder
+        index = WeightedInMemoryIndex(embedder, lexical_weight=lexical_weight, dense_weight=dense_weight)
+        index.upsert(chunks)
+        retrieval = RetrievalService(offline_settings, sources, index)
+        base_reasoner = OpenAIReasoner(offline_settings)
+        reasoner = TrackingReasoner(base_reasoner) if track_calls else base_reasoner
+        tavily = DisabledTavilyClient()
+        agent = AgentService(offline_settings, retrieval, reasoner, tavily)
+        evaluation = EvaluationService(offline_settings, offline_settings.golden_questions_path, retrieval, agent)
+        return (
+            ExperimentStack(
+                settings=offline_settings,
+                sources=sources,
+                chunks=chunks,
+                embedder=embedder,
+                index=index,
+                retrieval=retrieval,
+                agent=agent,
+                evaluation=evaluation,
+                reasoner=reasoner,
+                tavily=tavily,
+            ),
+            notes_on_fallback,
+        )
+
+
+def _safe_comparison_result(experiment: str, reason: str) -> dict[str, Any]:
+    return {"experiment": experiment, "status": "failed", "reason": reason, "results": []}
 
 
 def _run_command(args: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> dict[str, Any]:
@@ -103,25 +184,35 @@ def _run_retrieval_benchmark(output_dir: Path) -> dict[str, Any]:
     settings = get_settings()
     bundle = load_benchmark_bundle(settings, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
     cache_root = settings.project_root / "data/evals/cache/embeddings"
-    stack = build_local_stack(
+    stack, stack_mode = _build_stack_with_keyword_fallback(
         settings,
         bundle.sources,
         bundle.chunks,
         cache_root=cache_root,
         embedder_provider="google",
-        gemini_embedding_dimensions=settings.gemini_embedding_dimensions,
+        openai_embedding_dimensions=settings.openai_embedding_dimensions,
+        notes_on_fallback="keyword_fallback_after_live_embedding_failure",
     )
     rows = stack.evaluation.evaluate_retrieval()
     payload = {
         "experiment": "retrieval_benchmark",
         "metadata": build_result_metadata(
-            config_name="gemini-embedding-001-3072",
+            config_name="text-embedding-3-large-3072",
             bundle=bundle,
             question_path=bundle.question_path,
-            notes=f"Selected assessment configuration on a capped benchmark subset covering all golden questions (max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id).",
+            notes=(
+                f"Selected assessment configuration on a capped benchmark subset covering all golden questions "
+                f"(max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id). "
+                + (
+                    "Live OpenAI embeddings were unavailable, so the benchmark fell back to the keyword baseline."
+                    if stack_mode != "configured"
+                    else ""
+                )
+            ).strip(),
         ),
         "aggregate_metrics": aggregate_retrieval_rows(rows),
         "rows": [row.model_dump() for row in rows],
+        "stack_mode": stack_mode,
     }
     write_json(output_dir / "retrieval_benchmark.json", payload)
     return payload
@@ -131,25 +222,92 @@ def _run_ragas(output_dir: Path) -> dict[str, Any]:
     settings = get_settings()
     bundle = load_benchmark_bundle(settings, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
     cache_root = settings.project_root / "data/evals/cache/embeddings"
+    stack, stack_mode = _build_stack_with_keyword_fallback(
+        settings,
+        bundle.sources,
+        bundle.chunks,
+        cache_root=cache_root,
+        embedder_provider="google",
+        openai_embedding_dimensions=settings.openai_embedding_dimensions,
+        notes_on_fallback="keyword_fallback_after_live_embedding_failure",
+    )
+    payload = {
+        "experiment": "ragas",
+        "metadata": build_result_metadata(
+            config_name="text-embedding-3-large-3072",
+            bundle=bundle,
+            question_path=bundle.question_path,
+            notes=(
+                f"RAGAS run on the selected assessment configuration using authored reference answers on the capped benchmark subset "
+                f"(max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id). "
+                + (
+                    "Live OpenAI embeddings were unavailable, so context generation fell back to the keyword baseline."
+                    if stack_mode != "configured"
+                    else ""
+                )
+            ).strip(),
+        ),
+        "result": summarize_ragas(stack.evaluation.run_ragas()),
+        "stack_mode": stack_mode,
+    }
+    write_json(output_dir / "ragas.json", payload)
+    return payload
+
+
+def _run_trajectory_benchmark(output_dir: Path) -> dict[str, Any]:
+    settings = get_settings()
+    bundle = load_benchmark_bundle(settings, question_path=settings.golden_questions_path, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
+    sources = load_sources(settings.source_manifest_path)
+    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    index = InMemoryHybridIndex(KeywordEmbedder())
+    ingestion = IngestionService(settings, index, sources, demo_chunks)
+    ingestion.bootstrap_demo_corpus()
+    retrieval = RetrievalService(settings, sources, index)
+    agent = AgentService(settings, retrieval, OpenAIReasoner(settings), TavilyClient(settings))
+    eval_service = EvaluationService(settings, settings.golden_questions_path, retrieval, agent)
+    local_agent = eval_service._build_local_benchmark_agent()
+    local_evaluation = EvaluationService(settings, settings.golden_questions_path, local_agent.retrieval, local_agent)
+    trajectory = local_evaluation.evaluate_trajectory()
+    payload = {
+        "experiment": "trajectory_benchmark",
+        "metadata": build_result_metadata(
+            config_name="agentic-trajectory",
+            bundle=bundle,
+            question_path=settings.golden_questions_path,
+            notes="50-question deterministic local benchmark across direct chat, corpus-backed RAG, refusal, and controlled fallback. TTFT currently equals total latency because the SSE path emits after the full agent run completes.",
+        ),
+        "rows": trajectory["rows"],
+        "aggregate": trajectory["aggregate"],
+    }
+    write_json(output_dir / "trajectory_benchmark.json", payload)
+    return payload
+
+
+def _run_agentic_judge(output_dir: Path) -> dict[str, Any]:
+    settings = get_settings()
+    bundle = load_benchmark_bundle(settings, question_path=settings.golden_questions_path, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
+    cache_root = settings.project_root / "data/evals/cache/embeddings"
     stack = build_local_stack(
         settings,
         bundle.sources,
         bundle.chunks,
         cache_root=cache_root,
         embedder_provider="google",
-        gemini_embedding_dimensions=settings.gemini_embedding_dimensions,
+        openai_embedding_dimensions=settings.openai_embedding_dimensions,
+        use_tavily_fallback=True,
     )
+    result = stack.evaluation.run_agentic_judge()
     payload = {
-        "experiment": "ragas",
+        "experiment": "agentic_judge",
         "metadata": build_result_metadata(
-            config_name="gemini-embedding-001-3072",
+            config_name="gpt-4.1-judge",
             bundle=bundle,
-            question_path=bundle.question_path,
-            notes=f"RAGAS run on the selected assessment configuration using authored reference answers on the capped benchmark subset (max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id).",
+            question_path=settings.golden_questions_path,
+            notes="Optional Gemini 3.1 Pro live judge for trajectory and final-answer quality. Skips cleanly when credentials, enable flag, or provider quota are unavailable.",
         ),
-        "result": summarize_ragas(stack.evaluation.run_ragas()),
+        "result": result,
     }
-    write_json(output_dir / "ragas.json", payload)
+    write_json(output_dir / "agentic_judge.json", payload)
     return payload
 
 
@@ -180,7 +338,7 @@ def _run_chunking_ablation(output_dir: Path) -> dict[str, Any]:
             chunks,
             cache_root=cache_root,
             embedder_provider="keyword",
-            gemini_embedding_dimensions=settings.gemini_embedding_dimensions,
+            openai_embedding_dimensions=settings.openai_embedding_dimensions,
         )
         rows = stack.evaluation.evaluate_retrieval()
         results.append(
@@ -217,14 +375,15 @@ def _run_pipeline_ablation(output_dir: Path) -> dict[str, Any]:
     bundle = load_benchmark_bundle(settings, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
     cache_root = settings.project_root / "data/evals/cache/embeddings"
     demo_questions = _demo_questions(settings.project_root)
-    stack = build_local_stack(
+    stack, stack_mode = _build_stack_with_keyword_fallback(
         settings,
         bundle.sources,
         bundle.chunks,
         cache_root=cache_root,
         embedder_provider="google",
-        gemini_embedding_dimensions=settings.gemini_embedding_dimensions,
+        openai_embedding_dimensions=settings.openai_embedding_dimensions,
         use_tavily_fallback=True,
+        notes_on_fallback="keyword_fallback_after_live_embedding_failure",
     )
     results: list[dict[str, Any]] = []
     for mode, label in PIPELINE_MODES:
@@ -268,12 +427,21 @@ def _run_pipeline_ablation(output_dir: Path) -> dict[str, Any]:
     payload = {
         "experiment": "pipeline_ablation",
         "metadata": build_result_metadata(
-            config_name="gemini-embedding-001-3072",
+            config_name="text-embedding-3-large-3072",
             bundle=bundle,
             question_path=settings.project_root / DEMO_QUESTION_PATH,
-            notes=f"End-to-end pipeline comparison across the rehearsed demo questions using the capped benchmark subset (max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id).",
+            notes=(
+                f"End-to-end pipeline comparison across the rehearsed demo questions using the capped benchmark subset "
+                f"(max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id). "
+                + (
+                    "Live OpenAI embeddings were unavailable, so retrieval used the keyword baseline."
+                    if stack_mode != "configured"
+                    else ""
+                )
+            ).strip(),
         ),
         "results": results,
+        "stack_mode": stack_mode,
     }
     write_json(output_dir / "pipeline_ablation.json", payload)
     return payload
@@ -289,15 +457,16 @@ def _run_hybrid_vs_dense(output_dir: Path) -> dict[str, Any]:
     ]
     results: list[dict[str, Any]] = []
     for name, lexical_weight, dense_weight, notes in variants:
-        stack = build_local_stack(
+        stack, stack_mode = _build_stack_with_keyword_fallback(
             settings,
             bundle.sources,
             bundle.chunks,
             cache_root=cache_root,
             embedder_provider="google",
-            gemini_embedding_dimensions=settings.gemini_embedding_dimensions,
+            openai_embedding_dimensions=settings.openai_embedding_dimensions,
             lexical_weight=lexical_weight,
             dense_weight=dense_weight,
+            notes_on_fallback="keyword_fallback_after_live_embedding_failure",
         )
         rows = stack.evaluation.evaluate_retrieval()
         results.append(
@@ -306,9 +475,15 @@ def _run_hybrid_vs_dense(output_dir: Path) -> dict[str, Any]:
                     config_name=name,
                     bundle=bundle,
                     question_path=bundle.question_path,
-                    notes=notes,
+                    notes=notes
+                    + (
+                        " Keyword fallback was used because live OpenAI embeddings were unavailable."
+                        if stack_mode != "configured"
+                        else ""
+                    ),
                 ),
                 "retrieval_metrics": aggregate_retrieval_rows(rows),
+                "stack_mode": stack_mode,
             }
         )
     payload = {
@@ -324,15 +499,16 @@ def _run_latency_summary(output_dir: Path) -> dict[str, Any]:
     bundle = load_benchmark_bundle(settings, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
     cache_root = settings.project_root / "data/evals/cache/embeddings"
     demo_questions = _demo_questions(settings.project_root)
-    stack = build_local_stack(
+    stack, stack_mode = _build_stack_with_keyword_fallback(
         settings,
         bundle.sources,
         bundle.chunks,
         cache_root=cache_root,
         embedder_provider="google",
-        gemini_embedding_dimensions=settings.gemini_embedding_dimensions,
+        openai_embedding_dimensions=settings.openai_embedding_dimensions,
         use_tavily_fallback=True,
         track_calls=True,
+        notes_on_fallback="keyword_fallback_after_live_embedding_failure",
     )
     per_query: list[dict[str, Any]] = []
     for item in demo_questions:
@@ -404,10 +580,17 @@ def _run_latency_summary(output_dir: Path) -> dict[str, Any]:
     payload = {
         "experiment": "latency_summary",
         "metadata": build_result_metadata(
-            config_name="gemini-embedding-001-3072",
+            config_name="text-embedding-3-large-3072",
             bundle=bundle,
             question_path=settings.project_root / DEMO_QUESTION_PATH,
-            notes="Per-query latency and API call counts on the rehearsed demo set. API call counts are used as a cost proxy.",
+            notes=(
+                "Per-query latency and API call counts on the rehearsed demo set. API call counts are used as a cost proxy."
+                + (
+                    " Retrieval embeddings fell back to the keyword baseline because live OpenAI embeddings were unavailable."
+                    if stack_mode != "configured"
+                    else ""
+                )
+            ),
         ),
         "queries": per_query,
         "aggregate": {
@@ -417,6 +600,7 @@ def _run_latency_summary(output_dir: Path) -> dict[str, Any]:
             "avg_generation_ms": round(mean(float(item["generation_ms"]) for item in per_query), 2),
             "avg_total_agent_ms": round(mean(float(item["total_agent_ms"]) for item in per_query), 2),
         },
+        "stack_mode": stack_mode,
     }
     write_json(output_dir / "latency_summary.json", payload)
     return payload
@@ -427,14 +611,15 @@ def _run_demo_query_validation(output_dir: Path) -> dict[str, Any]:
     bundle = load_benchmark_bundle(settings, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
     cache_root = settings.project_root / "data/evals/cache/embeddings"
     demo_questions = _demo_questions(settings.project_root)
-    stack = build_local_stack(
+    stack, stack_mode = _build_stack_with_keyword_fallback(
         settings,
         bundle.sources,
         bundle.chunks,
         cache_root=cache_root,
         embedder_provider="google",
-        gemini_embedding_dimensions=settings.gemini_embedding_dimensions,
+        openai_embedding_dimensions=settings.openai_embedding_dimensions,
         use_tavily_fallback=True,
+        notes_on_fallback="keyword_fallback_after_live_embedding_failure",
     )
     runs: list[dict[str, Any]] = []
     for item in demo_questions:
@@ -457,12 +642,21 @@ def _run_demo_query_validation(output_dir: Path) -> dict[str, Any]:
     payload = {
         "experiment": "demo_query_validation",
         "metadata": build_result_metadata(
-            config_name="gemini-embedding-001-3072",
+            config_name="text-embedding-3-large-3072",
             bundle=bundle,
             question_path=settings.project_root / DEMO_QUESTION_PATH,
-            notes=f"Full-agent validation across the 3 primary demo queries and the controlled fallback query using the capped benchmark subset (max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id).",
+            notes=(
+                f"Full-agent validation across the 3 primary demo queries and the controlled fallback query using the capped benchmark subset "
+                f"(max {MAX_BENCHMARK_CHUNKS_PER_SOURCE} chunks per source id). "
+                + (
+                    "Live OpenAI embeddings were unavailable, so retrieval used the keyword baseline."
+                    if stack_mode != "configured"
+                    else ""
+                )
+            ).strip(),
         ),
         "runs": runs,
+        "stack_mode": stack_mode,
     }
     write_json(output_dir / "demo_query_validation.json", payload)
     return payload
@@ -473,6 +667,8 @@ def _write_summary(
     suite_status: dict[str, Any],
     retrieval: dict[str, Any],
     ragas: dict[str, Any],
+    trajectory: dict[str, Any],
+    judge: dict[str, Any],
     embeddings: dict[str, Any],
     dimensions: dict[str, Any],
     chunking: dict[str, Any],
@@ -511,6 +707,28 @@ def _write_summary(
     lines.extend(
         [
             "",
+            "## Trajectory Benchmark",
+            "",
+            f"- Questions: `{trajectory['aggregate']['question_count']}`",
+            f"- Assistant-mode accuracy: `{trajectory['aggregate']['assistant_mode_accuracy']}`",
+            f"- Response-mode accuracy: `{trajectory['aggregate']['response_mode_accuracy']}`",
+            f"- Tool-path accuracy: `{trajectory['aggregate']['tool_path_accuracy']}`",
+            "",
+            "## GPT-4.1 Judge",
+            "",
+        ]
+    )
+    judge_result = judge["result"]
+    if judge_result.get("status") == "ok":
+        lines.append(f"- Questions judged: `{judge_result['question_count']}`")
+        for key, value in judge_result["summary"].items():
+            lines.append(f"- `{key}`: `{value}`")
+    else:
+        lines.append(f"- Status: `{judge_result.get('status')}`")
+        lines.append(f"- Reason: `{judge_result.get('reason', 'unknown')}`")
+    lines.extend(
+        [
+            "",
             "## Slide-Worthy Comparisons",
             "",
             f"- Embedding models compared: `{len(embeddings['results'])}`",
@@ -541,8 +759,9 @@ def _write_summary(
             "",
             "- The embedding comparison now uses 3 real models: Gemini plus two Pinecone-hosted models.",
             "- The chunking ablation uses the keyword baseline as a fast local proxy; the selected assessment benchmark still uses `gemini-embedding-001` at 3072 dimensions.",
-            "- API call counts in the latency artifact are a cost proxy, not a billing report.",
-            "- The current RAGAS run uses authored reference answers in the golden question set, but the dataset is still intentionally small and should be presented as an interview benchmark rather than a production eval corpus.",
+            "- API call counts in the latency and trajectory artifacts are cost proxies, not billing reports.",
+            "- The benchmark question file now unifies 50 questions across direct chat, corpus-backed RAG, refusal, and recency-sensitive fallback.",
+            "- The current RAGAS run measures only the corpus-backed subset of the benchmark; the Gemini 3.1 Pro judge covers the broader agent trajectory when enabled.",
         ]
     )
     (output_dir / "slide_summary.md").write_text("\n".join(lines) + "\n")
@@ -592,15 +811,27 @@ def main() -> None:
     retrieval = _run_retrieval_benchmark(output_dir)
     print("running ragas..." if not args.skip_ragas else "skipping ragas...")
     ragas = {"result": {"status": "skipped", "reason": "Skipped by flag."}} if args.skip_ragas else _run_ragas(output_dir)
+    print("running trajectory benchmark...")
+    trajectory = _run_trajectory_benchmark(output_dir)
+    print("running GPT-4.1 judge...")
+    judge = _run_agentic_judge(output_dir)
     print("running embedding model comparison...")
-    embeddings = run_comparison(
-        config_path=settings.project_root / "data/evals/embedding_experiments.example.json",
-        output_path=output_dir / "embedding_model_comparison.json",
-        source_ids=benchmark_source_ids(load_json(settings.golden_questions_path)),
-        max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE,
-    )
+    try:
+        embeddings = run_comparison(
+            config_path=settings.project_root / "data/evals/embedding_experiments.example.json",
+            output_path=output_dir / "embedding_model_comparison.json",
+            source_ids=benchmark_source_ids(load_json(settings.golden_questions_path)),
+            max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE,
+        )
+    except Exception as exc:
+        embeddings = _safe_comparison_result("embedding_model_comparison", str(exc))
+        write_json(output_dir / "embedding_model_comparison.json", embeddings)
     print("running embedding dimension ablation...")
-    dimensions = _run_dimension_ablation(output_dir)
+    try:
+        dimensions = _run_dimension_ablation(output_dir)
+    except Exception as exc:
+        dimensions = _safe_comparison_result("embedding_dimension_comparison", str(exc))
+        write_json(output_dir / "embedding_dimension_comparison.json", dimensions)
     print("running chunking ablation...")
     chunking = _run_chunking_ablation(output_dir)
     print("running pipeline ablation...")
@@ -611,7 +842,7 @@ def main() -> None:
     latency = _run_latency_summary(output_dir)
     print("running demo query validation...")
     demo_queries = _run_demo_query_validation(output_dir)
-    _write_summary(output_dir, suite_status, retrieval, ragas, embeddings, dimensions, chunking, pipeline, hybrid, latency, demo_queries)
+    _write_summary(output_dir, suite_status, retrieval, ragas, trajectory, judge, embeddings, dimensions, chunking, pipeline, hybrid, latency, demo_queries)
 
     print(json.dumps({"output_dir": str(output_dir)}, indent=2))
 

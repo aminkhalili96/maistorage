@@ -1,23 +1,130 @@
 from __future__ import annotations
 
-from statistics import mean
+import logging
+import re
 
-from app.config import Settings
-from app.models import DocumentSource, QueryClass, QueryPlan, RetrieverResult, SearchDebugResponse, TraceEvent
+from app.config import RerankConfig, Settings
+from app.models import ChatTurn, DocumentSource, QueryClass, QueryPlan, RetrieverResult, SearchDebugResponse, TraceEvent
 from app.services.indexes import SearchIndex
 from app.services.providers import tokenize
 
+_DEFAULT_RERANK_CONFIG = RerankConfig()
+
+_log = logging.getLogger("maistorage.retrieval")
+
+# If confidence exceeds this threshold after the first query, skip remaining expansion queries.
+EARLY_STOP_CONFIDENCE = 0.75
+
 
 QUERY_CLASS_RULES: list[tuple[QueryClass, tuple[str, ...]]] = [
-    (QueryClass.distributed_multi_gpu, ("multi-gpu", "distributed", "nccl", "all-reduce", "nvlink", "nvswitch", "4-gpu", "scaling")),
-    (QueryClass.deployment_runtime, ("deploy", "deployment", "runtime", "linux", "driver", "cuda", "container", "kubernetes", "operator")),
-    (QueryClass.hardware_topology, ("h100", "h200", "a100", "l40s", "hardware", "topology", "sizing", "on-prem", "server")),
-    (QueryClass.training_optimization, ("mixed precision", "throughput", "utilization", "training", "tensor core", "memory-bound", "profiling")),
+    (
+        QueryClass.distributed_multi_gpu,
+        (
+            "multi-gpu",
+            "multi-gpu configuration",
+            "multi-gpu configurations",
+            "distributed",
+            "nccl",
+            "all-reduce",
+            "nvlink",
+            "nvswitch",
+            "interconnect",
+            "cluster networking",
+            "networking",
+            "4-gpu",
+            "scaling",
+            "parallelism",
+            "pipeline parallelism",
+            "tensor parallelism",
+            "data parallelism",
+            "large model",
+            "model size",
+            "memory limits",
+            "communication cost",
+            "collective performance",
+            "synchronization",
+            "gpu count",
+        ),
+    ),
+    (
+        QueryClass.hardware_topology,
+        (
+            "h100",
+            "h200",
+            "a100",
+            "l40s",
+            "hardware",
+            "topology",
+            "sizing",
+            "on-prem",
+            "server design",
+            "motherboard",
+            "motherboards",
+            "epyc",
+            "xeon",
+            "ram",
+            "high-speed ram",
+            "memory channels",
+            "pcie",
+            "pcie lanes",
+            "enterprise cpu",
+            "server components",
+            "host-to-device",
+            "hbm3e",
+            "hbm2e",
+            "nvlink 4",
+            "nvlink 3",
+            "nvswitch 3",
+            "memory bandwidth",
+            "bandwidth gb",
+        ),
+    ),
+    (
+        QueryClass.deployment_runtime,
+        (
+            "deploy",
+            "deployment",
+            "runtime",
+            "linux",
+            "driver",
+            "cuda",
+            "container",
+            "kubernetes",
+            "operator",
+            "slurm",
+            "scheduler",
+            "scheduling",
+            "parallel file system",
+            "lustre",
+            "beegfs",
+            "gpfs",
+            "object storage",
+            "s3",
+            "raid",
+            "ci/cd",
+            "pipeline",
+            "pipelines",
+            "mlops",
+            "compatibility",
+            "bottleneck",
+            "bottlenecks",
+            "cluster management",
+            "health check",
+            "health checks",
+            "diagnostics",
+            "dcgm",
+            "dcgmi",
+            "monitoring",
+            "pre-job",
+            "preflight",
+        ),
+    ),
+    (QueryClass.training_optimization, ("mixed precision", "throughput", "utilization", "training", "tensor core", "memory-bound", "profiling", "input pipeline", "storage path", "storage throughput")),
 ]
 
 
 CLASS_FAMILY_MAP: dict[QueryClass, list[str]] = {
-    QueryClass.training_optimization: ["core", "advanced"],
+    QueryClass.training_optimization: ["core", "advanced", "infrastructure"],
     QueryClass.distributed_multi_gpu: ["distributed", "core", "advanced"],
     QueryClass.deployment_runtime: ["infrastructure", "core"],
     QueryClass.hardware_topology: ["hardware", "infrastructure", "advanced"],
@@ -26,10 +133,10 @@ CLASS_FAMILY_MAP: dict[QueryClass, list[str]] = {
 
 
 EXPANSION_TERMS: dict[QueryClass, list[str]] = {
-    QueryClass.training_optimization: ["tensor cores", "throughput", "memory-bound"],
-    QueryClass.distributed_multi_gpu: ["nccl", "all-reduce", "nvlink"],
-    QueryClass.deployment_runtime: ["drivers", "cuda toolkit", "container runtime"],
-    QueryClass.hardware_topology: ["h100", "a100", "l40s", "server design"],
+    QueryClass.training_optimization: ["tensor cores", "roofline", "sm efficiency", "compute throughput", "memory bandwidth", "input pipeline", "storage path"],
+    QueryClass.distributed_multi_gpu: ["nccl", "NCCL_ALGO", "ring algorithm", "all-reduce", "parallelism", "tensor parallel", "pipeline parallel", "micro-batch", "NVLink bandwidth"],
+    QueryClass.deployment_runtime: ["drivers", "cuda toolkit", "container runtime", "dcgm diagnostics", "health monitoring", "nvidia-container-runtime", "device plugin", "ClusterPolicy", "BeeGFS stripe", "Lustre OST"],
+    QueryClass.hardware_topology: ["h100", "a100", "l40s", "HBM3e", "HBM2e", "NVLink 4.0", "NVLink 3.0", "NVSwitch", "server design"],
     QueryClass.general: ["nvidia training infrastructure", "retrieval optimization", "ai infrastructure"],
 }
 
@@ -39,12 +146,12 @@ QUERY_CLASS_SOURCE_HINTS: dict[QueryClass, dict[str, float]] = {
         "dl-performance": 0.42,
         "cuda-best-practices": 0.24,
         "nsight-compute": 0.18,
-        "gpudirect-storage": 0.12,
+        "gpudirect-storage": 0.26,
     },
     QueryClass.distributed_multi_gpu: {
         "nccl": 0.48,
         "fabric-manager": 0.32,
-        "megatron-core": 0.14,
+        "megatron-core": 0.26,
         "nemo-performance": 0.12,
     },
     QueryClass.deployment_runtime: {
@@ -52,6 +159,17 @@ QUERY_CLASS_SOURCE_HINTS: dict[QueryClass, dict[str, float]] = {
         "container-toolkit": 0.34,
         "gpu-operator": 0.28,
         "dgx-basepod": 0.12,
+        "infra-cluster-ops": 0.22,
+        "infra-storage": 0.18,
+        "infra-mlops": 0.18,
+        "slurm-workload-manager": 0.34,
+        "kubernetes-workloads": 0.32,
+        "beegfs": 0.38,
+        "lustre": 0.38,
+        "minio-object-storage": 0.36,
+        "linux-mdraid": 0.38,
+        "docker-build-cicd": 0.34,
+        "dcgm": 0.52,
     },
     QueryClass.hardware_topology: {
         "h100": 0.56,
@@ -59,18 +177,349 @@ QUERY_CLASS_SOURCE_HINTS: dict[QueryClass, dict[str, float]] = {
         "a100": 0.5,
         "l40s": 0.44,
         "dgx-basepod": 0.12,
+        "infra-platforms": 0.3,
     },
     QueryClass.general: {},
 }
 
-RECENCY_TERMS = ("latest", "current", "recent", "today", "yesterday", "newest", "release notes", "changed")
+RECENCY_TERMS = ("latest", "current", "recent", "today", "yesterday", "newest", "release notes", "changed", "stock price", "share price", "market cap", "stock market")
+FINANCIAL_TERMS = ("stock price", "share price", "market cap", "stock market", "shares outstanding", "earnings", "valuation", "ticker", "stock")
+# Topics that need live web data — route to Tavily directly instead of corpus retrieval.
+LIVE_QUERY_TERMS = (
+    "weather", "forecast", "temperature outside", "raining", "sunny",
+    "stock price", "share price", "market cap", "stock market",
+    "shares outstanding", "earnings", "valuation", "ticker",
+    "news today", "latest news", "current events",
+)
+DOC_RAG_INFRA_TERMS = (
+    "cuda",
+    "cudnn",
+    "cublas",
+    "cufft",
+    "curand",
+    "nccl",
+    "nvlink",
+    "nvswitch",
+    "nvshmem",
+    "nsight",
+    "tensorrt",
+    "triton",
+    "gpudirect",
+    "gpu operator",
+    "fabric manager",
+    "container toolkit",
+    "transformer engine",
+    "fp8",
+    "bf16",
+    "fp16",
+    "gemm",
+    "training",
+    "precision",
+    "dcgm",
+    "health check",
+    "health checks",
+    "diagnostics",
+    "driver",
+    "drivers",
+    "deployment",
+    "runtime",
+    "kubernetes",
+    "docker",
+    "linux",
+    "h100",
+    "h200",
+    "a100",
+    "l40s",
+    "dgx",
+    "megatron",
+    "nemo",
+    "mixed precision",
+    "profiling",
+    "throughput",
+    "scaling",
+    "tensor core",
+    "parallelism",
+    "pipeline parallelism",
+    "tensor parallelism",
+    "data parallelism",
+    "large model",
+    "model size",
+    "memory limits",
+    "communication cost",
+    "collective performance",
+    "cluster networking",
+    "storage throughput",
+    "slurm",
+    "scheduler",
+    "scheduling",
+    "motherboard",
+    "motherboards",
+    "epyc",
+    "xeon",
+    "pcie",
+    "ram",
+    "parallel file system",
+    "lustre",
+    "beegfs",
+    "gpfs",
+    "object storage",
+    "s3",
+    "raid",
+    "ci/cd",
+    "pipeline",
+    "pipelines",
+    "mlops",
+    "official docs",
+    "official documentation",
+    # Hardware health / thermal / power
+    "temperature",
+    "thermal",
+    "power",
+    "watt",
+    "tdp",
+    "cooling",
+    "gpu memory",
+    "oom",
+    "out of memory",
+    "vram",
+    # Networking
+    "infiniband",
+    "rdma",
+    "roce",
+    # Server management
+    "bmc",
+    "ipmi",
+    "redfish",
+    "baseboard",
+)
+GENERIC_DOC_TERMS = ("docs", "documentation", "manual", "manuals", "guide", "guides")
+NVIDIA_ENTITY_TERMS = ("nvidia", "geforce", "rtx")
+NVIDIA_DOC_CONTEXT_TERMS = (
+    "official",
+    "stack",
+    "deploy",
+    "deployment",
+    "runtime",
+    "driver",
+    "drivers",
+    "container",
+    "containers",
+    "kubernetes",
+    "gpu",
+    "gpus",
+    "linux",
+    "install",
+    "setup",
+    "operator",
+    "training",
+    "mixed precision",
+    "profiling",
+    "throughput",
+    "scaling",
+    "cluster",
+    "scheduler",
+    "slurm",
+    "motherboard",
+    "pcie",
+    "epyc",
+    "xeon",
+    "raid",
+    "s3",
+    "object storage",
+    "parallel file system",
+    "ci/cd",
+    "mlops",
+)
+CASUAL_CHAT_TERMS = (
+    "hi",
+    "hello",
+    "hey",
+    "hellaur",
+    "yo",
+    "sup",
+    "thanks",
+    "thank you",
+    "good morning",
+    "good afternoon",
+    "good evening",
+)
+# Topics that are clearly out-of-scope for an NVIDIA infra assistant — route to direct-chat
+# instead of going to Tavily (which would return garbage non-NVIDIA results).
+# NOTE: weather/forecast/stock terms moved to LIVE_QUERY_TERMS — they now route through Tavily.
+OUT_OF_SCOPE_TERMS = (
+    "sports",
+    "football",
+    "basketball",
+    "soccer",
+    "cricket",
+    "baseball",
+    "nba",
+    "nfl",
+    "recipe",
+    "cooking",
+    "restaurant",
+    "flight",
+    "airline",
+    "hotel",
+    "vacation",
+    "horoscope",
+    "zodiac",
+    "lottery",
+    "political",
+    "election",
+    "president",
+    "prime minister",
+)
+DOC_ACTION_TERMS = (
+    "install",
+    "setup",
+    "configure",
+    "deploy",
+    "deployment",
+    "runtime",
+    "driver",
+    "drivers",
+    "container",
+    "containers",
+    "kubernetes",
+    "operator",
+    "cluster",
+    "stack",
+    "profile",
+    "profiling",
+    "optimize",
+    "optimization",
+    "throughput",
+    "latency",
+    "performance",
+    "debug",
+    "debugging",
+    "troubleshoot",
+    "troubleshooting",
+    "scale",
+    "scaling",
+    "mixed precision",
+    "tensor core",
+    "compatibility",
+    "requirements",
+    "networking",
+    "storage",
+    "filesystem",
+    "file systems",
+    "object storage",
+    "raid",
+    "scheduler",
+    "scheduling",
+    "ci/cd",
+    "pipeline",
+    "pipelines",
+)
+FOLLOW_UP_DOC_RAG_TERMS = ("where", "which one", "which guide", "how", "steps", "show me", "link", "source", "sources")
+GENERAL_KNOWLEDGE_PATTERNS = (
+    re.compile(r"^(what|who|where|when)\s+(is|are|was|were)\b"),
+    re.compile(r"^what does\b"),
+    re.compile(r"^who founded\b"),
+    re.compile(r"^who makes\b"),
+    re.compile(r"^tell me about\b"),
+    re.compile(r"^give me (an?\s+)?overview of\b"),
+    re.compile(r"^overview of\b"),
+    re.compile(r"^history of\b"),
+    re.compile(r"^define\b"),
+)
+KNOWN_DIRECT_CHAT_FACTOIDS = (
+    "what is nvidia",
+    "who founded nvidia",
+    "where is nvidia headquartered",
+    "what does nvidia do",
+    "tell me about nvidia",
+    "how big is nvidia",
+    "what is nvidia known for",
+    "what is an h100",
+    "what is cuda",
+    "what does cuda stand for",
+    "tell me about h100",
+    "what is h100",
+    "what docs do you have",
+    "what sources do you have",
+    "overview of all docs",
+    "overview of the docs",
+    "what is rag",
+    "what is agentic rag",
+)
+
+
+def _contains_any(text: str, terms: tuple[str, ...]) -> bool:
+    return any(term in text for term in terms)
+
+
+def _is_live_query(question: str) -> bool:
+    lowered = question.strip().lower()
+    if _contains_any(lowered, LIVE_QUERY_TERMS) and not _contains_any(lowered, DOC_RAG_INFRA_TERMS):
+        return True
+    return False
+
+
+def _is_casual_chat(question: str) -> bool:
+    lowered = question.strip().lower()
+    if lowered in CASUAL_CHAT_TERMS:
+        return True
+    if lowered in {"what day is it", "what date is it", "how are you", "who are you"}:
+        return True
+    if lowered.startswith("how are you") or lowered.startswith("how's it going") or lowered.startswith("how do you do"):
+        return True
+    # Gratitude / acknowledgement phrases — don't let these enter the RAG pipeline
+    if lowered.startswith("thanks") or lowered.startswith("thank you") or lowered.startswith("thx"):
+        return True
+    if lowered.startswith("great,") or lowered.startswith("awesome,") or lowered.startswith("perfect,") or lowered.startswith("got it"):
+        return True
+    # Out-of-scope topics that have no NVIDIA-tech relevance
+    if _contains_any(lowered, OUT_OF_SCOPE_TERMS) and not _contains_any(lowered, DOC_RAG_INFRA_TERMS):
+        return True
+    return False
+
+
+def _is_general_knowledge_prompt(question: str) -> bool:
+    lowered = question.strip().lower()
+    return any(pattern.search(lowered) for pattern in GENERAL_KNOWLEDGE_PATTERNS)
+
+
+def _is_known_direct_chat_factoid(lowered: str) -> bool:
+    return any(lowered.startswith(prefix) for prefix in KNOWN_DIRECT_CHAT_FACTOIDS)
+
+
+def _has_doc_request(lowered: str) -> bool:
+    return _contains_any(lowered, GENERIC_DOC_TERMS) or "official docs" in lowered or "official documentation" in lowered
+
+
+def _has_operational_doc_intent(lowered: str) -> bool:
+    return _contains_any(lowered, DOC_ACTION_TERMS)
+
+
+def _previous_user_context_prefers_doc_rag(previous_user_context: str) -> bool:
+    if not previous_user_context:
+        return False
+    return (
+        classify_question(previous_user_context) != QueryClass.general
+        or _contains_any(previous_user_context, DOC_RAG_INFRA_TERMS)
+        or (_contains_any(previous_user_context, NVIDIA_ENTITY_TERMS) and _has_doc_request(previous_user_context))
+        or (_contains_any(previous_user_context, NVIDIA_ENTITY_TERMS) and _has_operational_doc_intent(previous_user_context))
+    )
 
 
 def classify_question(question: str) -> QueryClass:
     lowered = question.lower()
+    best_class = QueryClass.general
+    best_score = 0
     for query_class, terms in QUERY_CLASS_RULES:
-        if any(term in lowered for term in terms):
-            return query_class
+        score = 0
+        for term in terms:
+            if term in lowered:
+                score += max(1, len(term.split()))
+        if score > best_score:
+            best_score = score
+            best_class = query_class
+    if best_score > 0:
+        return best_class
     return QueryClass.general
 
 
@@ -79,21 +528,121 @@ def is_recency_sensitive(question: str) -> bool:
     return any(term in lowered for term in RECENCY_TERMS)
 
 
+_ENTITY_TERMS_FOR_ADAPTIVE = ("h100", "a100", "l40s", "h200", "nccl", "cuda", "nvlink", "dcgm", "gpudirect", "megatron")
+
+
+def _adaptive_retrieval_params(question: str, query_class: QueryClass) -> tuple[int, float]:
+    """Return (top_k, confidence_floor) dynamically based on query complexity.
+
+    Heuristics:
+    - Short, single-entity factoid (<=8 tokens, <=1 entity) → small top_k, higher floor
+    - Complex analytical (>15 tokens or >=2 entities) → larger top_k, lower floor
+    - Default → class-based baseline
+    """
+    token_count = len(tokenize(question))
+    lowered = question.lower()
+    entity_count = sum(1 for term in _ENTITY_TERMS_FOR_ADAPTIVE if term in lowered)
+
+    if token_count <= 8 and entity_count <= 1:
+        # Simple factoid: retrieve fewer, require higher confidence
+        return 3, 0.35
+    if token_count > 15 or entity_count >= 2:
+        # Complex analytical or multi-entity: retrieve more, relax floor
+        return 10, 0.22
+
+    # Default: class-based baseline
+    if query_class in {QueryClass.distributed_multi_gpu, QueryClass.hardware_topology}:
+        return 7, 0.26
+    return 5, 0.30
+
+
 def build_query_plan(question: str, settings: Settings) -> QueryPlan:
     query_class = classify_question(question)
     expansions = EXPANSION_TERMS[query_class][:2]
     search_queries = [question] + [f"{question} {term}".strip() for term in expansions]
     recency_sensitive = is_recency_sensitive(question)
+    top_k, confidence_floor = _adaptive_retrieval_params(question, query_class)
     return QueryPlan(
         query_class=query_class,
         search_queries=search_queries,
         source_families=CLASS_FAMILY_MAP[query_class],
-        top_k=7 if query_class in {QueryClass.distributed_multi_gpu, QueryClass.hardware_topology} else 5,
+        top_k=top_k,
         use_tavily_fallback=settings.use_tavily_fallback,
-        confidence_floor=0.26 if query_class == QueryClass.hardware_topology else 0.30,
+        confidence_floor=confidence_floor,
         max_retries=2,
         recency_sensitive=recency_sensitive,
     )
+
+
+def classify_assistant_mode(question: str, history: list[ChatTurn] | None = None) -> str:
+    recent_user_turns = [turn.content for turn in (history or []) if turn.role == "user" and turn.content.strip()][-4:]
+    previous_user_context = " ".join(recent_user_turns).lower()
+    lowered = question.strip().lower()
+
+    # Live data queries (weather, stocks, news) → Tavily search directly
+    if _is_live_query(question):
+        return "live_query"
+
+    if _is_casual_chat(question):
+        return "direct_chat"
+
+    # Financial/market queries need live data — but guard against infra terms
+    # so "GPU memory stock configuration" stays doc_rag
+    if _contains_any(lowered, FINANCIAL_TERMS) and not _contains_any(lowered, DOC_RAG_INFRA_TERMS):
+        return "live_query"
+
+    if _is_known_direct_chat_factoid(lowered):
+        return "direct_chat"
+
+    # Recency-sensitive questions (weather, news, latest events) → route through
+    # the RAG pipeline so Tavily web search handles them directly.
+    if is_recency_sensitive(question) and not _contains_any(lowered, NVIDIA_ENTITY_TERMS):
+        return "doc_rag"
+
+    if _previous_user_context_prefers_doc_rag(previous_user_context) and (
+        lowered in FOLLOW_UP_DOC_RAG_TERMS or len(tokenize(question)) <= 3
+    ):
+        return "doc_rag"
+
+    if (
+        _is_general_knowledge_prompt(question)
+        and not _has_doc_request(lowered)
+        and not _has_operational_doc_intent(lowered)
+        and not _contains_any(lowered, DOC_RAG_INFRA_TERMS)
+    ):
+        return "direct_chat"
+
+    if _has_doc_request(lowered):
+        if (
+            "official" in lowered
+            or _contains_any(lowered, NVIDIA_ENTITY_TERMS)
+            or _contains_any(lowered, DOC_RAG_INFRA_TERMS)
+            or _has_operational_doc_intent(lowered)
+            or _previous_user_context_prefers_doc_rag(previous_user_context)
+        ):
+            return "doc_rag"
+        return "direct_chat"
+
+    if classify_question(question) != QueryClass.general:
+        return "doc_rag"
+
+    if _contains_any(lowered, DOC_RAG_INFRA_TERMS):
+        return "doc_rag"
+
+    if _contains_any(lowered, NVIDIA_ENTITY_TERMS) and (
+        _contains_any(lowered, NVIDIA_DOC_CONTEXT_TERMS) or _has_operational_doc_intent(lowered)
+    ):
+        return "doc_rag"
+
+    if "official" in lowered and _previous_user_context_prefers_doc_rag(previous_user_context):
+        return "doc_rag"
+
+    # Last-chance catch: sufficiently long queries mentioning gpu/nvidia that weren't
+    # caught by any earlier rule are almost certainly infrastructure questions.
+    if ("gpu" in lowered or "nvidia" in lowered) and len(tokenize(question)) > 6:
+        return "doc_rag"
+
+    return "direct_chat"
 
 
 def rewrite_query(question: str, query_class: QueryClass, attempt: int = 1) -> str:
@@ -101,37 +650,100 @@ def rewrite_query(question: str, query_class: QueryClass, attempt: int = 1) -> s
     return f"{question} {hint}".strip()
 
 
-def rerank_results(question: str, plan: QueryPlan, results: list[RetrieverResult]) -> list[RetrieverResult]:
+# Map of product name literals → source IDs that should be boosted when the product is named in the query
+_PRODUCT_NAME_SOURCE_BOOST: list[tuple[str, str, float]] = [
+    ("beegfs", "beegfs", 0.50),
+    ("lustre", "lustre", 0.50),
+    ("container-toolkit", "container-toolkit", 0.50),
+    ("container toolkit", "container-toolkit", 0.50),
+    ("nvidia-container-runtime", "container-toolkit", 0.50),
+    ("gpu operator", "gpu-operator", 0.50),
+    ("gpu-operator", "gpu-operator", 0.50),
+    ("gpudirect", "gpudirect-storage", 0.50),
+    ("gpudirect storage", "gpudirect-storage", 0.50),
+    ("dcgm", "dcgm", 0.50),
+    ("nsight compute", "nsight-compute", 0.50),
+    ("nsight-compute", "nsight-compute", 0.50),
+    ("megatron", "megatron-core", 0.40),
+    ("nemo", "nemo-performance", 0.40),
+    ("fabric manager", "fabric-manager", 0.40),
+    ("transformer engine", "transformer-engine", 0.40),
+    ("nccl", "nccl", 0.48),
+]
+
+
+def rerank_results(
+    question: str,
+    plan: QueryPlan,
+    results: list[RetrieverResult],
+    config: RerankConfig | None = None,
+) -> list[RetrieverResult]:
+    cfg = config or _DEFAULT_RERANK_CONFIG
     query_tokens = set(tokenize(question))
+    lowered_question = question.lower()
     reranked: list[RetrieverResult] = []
     source_hints = QUERY_CLASS_SOURCE_HINTS.get(plan.query_class, {})
+    # Compute per-query product-name boosts
+    active_product_boosts: dict[str, float] = {}
+    for phrase, source_id, boost in _PRODUCT_NAME_SOURCE_BOOST:
+        if phrase in lowered_question:
+            active_product_boosts[source_id] = max(active_product_boosts.get(source_id, 0.0), boost)
     for result in results:
         chunk_tokens = set(result.chunk.sparse_terms or tokenize(result.chunk.content))
         overlap = len(query_tokens & chunk_tokens) / max(len(query_tokens), 1)
-        family_bonus = 0.14 if result.chunk.doc_family in plan.source_families else 0.0
+        family_bonus = cfg.family_bonus if result.chunk.doc_family in plan.source_families else 0.0
         if plan.query_class == QueryClass.hardware_topology and result.chunk.doc_family == "hardware":
-            family_bonus += 0.22
-        metadata_bonus = 0.06 if any(token in result.chunk.section_path.lower() for token in query_tokens) else 0.0
+            family_bonus += cfg.hardware_family_bonus
+        metadata_bonus = cfg.metadata_bonus if any(token in result.chunk.section_path.lower() for token in query_tokens) else 0.0
         source_bonus = source_hints.get(result.chunk.source_id, 0.0)
-        tag_bonus = 0.0
-        if any(token in " ".join(result.chunk.product_tags).lower() for token in query_tokens):
-            tag_bonus = 0.08
-        rerank_score = result.score + (0.28 * overlap) + family_bonus + metadata_bonus + source_bonus + tag_bonus
-        reranked.append(result.model_copy(update={"rerank_score": rerank_score, "score": rerank_score}))
-    reranked.sort(key=lambda item: item.score, reverse=True)
-    return reranked
+        # Apply product-name boost on top of class-level source hints
+        source_bonus = max(source_bonus, active_product_boosts.get(result.chunk.source_id, 0.0))
+        tag_bonus = cfg.tag_bonus if any(token in " ".join(result.chunk.product_tags).lower() for token in query_tokens) else 0.0
+        rerank_score = result.score + (cfg.lexical_overlap_weight * overlap) + family_bonus + metadata_bonus + source_bonus + tag_bonus
+        reranked.append(result.model_copy(update={"rerank_score": rerank_score}))
+    reranked.sort(key=lambda item: item.rerank_score, reverse=True)
+    # Per-source diversity cap: adaptive to plan size to avoid premature diversification
+    max_per_source = min(cfg.max_per_source, max(plan.top_k - 1, 1))
+    source_counts: dict[str, int] = {}
+    diverse: list[RetrieverResult] = []
+    overflow: list[RetrieverResult] = []
+    for result in reranked:
+        sid = result.chunk.source_id
+        if source_counts.get(sid, 0) < max_per_source:
+            diverse.append(result)
+            source_counts[sid] = source_counts.get(sid, 0) + 1
+        else:
+            overflow.append(result)
+    return diverse + overflow
+
+
+# Sources that are considered "noise" when queries explicitly name a different product.
+# When a product name boost is active and a chunk comes from one of these high-volume
+# generic sources, apply a stricter threshold.
+_GENERIC_HIGH_VOLUME_SOURCES = {"cuda-install", "cuda-programming-guide", "cuda-best-practices"}
 
 
 def grade_results(question: str, plan: QueryPlan, results: list[RetrieverResult]) -> tuple[list[RetrieverResult], list[str]]:
     query_tokens = set(tokenize(question))
+    lowered_question = question.lower()
     accepted: list[RetrieverResult] = []
     rejected: list[str] = []
+    # Determine if query has an explicit product focus (product-name boost is active)
+    has_product_focus = any(phrase in lowered_question for phrase, _, _ in _PRODUCT_NAME_SOURCE_BOOST)
     for result in results:
         chunk_tokens = set(result.chunk.sparse_terms or tokenize(result.chunk.content))
         overlap = len(query_tokens & chunk_tokens) / max(len(query_tokens), 1)
         family_match = result.chunk.doc_family in plan.source_families
-        threshold = 0.22 if plan.query_class == QueryClass.hardware_topology else 0.18
-        if result.score >= threshold or (family_match and overlap >= 0.08):
+        if plan.query_class == QueryClass.hardware_topology:
+            threshold = 0.22
+        elif plan.query_class == QueryClass.deployment_runtime:
+            threshold = 0.25
+        else:
+            threshold = 0.18
+        # When a specific product is named, apply strict threshold to generic high-volume sources
+        if has_product_focus and result.chunk.source_id in _GENERIC_HIGH_VOLUME_SOURCES:
+            threshold = max(threshold, 0.35)
+        if result.rerank_score >= threshold or (family_match and overlap >= 0.20 and result.rerank_score >= 0.12):
             accepted.append(result)
         else:
             rejected.append(result.chunk.id)
@@ -141,7 +753,12 @@ def grade_results(question: str, plan: QueryPlan, results: list[RetrieverResult]
 def estimate_confidence(results: list[RetrieverResult]) -> float:
     if not results:
         return 0.0
-    return round(mean(result.score for result in results[:3]), 4)
+    scores = [r.rerank_score for r in results[:3]]
+    # Weighted average emphasizing the best result: 50% top-1, 30% top-2, 20% top-3
+    weights = (0.5, 0.3, 0.2)
+    weighted = sum(s * w for s, w in zip(scores, weights[:len(scores)]))
+    total_weight = sum(weights[:len(scores)])
+    return round(weighted / total_weight, 4)
 
 
 def needs_retry(plan: QueryPlan, results: list[RetrieverResult]) -> bool:
@@ -169,14 +786,28 @@ class RetrievalService:
         retrieval_top_k = max(plan.top_k * 4, 12)
 
         total_retrieved = 0
-        for active_query in queries:
-            retrieved = self.index.search(active_query, top_k=retrieval_top_k, families=plan.source_families)
+        for query_idx, active_query in enumerate(queries):
+            try:
+                retrieved = self.index.search(active_query, top_k=retrieval_top_k, families=plan.source_families)
+            except Exception as exc:
+                _log.warning("Index search failed for query %r (%s: %s), skipping", active_query[:80], type(exc).__name__, str(exc)[:120])
+                retrieved = []
             total_retrieved += len(retrieved)
             trace.append(
                 TraceEvent(
                     type="retrieval",
                     message=f"Retrieved {len(retrieved)} candidates from the hybrid index",
-                    payload={"query": active_query, "families": plan.source_families, "top_k": retrieval_top_k},
+                    payload={
+                        "stage": "tool_request",
+                        "status": "request",
+                        "tool": "nvidia_docs",
+                        "tool_label": "NVIDIA Docs",
+                        "source_kind": "corpus",
+                        "brand": "nvidia",
+                        "query": active_query,
+                        "families": plan.source_families,
+                        "top_k": retrieval_top_k,
+                    },
                 )
             )
             for item in retrieved:
@@ -184,13 +815,44 @@ class RetrievalService:
                 if existing is None or item.score > existing.score:
                     candidates[item.chunk.id] = item
 
-        reranked = rerank_results(question, plan, list(candidates.values()))
+            # Early stopping: if first query already yields high confidence, skip expansion queries
+            if query_idx < len(queries) - 1 and candidates:
+                preliminary = rerank_results(question, plan, list(candidates.values()), self.settings.rerank_config)
+                prelim_conf = estimate_confidence(preliminary)
+                if prelim_conf > EARLY_STOP_CONFIDENCE:
+                    _log.info(
+                        "Early stop after query %d/%d with confidence %.3f (threshold %.3f)",
+                        query_idx + 1, len(queries), prelim_conf, EARLY_STOP_CONFIDENCE,
+                    )
+                    break
+
+        reranked = rerank_results(question, plan, list(candidates.values()), self.settings.rerank_config)
         confidence = estimate_confidence(reranked)
         trace.append(
             TraceEvent(
                 type="rerank",
                 message="Reranked candidates using lexical overlap, source-family routing, and metadata features",
-                payload={"top_chunk_ids": [item.chunk.id for item in reranked[:3]], "confidence": confidence, "retrieved_total": total_retrieved},
+                payload={
+                    "stage": "tool_result",
+                    "status": "result",
+                    "tool": "nvidia_docs",
+                    "tool_label": "NVIDIA Docs",
+                    "source_kind": "corpus",
+                    "brand": "nvidia",
+                    "top_chunk_ids": [item.chunk.id for item in reranked[:3]],
+                    "top_docs": [
+                        {
+                            "chunk_id": item.chunk.id,
+                            "title": item.chunk.title,
+                            "section_path": item.chunk.section_path,
+                            "url": item.chunk.url,
+                            "source_kind": item.chunk.source_kind,
+                        }
+                        for item in reranked[:4]
+                    ],
+                    "confidence": confidence,
+                    "retrieved_total": total_retrieved,
+                },
             )
         )
         accepted, rejected = grade_results(question, plan, reranked)
@@ -198,7 +860,27 @@ class RetrievalService:
             TraceEvent(
                 type="document_grading",
                 message="Filtered weak chunks before synthesis",
-                payload={"accepted": [item.chunk.id for item in accepted[:5]], "rejected": rejected[:8]},
+                payload={
+                    "stage": "evidence_selection",
+                    "tool": "nvidia_docs",
+                    "tool_label": "NVIDIA Docs",
+                    "source_kind": "corpus",
+                    "brand": "nvidia",
+                    "accepted": [
+                        {
+                            "chunk_id": item.chunk.id,
+                            "title": item.chunk.title,
+                            "section_path": item.chunk.section_path,
+                            "url": item.chunk.url,
+                            "source_kind": item.chunk.source_kind,
+                        }
+                        for item in accepted[:5]
+                    ],
+                    "rejected": rejected[:8],
+                    "total_count": len(reranked),
+                    "kept_count": len(accepted),
+                    "grades": ["pass"] * len(accepted) + ["fail"] * len(rejected),
+                },
             )
         )
         return accepted[: plan.top_k], rejected, estimate_confidence(accepted), trace
@@ -209,7 +891,7 @@ class RetrievalService:
             existing = merged.get(item.chunk.id)
             if existing is None or item.score > existing.score:
                 merged[item.chunk.id] = item
-        reranked = rerank_results(question, plan, list(merged.values()))
+        reranked = rerank_results(question, plan, list(merged.values()), self.settings.rerank_config)
         accepted, rejected = grade_results(question, plan, reranked)
         return accepted[: plan.top_k], rejected, estimate_confidence(accepted)
 
