@@ -74,19 +74,18 @@ class TestJsonlFiles:
                 f"Chunk {chunk.get('id', '?')} has empty content"
             )
 
-    def test_chunk_ids_report_duplicates(self, all_chunks):
-        """Report duplicate chunk_ids as a data quality metric.
+    def test_no_duplicate_chunk_ids(self, all_chunks):
+        """All chunk IDs must be unique across JSONL files.
 
-        Known issue: JSONL files contain duplicates from append-mode re-chunking.
-        The runtime deduplicates on index insert, so this doesn't break the app.
-        This test ensures we can quantify the duplication rate and it doesn't
-        grow unboundedly (unique chunks should be > 50% of total lines).
+        The ingestion pipeline deduplicates at both file-level (identical HTML
+        content hash) and chunk-level (duplicate chunk IDs). If this test fails,
+        the normalize_corpus.py script needs to be re-run.
         """
-        unique_ids = {c["id"] for c in all_chunks}
-        unique_rate = len(unique_ids) / max(len(all_chunks), 1)
-        assert unique_rate > 0.50, (
-            f"Only {len(unique_ids)}/{len(all_chunks)} unique chunk_ids ({unique_rate:.0%}). "
-            "Corpus may need a clean re-chunk."
+        ids = [c["id"] for c in all_chunks]
+        unique_ids = set(ids)
+        assert len(ids) == len(unique_ids), (
+            f"{len(ids) - len(unique_ids)} duplicate chunk_ids found "
+            f"({len(unique_ids)}/{len(ids)} unique). Run normalize_corpus.py."
         )
 
     def test_content_hashes_are_nonempty(self, all_chunks):

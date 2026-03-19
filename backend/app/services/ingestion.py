@@ -149,8 +149,13 @@ class IngestionService:
         )
 
         if source_html_root.exists():
+            seen_hashes: set[str] = set()
             for html_path in sorted(source_html_root.glob("*.html")):
                 html = html_path.read_text()
+                content_hash = hashlib.md5(html.encode()).hexdigest()
+                if content_hash in seen_hashes:
+                    continue
+                seen_hashes.add(content_hash)
                 page_url = source_payload.get("local_url_map", {}).get(html_path.name, source.url)
                 records.extend(
                     chunk_html_document(
@@ -190,6 +195,13 @@ class IngestionService:
                     )
 
         if records:
+            seen_ids: set[str] = set()
+            deduped: list[ChunkRecord] = []
+            for rec in records:
+                if rec.id not in seen_ids:
+                    seen_ids.add(rec.id)
+                    deduped.append(rec)
+            records = deduped
             lines = [record.model_dump_json() for record in records]
             normalized_path.write_text("\n".join(lines))
         return records
