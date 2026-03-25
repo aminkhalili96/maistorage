@@ -216,7 +216,7 @@ def test_confidence_two_results():
 
 def test_early_stop_skips_expansion_on_high_confidence(retrieval_service):
     """High-confidence first query should produce fewer retrieval trace events."""
-    # "Why is 4-GPU training scaling poorly?" hits the NCCL corpus well.
+    # "Why is 4-GPU training scaling poorly?" hits the NCCL knowledge base well.
     # With early stopping, if first query confidence > threshold, only 1 retrieval event.
     response = retrieval_service.search("Why is 4-GPU training scaling poorly?")
     retrieval_events = [e for e in response.trace if e.type == "retrieval"]
@@ -240,9 +240,9 @@ from app.services.retrieval import _adaptive_retrieval_params
 
 
 def test_adaptive_short_factoid_gets_tight_params():
-    """Short factoid (<=8 tokens) → top_k=3, floor=0.35."""
+    """Short factoid (<=8 tokens) → top_k=8, floor=0.35."""
     top_k, floor = _adaptive_retrieval_params("What is NCCL?", QueryClass.general)
-    assert top_k == 3
+    assert top_k == 8
     assert floor == 0.35
 
 

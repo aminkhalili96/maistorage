@@ -2,19 +2,19 @@
   {
     "id": "distributed_scaling",
     "question": "Why is 4-GPU training scaling poorly?",
-    "expected_mode": "corpus-backed",
+    "expected_mode": "knowledge-base-backed",
     "expected_terms": ["scaling", "communication", "all-reduce"]
   },
   {
     "id": "mixed_precision_tradeoffs",
     "question": "When should I use mixed precision training and what are the tradeoffs?",
-    "expected_mode": "corpus-backed",
+    "expected_mode": "knowledge-base-backed",
     "expected_terms": ["mixed precision", "throughput", "bf16"]
   },
   {
     "id": "deployment_stack",
     "question": "What NVIDIA stack is needed to deploy training workloads on Linux or Kubernetes?",
-    "expected_mode": "corpus-backed",
+    "expected_mode": "knowledge-base-backed",
     "expected_terms": ["driver", "container", "cuda"]
   },
   {

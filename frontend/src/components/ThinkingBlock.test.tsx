@@ -61,7 +61,7 @@ describe("ThinkingBlock", () => {
     render(<ThinkingBlock trace={[]} isProcessing={true} thinkingSeconds={2} />);
 
     expect(screen.getByText("Processing")).toBeInTheDocument();
-    expect(screen.getByText("Searching NVIDIA AI infrastructure corpus")).toBeInTheDocument();
+    expect(screen.getByText("Searching NVIDIA AI knowledge base")).toBeInTheDocument();
   });
 
   test("hides processing indicator when isProcessing is false with trace events", () => {
@@ -74,7 +74,7 @@ describe("ThinkingBlock", () => {
     render(<ThinkingBlock trace={trace} isProcessing={false} thinkingSeconds={0} />);
 
     expect(screen.queryByText("Processing")).not.toBeInTheDocument();
-    expect(screen.getByText("Searched NVIDIA AI infrastructure corpus")).toBeInTheDocument();
+    expect(screen.getByText("Searched NVIDIA AI knowledge base")).toBeInTheDocument();
   });
 
   test("collapse/expand toggle hides and shows trace steps", () => {

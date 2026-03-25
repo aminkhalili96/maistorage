@@ -1,3 +1,20 @@
+"""
+Knowledge base ingestion — loads documents into the search index at startup.
+
+Boot-time strategy (bootstrap_local_knowledge_base):
+  1. If index already populated → skip
+  2. If pre-normalized JSONL files exist → load directly (fast path, ~8100 chunks)
+  3. If raw HTML/PDF/markdown files exist → normalize on the fly
+  4. If nothing else → load demo_chunks.json (minimal curated subset)
+
+Background ingestion (run_job): fetches fresh HTML/PDF from NVIDIA docs,
+normalizes into chunks, and upserts into the live index.
+
+Normalization includes:
+  - HTML MD5 dedup (P9 fix: prevents duplicate HTML files from creating duplicate chunks)
+  - Chunk ID dedup (last line of _normalize_local_source)
+  - Three chunking pipelines: HTML (BeautifulSoup), PDF (pypdf), Markdown (heading split)
+"""
 from __future__ import annotations
 
 import hashlib
@@ -10,13 +27,14 @@ import httpx
 from pypdf import PdfReader
 
 from app.config import Settings
-from app.corpus import load_corpus_manifest, load_normalized_chunks
+from app.knowledge_base import load_knowledge_base_manifest, load_normalized_chunks
 from app.models import ChunkRecord, DocumentSource, IngestRequest, IngestionStatus
 from app.services.chunking import chunk_html_document, chunk_markdown_document, chunk_pdf_document
 from app.services.indexes import SearchIndex
 
 
 class IngestionService:
+    """Manages the knowledge base lifecycle: bootstrap at startup, background refresh on demand."""
     def __init__(
         self,
         settings: Settings,
@@ -28,7 +46,7 @@ class IngestionService:
         self.index = index
         self.sources = sources
         self.demo_chunks = demo_chunks
-        self.manifest = load_corpus_manifest(settings.corpus_manifest_path)
+        self.manifest = load_knowledge_base_manifest(settings.knowledge_base_manifest_path)
         self.status = IngestionStatus(snapshot_id=self.manifest.get("snapshot_id"))
 
     def _count_per_source(self, chunks: list[ChunkRecord]) -> dict[str, int]:
@@ -37,13 +55,13 @@ class IngestionService:
             counts[c.source_id] += 1
         return dict(counts)
 
-    def bootstrap_local_corpus(self) -> None:
+    def bootstrap_local_knowledge_base(self) -> None:
         if self.index.count() > 0:
             return
         normalized_chunks = load_normalized_chunks(self.settings.normalized_doc_root)
         if normalized_chunks:
             self.index.upsert(normalized_chunks)
-            self.status.loaded_demo_corpus = False
+            self.status.loaded_demo_knowledge_base = False
             self.status.chunk_counts = self._count_per_source(normalized_chunks)
             self.status.updated_at = datetime.now(UTC).isoformat()
             self.status.last_refresh_at = self.manifest.get("retrieved_at")
@@ -55,20 +73,20 @@ class IngestionService:
                 all_chunks.extend(self._normalize_local_source(source))
             if all_chunks:
                 self.index.upsert(all_chunks)
-                self.status.loaded_demo_corpus = False
+                self.status.loaded_demo_knowledge_base = False
                 self.status.chunk_counts = self._count_per_source(all_chunks)
                 self.status.updated_at = datetime.now(UTC).isoformat()
                 self.status.last_refresh_at = self.manifest.get("retrieved_at")
                 return
 
         if not self.settings.is_assessment_mode:
-            self.bootstrap_demo_corpus()
+            self.bootstrap_demo_knowledge_base()
 
-    def bootstrap_demo_corpus(self) -> None:
+    def bootstrap_demo_knowledge_base(self) -> None:
         if self.index.count() > 0:
             return
         self.index.upsert(self.demo_chunks)
-        self.status.loaded_demo_corpus = True
+        self.status.loaded_demo_knowledge_base = True
         self.status.chunk_counts = self._count_per_source(self.demo_chunks)
         self.status.updated_at = datetime.now(UTC).isoformat()
 
@@ -236,4 +254,4 @@ class IngestionService:
         }
         self.manifest["snapshot_id"] = snapshot_id
         self.manifest["retrieved_at"] = datetime.now(UTC).isoformat()
-        self.settings.corpus_manifest_path.write_text(json.dumps(self.manifest, indent=2))
+        self.settings.knowledge_base_manifest_path.write_text(json.dumps(self.manifest, indent=2))

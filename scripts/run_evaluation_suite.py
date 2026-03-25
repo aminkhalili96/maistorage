@@ -17,7 +17,7 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest
 from app.services.agent import AgentService
 from app.services.evaluation import EvaluationService
@@ -258,10 +258,10 @@ def _run_trajectory_benchmark(output_dir: Path) -> dict[str, Any]:
     settings = get_settings()
     bundle = load_benchmark_bundle(settings, question_path=settings.golden_questions_path, max_chunks_per_source=MAX_BENCHMARK_CHUNKS_PER_SOURCE)
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     agent = AgentService(settings, retrieval, OpenAIReasoner(settings), TavilyClient(settings))
     eval_service = EvaluationService(settings, settings.golden_questions_path, retrieval, agent)
@@ -274,7 +274,7 @@ def _run_trajectory_benchmark(output_dir: Path) -> dict[str, Any]:
             config_name="agentic-trajectory",
             bundle=bundle,
             question_path=settings.golden_questions_path,
-            notes="50-question deterministic local benchmark across direct chat, corpus-backed RAG, refusal, and controlled fallback. TTFT currently equals total latency because the SSE path emits after the full agent run completes.",
+            notes="50-question deterministic local benchmark across direct chat, knowledge-base-backed RAG, refusal, and controlled fallback. TTFT currently equals total latency because the SSE path emits after the full agent run completes.",
         ),
         "rows": trajectory["rows"],
         "aggregate": trajectory["aggregate"],
@@ -760,8 +760,8 @@ def _write_summary(
             "- The embedding comparison now uses 3 real models: Gemini plus two Pinecone-hosted models.",
             "- The chunking ablation uses the keyword baseline as a fast local proxy; the selected assessment benchmark still uses `gemini-embedding-001` at 3072 dimensions.",
             "- API call counts in the latency and trajectory artifacts are cost proxies, not billing reports.",
-            "- The benchmark question file now unifies 50 questions across direct chat, corpus-backed RAG, refusal, and recency-sensitive fallback.",
-            "- The current RAGAS run measures only the corpus-backed subset of the benchmark; the Gemini 3.1 Pro judge covers the broader agent trajectory when enabled.",
+            "- The benchmark question file now unifies 50 questions across direct chat, knowledge-base-backed RAG, refusal, and recency-sensitive fallback.",
+            "- The current RAGAS run measures only the knowledge-base-backed subset of the benchmark; the Gemini 3.1 Pro judge covers the broader agent trajectory when enabled.",
         ]
     )
     (output_dir / "slide_summary.md").write_text("\n".join(lines) + "\n")

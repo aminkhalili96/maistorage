@@ -46,7 +46,7 @@ function buildCitation(overrides: Partial<Citation> = {}): Citation {
     domain: "docs.nvidia.com",
     section_path: "Linux Install",
     snippet: "Install the NVIDIA driver and the CUDA toolkit before running containers.",
-    source_kind: "corpus",
+    source_kind: "knowledge_base",
     ...overrides,
   };
 }
@@ -70,7 +70,7 @@ function buildSource(overrides: Partial<SourceRecord> = {}): SourceRecord {
     doc_type: "html",
     crawl_prefix: "https://docs.nvidia.com/cuda/cuda-c-programming-guide/",
     product_tags: ["cuda", "gpu", "programming"],
-    source_kind: "corpus",
+    source_kind: "knowledge_base",
     ...overrides,
   };
 }
@@ -83,7 +83,7 @@ describe("App", () => {
     mockedCheckHealth.mockReset();
     mockedCheckHealth.mockResolvedValue(true);
     mockedGetSources.mockResolvedValue({ sources: [buildSource()], families: {}, indexed_chunks: 1, app_mode: "assessment" });
-    mockedGetIngestionStatus.mockResolvedValue({ active: false, source_counts: {}, chunk_counts: {}, changed_sources: [], errors: [], loaded_demo_corpus: false });
+    mockedGetIngestionStatus.mockResolvedValue({ active: false, source_counts: {}, chunk_counts: {}, changed_sources: [], errors: [], loaded_demo_knowledge_base: false });
   });
 
   test("renders the empty state with composer by default", () => {
@@ -135,7 +135,7 @@ describe("App", () => {
         buildDonePayload({
           assistant_mode: "doc_rag",
           answer: "Use the NVIDIA driver and Container Toolkit.",
-          response_mode: "corpus-backed",
+          response_mode: "knowledge-base-backed",
           citation_count: 1,
           confidence: 0.88,
           query_class: "deployment_runtime",
@@ -156,7 +156,7 @@ describe("App", () => {
     expect(screen.getByText(/CUDA Installation Guide/)).toBeInTheDocument();
   });
 
-  test("shows corpus-backed trust badge for doc-backed responses", async () => {
+  test("shows knowledge-base-backed trust badge for doc-backed responses", async () => {
     const user = userEvent.setup();
     mockedStreamChat.mockImplementation(async (_question, _history, handlers) => {
       handlers.onTrace(buildTrace());
@@ -166,7 +166,7 @@ describe("App", () => {
         buildDonePayload({
           assistant_mode: "doc_rag",
           answer: "Use the NVIDIA driver.",
-          response_mode: "corpus-backed",
+          response_mode: "knowledge-base-backed",
           citation_count: 1,
         }),
       );
@@ -177,7 +177,7 @@ describe("App", () => {
     await user.type(screen.getByRole("textbox"), "How do I install CUDA?");
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    await waitFor(() => expect(screen.getByText("corpus-backed")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("knowledge-base-backed")).toBeInTheDocument());
   });
 
   test("general nvidia questions stay in plain chat mode", async () => {
@@ -275,7 +275,7 @@ describe("App", () => {
         buildDonePayload({
           assistant_mode: "doc_rag",
           answer: "Use the driver and NVIDIA Container Toolkit. [1][2]",
-          response_mode: "corpus-backed",
+          response_mode: "knowledge-base-backed",
           citation_count: 2,
         }),
       );
@@ -302,7 +302,7 @@ describe("App", () => {
     await waitFor(() => expect(screen.getByText("Network timeout")).toBeInTheDocument());
   });
 
-  test("citation title appears after corpus-backed response", async () => {
+  test("citation title appears after knowledge-base-backed response", async () => {
     const user = userEvent.setup();
     mockedStreamChat.mockImplementation(async (_question, _history, handlers) => {
       handlers.onTrace(buildTrace());
@@ -312,7 +312,7 @@ describe("App", () => {
         buildDonePayload({
           assistant_mode: "doc_rag",
           answer: "The H100 uses NVLink 4.0 for inter-GPU bandwidth. [1]",
-          response_mode: "corpus-backed",
+          response_mode: "knowledge-base-backed",
           citation_count: 1,
         }),
       );
@@ -334,7 +334,7 @@ describe("App", () => {
         buildDonePayload({
           assistant_mode: "doc_rag",
           answer: "NCCL handles collective communication for multi-GPU training.",
-          response_mode: "corpus-backed",
+          response_mode: "knowledge-base-backed",
           citation_count: 0,
         }),
       );
@@ -408,7 +408,7 @@ describe("App", () => {
         buildDonePayload({
           assistant_mode: "doc_rag",
           answer: "Test answer.",
-          response_mode: "corpus-backed",
+          response_mode: "knowledge-base-backed",
           citation_count: 1,
         }),
       );
@@ -419,9 +419,9 @@ describe("App", () => {
     await user.type(screen.getByRole("textbox"), "How do I install CUDA?");
     await user.click(screen.getByRole("button", { name: "Send" }));
 
-    await waitFor(() => expect(screen.getByText("corpus-backed")).toBeInTheDocument());
-    const badge = screen.getByText("corpus-backed");
-    expect(badge.getAttribute("title")).toBe("Answer sourced from NVIDIA documentation corpus");
+    await waitFor(() => expect(screen.getByText("knowledge-base-backed")).toBeInTheDocument());
+    const badge = screen.getByText("knowledge-base-backed");
+    expect(badge.getAttribute("title")).toBe("Answer sourced from NVIDIA knowledge base");
   });
 
   test("SSE error event shows error banner", async () => {

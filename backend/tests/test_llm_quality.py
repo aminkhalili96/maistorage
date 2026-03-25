@@ -13,7 +13,7 @@ import os
 import pytest
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest, AgentRunState
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -28,20 +28,20 @@ pytestmark = pytest.mark.skipif(
 
 
 class StubTavilyClient:
-    """Tavily stub that returns no results (tests focus on corpus retrieval)."""
+    """Tavily stub that returns no results (tests focus on knowledge base retrieval)."""
 
     def search(self, query: str):
         return []
 
 
 def _build_real_agent() -> AgentService:
-    """Build an agent with real OpenAI reasoner and demo corpus."""
+    """Build an agent with real OpenAI reasoner and demo knowledge base."""
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     reasoner = OpenAIReasoner(settings)
     return AgentService(settings, retrieval, reasoner, StubTavilyClient())
@@ -54,19 +54,19 @@ def agent():
 
 
 class TestLLMQuality:
-    """Tests that exercise real OpenAI generation against the demo corpus."""
+    """Tests that exercise real OpenAI generation against the demo knowledge base."""
 
-    def test_corpus_backed_response_is_grounded(self, agent: AgentService):
-        """Ask a hardware question with known corpus data.
+    def test_knowledge_base_backed_response_is_grounded(self, agent: AgentService):
+        """Ask a hardware question with known knowledge base data.
 
-        Expects corpus-backed mode with specific numbers from the corpus.
+        Expects knowledge-base-backed mode with specific numbers from the knowledge base.
         """
         state = agent.run(ChatRequest(question="What is the memory bandwidth of the H100?"))
 
-        assert state.response_mode == "corpus-backed", (
-            f"Expected corpus-backed, got {state.response_mode}"
+        assert state.response_mode == "knowledge-base-backed", (
+            f"Expected knowledge-base-backed, got {state.response_mode}"
         )
-        # The corpus contains specific bandwidth numbers for H100
+        # The knowledge base contains specific bandwidth numbers for H100
         answer_lower = state.answer.lower()
         assert any(
             term in answer_lower
@@ -74,12 +74,12 @@ class TestLLMQuality:
         ), f"Answer should mention bandwidth/memory details, got: {state.answer[:200]}"
 
     def test_citation_markers_present(self, agent: AgentService):
-        """A corpus-backed answer must contain [N] citation markers and a non-empty citations list."""
+        """A knowledge-base-backed answer must contain [N] citation markers and a non-empty citations list."""
         state = agent.run(
             ChatRequest(question="What are the key NCCL tuning parameters for bandwidth?")
         )
 
-        assert state.response_mode == "corpus-backed"
+        assert state.response_mode == "knowledge-base-backed"
         assert state.citations, "Expected non-empty citations list"
 
         # Verify at least one [N] marker in the answer
@@ -88,12 +88,12 @@ class TestLLMQuality:
         markers = re.findall(r"\[\d+\]", state.answer)
         assert markers, f"Answer should contain [N] citation markers, got: {state.answer[:200]}"
 
-    def test_off_topic_not_corpus_backed(self, agent: AgentService):
-        """An off-topic question should NOT be corpus-backed."""
+    def test_off_topic_not_knowledge_base_backed(self, agent: AgentService):
+        """An off-topic question should NOT be knowledge-base-backed."""
         state = agent.run(ChatRequest(question="What is the best pizza in NYC?"))
 
-        assert state.response_mode != "corpus-backed", (
-            f"Off-topic question should not be corpus-backed, got {state.response_mode}"
+        assert state.response_mode != "knowledge-base-backed", (
+            f"Off-topic question should not be knowledge-base-backed, got {state.response_mode}"
         )
         assert state.response_mode in {
             "direct-chat",
@@ -102,7 +102,7 @@ class TestLLMQuality:
         }
 
     def test_response_mode_consistency(self, agent: AgentService):
-        """Multiple corpus questions should all produce corpus-backed responses."""
+        """Multiple knowledge base questions should all produce knowledge-base-backed responses."""
         questions = [
             "Why is 4-GPU training scaling poorly?",
             "What are the NCCL configuration parameters?",
@@ -110,8 +110,8 @@ class TestLLMQuality:
         ]
         for question in questions:
             state = agent.run(ChatRequest(question=question))
-            assert state.response_mode == "corpus-backed", (
-                f"Question '{question}' should be corpus-backed, got {state.response_mode}"
+            assert state.response_mode == "knowledge-base-backed", (
+                f"Question '{question}' should be knowledge-base-backed, got {state.response_mode}"
             )
             assert state.answer.strip(), f"Question '{question}' produced empty answer"
 

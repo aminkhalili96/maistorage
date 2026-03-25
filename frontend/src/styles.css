@@ -46,8 +46,8 @@
   --pill-fail-text:       #A32D2D;
   --pill-grounded-bg:     #EAF3DE;
   --pill-grounded-text:   #3B6D11;
-  --pill-corpus-bg:       #EAF3DE;
-  --pill-corpus-text:     #3B6D11;
+  --pill-knowledge-base-bg:       #EAF3DE;
+  --pill-knowledge-base-text:     #3B6D11;
   --pill-web-bg:          #E6F1FB;
   --pill-web-text:        #0C447C;
   --pill-insuff-bg:       #FCEBEB;
@@ -881,6 +881,15 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
 }
 
+a.source-panel-link {
+  color: inherit;
+  text-decoration: none;
+}
+a.source-panel-link:hover {
+  text-decoration: underline;
+  color: var(--accent);
+}
+
 .source-panel-chunk-label {
   font-size: 10px;
   color: var(--text-tertiary);
@@ -946,9 +955,9 @@ a:hover { text-decoration: underline; }
   letter-spacing: 0.02em;
   font-family: var(--font-mono);
 }
-.source-trust-pill.corpus {
-  background: var(--pill-corpus-bg);
-  color: var(--pill-corpus-text);
+.source-trust-pill.knowledge-base {
+  background: var(--pill-knowledge-base-bg);
+  color: var(--pill-knowledge-base-text);
 }
 .source-trust-pill.web {
   background: var(--pill-web-bg);

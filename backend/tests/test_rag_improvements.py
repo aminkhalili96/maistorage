@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timezone, timedelta
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest, ChatTurn, QueryClass, QueryPlan, RetrieverResult, ChunkRecord
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -26,10 +26,10 @@ class StubTavilyClient:
 def build_agent_with_demo(reasoner=None, tavily=None) -> AgentService:
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     if reasoner is None:
         reasoner = MockOpenAIReasoner()
@@ -104,14 +104,14 @@ def test_rerank_recency_bonus_recent_chunk():
         id="c1", source_id="s1", title="Recent", url="https://example.com",
         content="NCCL tuning parameters for bandwidth optimization",
         section_path="Overview", doc_family="distributed", doc_type="html",
-        product_tags=["gpu"], source_kind="corpus",
+        product_tags=["gpu"], source_kind="knowledge_base",
         retrieved_at=recent_date, snapshot_id="snap", content_hash="h1",
     )
     chunk_old = ChunkRecord(
         id="c2", source_id="s1", title="Old", url="https://example.com",
         content="NCCL tuning parameters for bandwidth optimization",
         section_path="Overview", doc_family="distributed", doc_type="html",
-        product_tags=["gpu"], source_kind="corpus",
+        product_tags=["gpu"], source_kind="knowledge_base",
         retrieved_at=old_date, snapshot_id="snap", content_hash="h2",
     )
 
@@ -145,14 +145,14 @@ def test_rerank_recency_bonus_90_day_chunk():
         id="c1", source_id="s1", title="New", url="https://example.com",
         content="NCCL bandwidth optimization guide",
         section_path="Overview", doc_family="distributed", doc_type="html",
-        product_tags=["gpu"], source_kind="corpus",
+        product_tags=["gpu"], source_kind="knowledge_base",
         retrieved_at=very_recent, snapshot_id="snap", content_hash="h1",
     )
     chunk_mod = ChunkRecord(
         id="c2", source_id="s1", title="Moderate", url="https://example.com",
         content="NCCL bandwidth optimization guide",
         section_path="Overview", doc_family="distributed", doc_type="html",
-        product_tags=["gpu"], source_kind="corpus",
+        product_tags=["gpu"], source_kind="knowledge_base",
         retrieved_at=moderately_recent, snapshot_id="snap", content_hash="h2",
     )
 
@@ -185,7 +185,7 @@ def test_rerank_no_recency_bonus_old_chunk():
         id="c1", source_id="s1", title="Old", url="https://example.com",
         content="NCCL tuning parameters for bandwidth",
         section_path="Overview", doc_family="distributed", doc_type="html",
-        product_tags=["gpu"], source_kind="corpus",
+        product_tags=["gpu"], source_kind="knowledge_base",
         retrieved_at=old_date, snapshot_id="snap", content_hash="h1",
     )
 
@@ -216,7 +216,7 @@ def test_format_validation_normal_answer():
         "The H100 has 80GB of HBM3 memory with 3.35 TB/s bandwidth. [1] "
         "This provides significant improvement over the A100's 80GB HBM2e. [2]"
     )
-    result = AgentService._validate_format(answer, "corpus-backed")
+    result = AgentService._validate_format(answer, "knowledge-base-backed")
     assert result["valid"] is True
     assert result["issues"] == []
     assert result["citation_count"] >= 2
@@ -225,7 +225,7 @@ def test_format_validation_normal_answer():
 def test_format_validation_too_long():
     """An answer over 500 words should be flagged."""
     answer = "word " * 501
-    result = AgentService._validate_format(answer, "corpus-backed")
+    result = AgentService._validate_format(answer, "knowledge-base-backed")
     assert not result["valid"]
     assert any("too_long" in issue for issue in result["issues"])
 
@@ -233,14 +233,14 @@ def test_format_validation_too_long():
 def test_format_validation_verbose():
     """An answer between 350-500 words should get a verbose warning."""
     answer = "word " * 400 + "[1]"
-    result = AgentService._validate_format(answer, "corpus-backed")
+    result = AgentService._validate_format(answer, "knowledge-base-backed")
     assert any("verbose" in issue for issue in result["issues"])
 
 
-def test_format_validation_no_citations_corpus():
-    """A corpus-backed answer with no citations should be flagged."""
+def test_format_validation_no_citations_knowledge_base_backed():
+    """A knowledge-base-backed answer with no citations should be flagged."""
     answer = "The H100 GPU has 80GB of memory with excellent bandwidth."
-    result = AgentService._validate_format(answer, "corpus-backed")
+    result = AgentService._validate_format(answer, "knowledge-base-backed")
     assert any("no_citations" in issue for issue in result["issues"])
 
 
@@ -255,21 +255,21 @@ def test_format_validation_no_citations_direct_chat():
 def test_format_validation_unclosed_code_block():
     """Answer with unclosed code block should be flagged."""
     answer = "Here is the config:\n```yaml\nkey: value\nSome more text."
-    result = AgentService._validate_format(answer, "corpus-backed")
+    result = AgentService._validate_format(answer, "knowledge-base-backed")
     assert any("unclosed_code_block" in issue for issue in result["issues"])
 
 
 def test_format_validation_closed_code_block():
     """Answer with properly closed code block should not be flagged for that."""
     answer = "Here is the config:\n```yaml\nkey: value\n```\nMore text. [1]"
-    result = AgentService._validate_format(answer, "corpus-backed")
+    result = AgentService._validate_format(answer, "knowledge-base-backed")
     assert not any("unclosed_code_block" in issue for issue in result["issues"])
 
 
 def test_format_validation_word_count():
     """word_count field should be accurate."""
     answer = "one two three four five"
-    result = AgentService._validate_format(answer, "corpus-backed")
+    result = AgentService._validate_format(answer, "knowledge-base-backed")
     assert result["word_count"] == 5
 
 
@@ -289,14 +289,14 @@ def test_citation_quality_strong_citations():
             id="c1", source_id="s1", title="NCCL", url="https://example.com",
             content="NCCL handles all-reduce collective operations for multi-GPU distributed training using NVLink interconnect",
             section_path="Overview", doc_family="distributed", doc_type="html",
-            product_tags=["gpu"], source_kind="corpus",
+            product_tags=["gpu"], source_kind="knowledge_base",
             retrieved_at="2026-03-15T00:00:00Z", snapshot_id="snap", content_hash="h1",
         ),
         ChunkRecord(
             id="c2", source_id="s1", title="NCCL Tuning", url="https://example.com",
             content="Bandwidth optimization requires tuning NCCL environment parameters for efficient communication",
             section_path="Tuning", doc_family="distributed", doc_type="html",
-            product_tags=["gpu"], source_kind="corpus",
+            product_tags=["gpu"], source_kind="knowledge_base",
             retrieved_at="2026-03-15T00:00:00Z", snapshot_id="snap", content_hash="h2",
         ),
     ]
@@ -321,7 +321,7 @@ def test_citation_quality_empty_answer():
         id="c1", source_id="s1", title="NCCL", url="https://example.com",
         content="NCCL content here",
         section_path="Overview", doc_family="distributed", doc_type="html",
-        product_tags=["gpu"], source_kind="corpus",
+        product_tags=["gpu"], source_kind="knowledge_base",
         retrieved_at="2026-03-15T00:00:00Z", snapshot_id="snap", content_hash="h1",
     )
     quality = AgentService._citation_quality("", [RetrieverResult(chunk=chunk, score=0.8)])
@@ -340,7 +340,7 @@ def test_citation_quality_uncited_paragraph():
             id="c1", source_id="s1", title="NCCL", url="https://example.com",
             content="NCCL handles all-reduce collective operations for multi-GPU distributed training using NVLink interconnect",
             section_path="Overview", doc_family="distributed", doc_type="html",
-            product_tags=["gpu"], source_kind="corpus",
+            product_tags=["gpu"], source_kind="knowledge_base",
             retrieved_at="2026-03-15T00:00:00Z", snapshot_id="snap", content_hash="h1",
         ),
     ]
@@ -405,7 +405,7 @@ def test_false_premise_pipeline_doesnt_crash():
         question="Since the H100 has 40GB of memory, how does it compare to the A100?"
     ))
     assert state.answer.strip(), "Pipeline should produce an answer with false premise"
-    assert state.response_mode in {"corpus-backed", "llm-knowledge"}
+    assert state.response_mode in {"knowledge-base-backed", "llm-knowledge"}
 
 
 def test_contradictory_premise_pipeline_doesnt_crash():
@@ -455,7 +455,7 @@ def test_full_pipeline_with_improvements():
         question="Why is 4-GPU training scaling poorly with NCCL?"
     ))
     assert state.answer.strip()
-    assert state.response_mode in {"corpus-backed", "web-backed", "llm-knowledge"}
+    assert state.response_mode in {"knowledge-base-backed", "web-backed", "llm-knowledge"}
     # Should have trace events
     assert len(state.trace) >= 3
 
@@ -470,7 +470,7 @@ def test_pipeline_with_abbreviation_query():
 
 
 def test_pipeline_trace_has_expected_event_types():
-    """A corpus-routed query should produce trace events for key pipeline stages."""
+    """A knowledge-base-routed query should produce trace events for key pipeline stages."""
     agent = build_agent_with_demo()
     state = agent.run(ChatRequest(
         question="What are the NCCL tuning parameters for bandwidth?"
@@ -517,7 +517,7 @@ def test_cross_encoder_graceful_when_not_installed():
         chunk = ChunkRecord(
             id="c1", source_id="s1", title="Test", url="https://example.com",
             content="NCCL tuning parameters", section_path="Overview",
-            doc_family="distributed", product_tags=["gpu"], source_kind="corpus",
+            doc_family="distributed", product_tags=["gpu"], source_kind="knowledge_base",
             doc_type="html", retrieved_at="2026-03-15T00:00:00Z",
             snapshot_id="snap", content_hash="h1",
         )

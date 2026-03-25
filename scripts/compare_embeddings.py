@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from app.config import get_settings
-from app.corpus import load_normalized_chunks, load_sources
+from app.knowledge_base import load_normalized_chunks, load_sources
 
 from eval_common import (
     aggregate_retrieval_rows,
@@ -102,12 +102,12 @@ def run_comparison(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compare multiple embedding configurations on the local NVIDIA corpus.")
+    parser = argparse.ArgumentParser(description="Compare multiple embedding configurations on the local NVIDIA knowledge base.")
     parser.add_argument("--configs", required=True, help="Path to a JSON array of embedding experiment configs.")
     parser.add_argument("--output", default="", help="Optional JSON output path.")
     parser.add_argument("--include-ragas", action="store_true", help="Run RAGAS after retrieval metrics when credentials are available.")
     parser.add_argument("--source-id", action="append", dest="source_ids", help="Restrict the comparison to specific source ids.")
-    parser.add_argument("--all-sources", action="store_true", help="Compare against the full normalized corpus instead of the benchmark subset.")
+    parser.add_argument("--all-sources", action="store_true", help="Compare against the full normalized knowledge base instead of the benchmark subset.")
     parser.add_argument("--max-chunks-per-source", type=int, default=12, help="Cap benchmark chunks per source id to keep live comparisons tractable.")
     args = parser.parse_args()
 

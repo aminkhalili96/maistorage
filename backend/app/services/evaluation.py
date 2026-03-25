@@ -10,7 +10,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.config import Settings
 from app.models import ChatRequest, EvaluationRow
 from app.services.agent import AgentService
@@ -57,10 +57,10 @@ class EvaluationService:
     def _build_local_benchmark_agent(self) -> AgentService:
         local_settings = replace(self.settings, openai_api_key=None, use_tavily_fallback=True)
         sources = load_sources(local_settings.source_manifest_path)
-        demo_chunks = load_demo_chunks(local_settings.demo_corpus_path)
+        demo_chunks = load_demo_chunks(local_settings.demo_knowledge_base_path)
         index = InMemoryHybridIndex(KeywordEmbedder())
         ingestion = IngestionService(local_settings, index, sources, demo_chunks)
-        ingestion.bootstrap_demo_corpus()
+        ingestion.bootstrap_demo_knowledge_base()
         retrieval = RetrievalService(local_settings, sources, index)
 
         class LocalFallbackClient:
@@ -91,7 +91,7 @@ class EvaluationService:
             if assistant_mode == "direct_chat":
                 response_mode = "direct-chat"
             elif expected_sources:
-                response_mode = "corpus-backed"
+                response_mode = "knowledge-base-backed"
             else:
                 response_mode = "insufficient-evidence"
 
@@ -109,7 +109,7 @@ class EvaluationService:
             "should_require_citations": bool(
                 item.get(
                     "should_require_citations",
-                    response_mode in {"corpus-backed", "web-backed"},
+                    response_mode in {"knowledge-base-backed", "web-backed"},
                 )
             ),
             "should_use_fallback": bool(item.get("should_use_fallback", response_mode == "web-backed")),
@@ -124,7 +124,7 @@ class EvaluationService:
             item
             for item in self.load_golden_questions()
             if item["assistant_mode_expected"] == "doc_rag"
-            and item["response_mode_expected"] == "corpus-backed"
+            and item["response_mode_expected"] == "knowledge-base-backed"
             and item["expected_sources"]
         ]
 
@@ -133,7 +133,7 @@ class EvaluationService:
             item
             for item in self.load_golden_questions()
             if item["assistant_mode_expected"] == "doc_rag"
-            and item["response_mode_expected"] == "corpus-backed"
+            and item["response_mode_expected"] == "knowledge-base-backed"
             and bool(item.get("reference_answer"))
         ]
 

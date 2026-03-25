@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest
 from app.services.agent import AgentService
 from app.services.evaluation import EvaluationService
@@ -26,7 +26,7 @@ def rag_suite() -> tuple[list[dict], EvaluationService, AgentService]:
         embedder_provider="keyword",
     )
     sources = load_sources(settings.source_manifest_path)
-    chunks = load_demo_chunks(settings.demo_corpus_path)
+    chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     index.upsert(chunks)
     retrieval = RetrievalService(settings, sources, index)
@@ -52,7 +52,7 @@ def _term_hit_count(answer: str, expected_terms: list[str]) -> int:
     return sum(1 for term in expected_terms if term.lower() in lowered)
 
 
-def test_benchmark_question_set_has_50_corpus_grounded_cases(rag_suite: tuple[list[dict], EvaluationService, AgentService]) -> None:
+def test_benchmark_question_set_has_50_knowledge_base_grounded_cases(rag_suite: tuple[list[dict], EvaluationService, AgentService]) -> None:
     questions, _, _ = rag_suite
     assert len(questions) == 50
     assert all(question["expected_sources"] for question in questions)
@@ -84,7 +84,7 @@ def test_agent_rag_suite_returns_grounded_cited_answers(
     retrieved_sources = _unique_sources(state)
 
     assert state.assistant_mode == "doc_rag", item["question"]
-    assert state.response_mode == "corpus-backed", item["question"]
+    assert state.response_mode == "knowledge-base-backed", item["question"]
     assert state.citations, item["question"]
     assert state.grounding_passed, item["question"]
     assert state.answer_quality_passed, item["question"]

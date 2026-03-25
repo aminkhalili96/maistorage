@@ -26,6 +26,7 @@ DIRECT_CHAT_CASES = [
 LIVE_QUERY_CASES = [
     ("what is the stock price of nvidia today?", []),
     ("How's the weather today?", []),
+    ("What changed in the latest NVIDIA Container Toolkit release?", []),
 ]
 
 DOC_RAG_CASES = [
@@ -33,7 +34,6 @@ DOC_RAG_CASES = [
     ("How do I install CUDA on Ubuntu?", []),
     ("Why is 4-GPU training scaling poorly?", []),
     ("According to official NVIDIA docs, when should I use mixed precision?", []),
-    ("What changed in the latest NVIDIA Container Toolkit release?", []),
     ("Show me the NVIDIA guide for GPU Operator installation", []),
     ("Show me the guide for TensorRT", []),
     ("Which official docs explain RAID choices for AI servers?", []),

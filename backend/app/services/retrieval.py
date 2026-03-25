@@ -1,3 +1,18 @@
+"""
+Retrieval engine — query planning, search, reranking, and grading.
+
+Implements a multi-stage retrieval funnel:
+  1. classify_question()  — rule-based query classification into 5 classes
+  2. build_query_plan()   — generates search queries, source family hints, adaptive top_k
+  3. run_retrieval_pass() — executes queries against the hybrid index, reranks, grades
+  4. rerank_results()     — multi-signal scoring: lexical overlap, source hints, product
+                            name boosts, recency weighting, definitional query boosts
+  5. grade_results()      — threshold-based filtering (distinct from LLM grading in agent.py)
+  6. estimate_confidence() — weighted average of top-3 rerank scores (clamped to 1.0)
+
+Key design: Every function here is deterministic (no LLM calls). LLM-powered versions
+(llm_build_query_plan, llm_classify_assistant_mode) wrap these as fallbacks.
+"""
 from __future__ import annotations
 
 import json
@@ -18,6 +33,8 @@ _log = logging.getLogger("maistorage.retrieval")
 EARLY_STOP_CONFIDENCE = 0.75
 
 
+# Rule-based query classification: match query terms against keyword lists for each class.
+# Scoring: each matched term gets max(1, word_count) points; highest score wins.
 QUERY_CLASS_RULES: list[tuple[QueryClass, tuple[str, ...]]] = [
     (
         QueryClass.distributed_multi_gpu,
@@ -125,6 +142,8 @@ QUERY_CLASS_RULES: list[tuple[QueryClass, tuple[str, ...]]] = [
 ]
 
 
+# Maps each query class to the source families most likely to contain relevant chunks.
+# Used by rerank_results() to give family_bonus to chunks from these families.
 CLASS_FAMILY_MAP: dict[QueryClass, list[str]] = {
     QueryClass.training_optimization: ["core", "advanced", "infrastructure"],
     QueryClass.distributed_multi_gpu: ["distributed", "core", "advanced"],
@@ -143,6 +162,9 @@ EXPANSION_TERMS: dict[QueryClass, list[str]] = {
 }
 
 
+# Per-class source_id → bonus score. These are additive bonuses applied during reranking
+# to boost chunks from sources known to be authoritative for each query class.
+# Example: "nccl" source gets +0.48 for distributed_multi_gpu queries.
 QUERY_CLASS_SOURCE_HINTS: dict[QueryClass, dict[str, float]] = {
     QueryClass.training_optimization: {
         "dl-performance": 0.42,
@@ -186,7 +208,7 @@ QUERY_CLASS_SOURCE_HINTS: dict[QueryClass, dict[str, float]] = {
 
 RECENCY_TERMS = ("latest", "current", "recent", "today", "yesterday", "newest", "release notes", "changed", "stock price", "share price", "market cap", "stock market")
 FINANCIAL_TERMS = ("stock price", "share price", "market cap", "stock market", "shares outstanding", "earnings", "valuation", "ticker", "stock")
-# Topics that need live web data — route to Tavily directly instead of corpus retrieval.
+# Topics that need live web data — route to Tavily directly instead of knowledge base retrieval.
 LIVE_QUERY_TERMS = (
     "weather", "forecast", "temperature outside", "raining", "sunny",
     "stock price", "share price", "market cap", "stock market",
@@ -454,9 +476,18 @@ def _contains_any(text: str, terms: tuple[str, ...]) -> bool:
     return any(term in text for term in terms)
 
 
+_RELEASE_RECENCY_PATTERNS = re.compile(
+    r"(?:what(?:'s| is| are)?\s+(?:new|changed|different|updated)|latest\s+(?:release|version|update|changes))"
+    r"|(?:release notes?|changelog|what changed)"
+)
+
 def _is_live_query(question: str) -> bool:
     lowered = question.strip().lower()
     if _contains_any(lowered, LIVE_QUERY_TERMS) and not _contains_any(lowered, DOC_RAG_INFRA_TERMS):
+        return True
+    # Recency-sensitive product release questions need live web data even for
+    # NVIDIA products — KB has static docs, not latest release info (P25 fix)
+    if _RELEASE_RECENCY_PATTERNS.search(lowered) and _contains_any(lowered, DOC_RAG_INFRA_TERMS):
         return True
     return False
 
@@ -546,8 +577,8 @@ def _adaptive_retrieval_params(question: str, query_class: QueryClass) -> tuple[
     entity_count = sum(1 for term in _ENTITY_TERMS_FOR_ADAPTIVE if term in lowered)
 
     if token_count <= 8 and entity_count <= 1:
-        # Simple factoid: retrieve fewer, require higher confidence
-        return 3, 0.35
+        # Simple factoid: still need enough results for reranking to work
+        return 8, 0.35
     if token_count > 15 or entity_count >= 2:
         # Complex analytical or multi-entity: retrieve more, relax floor
         return 10, 0.22
@@ -626,6 +657,18 @@ def llm_build_query_plan(
             qc_value = "general"
         query_class = QueryClass(qc_value)
 
+        # Post-validate: if LLM chose "general" but rule-based has a strong match,
+        # override with the rule-based class. Prevents misclassification of queries
+        # like "What is NCCL?" which clearly belong to distributed_multi_gpu.
+        if query_class == QueryClass.general:
+            rule_plan = build_query_plan(question, settings)
+            if rule_plan.query_class != QueryClass.general:
+                _log.info(
+                    "LLM classified as 'general' but rule-based says '%s' — overriding",
+                    rule_plan.query_class.value,
+                )
+                query_class = rule_plan.query_class
+
         # Validate search_queries
         search_queries = data.get("search_queries", [])
         if not isinstance(search_queries, list) or not search_queries:
@@ -673,6 +716,19 @@ def llm_build_query_plan(
 
 
 def classify_assistant_mode(question: str, history: list[ChatTurn] | None = None) -> str:
+    """Rule-based 3-way classifier: doc_rag | direct_chat | live_query.
+
+    Priority order:
+      1. Prompt injection defense (instruction-like prefixes → direct_chat)
+      2. Live query detection (weather/stocks/news → live_query)
+      3. Casual chat detection (greetings, out-of-scope → direct_chat)
+      4. NVIDIA infra term matching (CUDA, NCCL, H100, etc. → doc_rag)
+      5. General knowledge patterns ("what is X?" without infra terms → direct_chat)
+      6. Last-chance catch: long queries mentioning GPU/NVIDIA → doc_rag
+      7. Default: direct_chat
+
+    LLM-powered version: llm_classify_assistant_mode() wraps this as fallback.
+    """
     recent_user_turns = [turn.content for turn in (history or []) if turn.role == "user" and turn.content.strip()][-4:]
     previous_user_context = " ".join(recent_user_turns).lower()
     lowered = question.strip().lower()
@@ -812,6 +868,12 @@ def llm_classify_assistant_mode(
         if mode not in valid_modes:
             raise ValueError(f"Invalid mode '{mode}' from LLM")
 
+        # Post-validation: override LLM when rule-based detects live_query
+        # (LLM prompt doesn't cover recency-sensitive product releases) (P25 fix)
+        if mode == "doc_rag" and _is_live_query(question):
+            _log.info("Overriding LLM classification 'doc_rag' → 'live_query' (recency-sensitive product query)")
+            return "live_query", "llm"
+
         return mode, "llm"
 
     except Exception as exc:
@@ -937,6 +999,23 @@ def rerank_results(
     results: list[RetrieverResult],
     config: RerankConfig | None = None,
 ) -> list[RetrieverResult]:
+    """Multi-signal reranking — the heart of retrieval quality.
+
+    Computes a composite rerank_score for each chunk by summing:
+      - Base TF-IDF score from the index
+      - Lexical overlap bonus (query tokens ∩ chunk tokens)
+      - Source family bonus (chunk is from a family relevant to the query class)
+      - Source hint bonus (authoritative source for this query class)
+      - Product name boost (e.g., "beegfs" in query → +0.50 for beegfs source)
+      - Source ID match bonus (+0.3 when query contains the source_id — P11 fix)
+      - Tag bonus (query tokens match product_tags)
+      - Metadata bonus (query tokens in section_path)
+      - Overview boost (+0.25 for definitional "what is X?" queries — P15 fix)
+      - Recency bonus (+0.02 for <30 days, +0.01 for <90 days)
+
+    After scoring, applies per-source diversity cap to prevent one source from
+    dominating all result slots.
+    """
     cfg = config or _DEFAULT_RERANK_CONFIG
     query_tokens = set(tokenize(question))
     lowered_question = question.lower()
@@ -957,8 +1036,18 @@ def rerank_results(
         source_bonus = source_hints.get(result.chunk.source_id, 0.0)
         # Apply product-name boost on top of class-level source hints
         source_bonus = max(source_bonus, active_product_boosts.get(result.chunk.source_id, 0.0))
+        # Boost chunks whose source_id directly matches a query term
+        if result.chunk.source_id.lower() in {t.lower() for t in query_tokens}:
+            source_bonus += 0.3
         tag_bonus = cfg.tag_bonus if any(token in " ".join(result.chunk.product_tags).lower() for token in query_tokens) else 0.0
         rerank_score = result.score + (cfg.lexical_overlap_weight * overlap) + family_bonus + metadata_bonus + source_bonus + tag_bonus
+        # R6: Definitional query boost — prefer overview/introduction sections for "what is X?" questions
+        overview_boost = 0.0
+        if any(lowered_question.startswith(p) for p in ("what is ", "what are ", "what's ", "define ", "explain ")):
+            section_lower = result.chunk.section_path.lower()
+            if any(kw in section_lower for kw in ("overview", "introduction", "about", "what is")):
+                overview_boost = 0.25
+        rerank_score += overview_boost
         # R5: Chunk recency weighting — gently favor fresher content
         recency_bonus = 0.0
         retrieved_at = getattr(result.chunk, 'retrieved_at', None)
@@ -1025,9 +1114,15 @@ def grade_results(question: str, plan: QueryPlan, results: list[RetrieverResult]
 
 
 def estimate_confidence(results: list[RetrieverResult]) -> float:
+    """Weighted average of top-3 rerank scores: 50% top-1, 30% top-2, 20% top-3.
+
+    Scores are clamped to [0, 1] before averaging because additive reranking bonuses
+    can push raw rerank_scores above 1.0 (P13 fix — confidence was reaching 2.05).
+    """
     if not results:
         return 0.0
-    scores = [r.rerank_score for r in results[:3]]
+    # Clamp rerank_scores to [0, 1] before averaging — bonuses can push raw scores above 1.0
+    scores = [min(r.rerank_score, 1.0) for r in results[:3]]
     # Weighted average emphasizing the best result: 50% top-1, 30% top-2, 20% top-3
     weights = (0.5, 0.3, 0.2)
     weighted = sum(s * w for s, w in zip(scores, weights[:len(scores)]))
@@ -1091,6 +1186,12 @@ def expand_query_abbreviations(query: str) -> str:
 
 
 class RetrievalService:
+    """Stateless retrieval facade: wraps the search index with query planning, reranking, and grading.
+
+    run_retrieval_pass() is the main method — called by agent.py's _graph_retrieve node.
+    Each pass: expand abbreviations → search index → rerank → grade → estimate confidence.
+    Supports early stopping: skips expansion queries if first query yields confidence > 0.75.
+    """
     def __init__(self, settings: Settings, sources: list[DocumentSource], index: SearchIndex) -> None:
         self.settings = settings
         self.sources = sources
@@ -1108,7 +1209,7 @@ class RetrievalService:
         queries = [query]
         if query == question:
             queries = plan.search_queries[:3]
-        retrieval_top_k = max(plan.top_k * 4, 12)
+        retrieval_top_k = max(plan.top_k * 2, 12)
 
         total_retrieved = 0
         for query_idx, active_query in enumerate(queries):
@@ -1129,7 +1230,7 @@ class RetrievalService:
                         "status": "request",
                         "tool": "nvidia_docs",
                         "tool_label": "NVIDIA Docs",
-                        "source_kind": "corpus",
+                        "source_kind": "knowledge_base",
                         "brand": "nvidia",
                         "query": active_query,
                         "families": plan.source_families,
@@ -1172,7 +1273,7 @@ class RetrievalService:
                     "status": "result",
                     "tool": "nvidia_docs",
                     "tool_label": "NVIDIA Docs",
-                    "source_kind": "corpus",
+                    "source_kind": "knowledge_base",
                     "brand": "nvidia",
                     "top_chunk_ids": [item.chunk.id for item in reranked[:3]],
                     "top_docs": [
@@ -1199,7 +1300,7 @@ class RetrievalService:
                     "stage": "evidence_selection",
                     "tool": "nvidia_docs",
                     "tool_label": "NVIDIA Docs",
-                    "source_kind": "corpus",
+                    "source_kind": "knowledge_base",
                     "brand": "nvidia",
                     "accepted": [
                         {

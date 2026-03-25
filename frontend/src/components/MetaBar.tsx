@@ -7,7 +7,7 @@ import type { ChatDonePayload } from "../types";
    ================================================================ */
 
 function trustBadgeClass(mode: string): string {
-  if (mode === "corpus-backed") return "trust-badge corpus";
+  if (mode === "knowledge-base-backed") return "trust-badge knowledge-base";
   if (mode === "web-backed") return "trust-badge web";
   if (mode === "insufficient-evidence") return "trust-badge insufficient";
   if (mode === "llm-knowledge") return "trust-badge llm";
@@ -15,7 +15,7 @@ function trustBadgeClass(mode: string): string {
 }
 
 function trustBadgeLabel(mode: string): string {
-  if (mode === "corpus-backed") return "Corpus-backed";
+  if (mode === "knowledge-base-backed") return "Knowledge-base-backed";
   if (mode === "web-backed") return "Web-backed";
   if (mode === "insufficient-evidence") return "Insufficient evidence";
   if (mode === "llm-knowledge") return "LLM knowledge";
@@ -24,7 +24,7 @@ function trustBadgeLabel(mode: string): string {
 }
 
 function trustBadgeTooltip(mode: string): string {
-  if (mode === "corpus-backed") return "Answer sourced from NVIDIA documentation corpus";
+  if (mode === "knowledge-base-backed") return "Answer sourced from NVIDIA knowledge base";
   if (mode === "web-backed") return "Answer sourced from live web search";
   if (mode === "llm-knowledge") return "Answer from AI general knowledge (not grounded in docs)";
   if (mode === "insufficient-evidence") return "Could not find sufficient evidence to answer";
@@ -38,7 +38,7 @@ export const MetaBar = React.memo(function MetaBar({ payload }: { payload: ChatD
   const badgeLabel = trustBadgeLabel(payload.response_mode);
   const showConfidence =
     payload.confidence > 0 &&
-    (payload.response_mode === "corpus-backed" || payload.response_mode === "web-backed");
+    (payload.response_mode === "knowledge-base-backed" || payload.response_mode === "web-backed");
   return (
     <div className="meta-bar">
       {badgeClass && <span className={badgeClass} title={trustBadgeTooltip(payload.response_mode)}>{badgeLabel}</span>}

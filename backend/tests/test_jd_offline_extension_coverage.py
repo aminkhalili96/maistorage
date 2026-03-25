@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -31,7 +31,7 @@ def jd_extension_suite() -> tuple[list[dict], AgentService]:
         embedder_provider="keyword",
     )
     sources = load_sources(settings.source_manifest_path)
-    chunks = load_demo_chunks(settings.demo_corpus_path)
+    chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     index.upsert(chunks)
     retrieval = RetrievalService(settings, sources, index)
@@ -74,7 +74,7 @@ def test_jd_extension_topics_route_through_rag_with_citations(
     retrieved = _retrieved_source_ids(state)
 
     assert state.assistant_mode == "doc_rag", item["question"]
-    assert state.response_mode == "corpus-backed", item["question"]
+    assert state.response_mode == "knowledge-base-backed", item["question"]
     assert state.citations, item["question"]
     assert state.grounding_passed, item["question"]
     assert state.answer_quality_passed, item["question"]

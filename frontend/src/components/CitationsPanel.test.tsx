@@ -22,7 +22,7 @@ function buildCitation(overrides: Partial<Citation> = {}): Citation {
     section_path: "NCCL > Getting Started",
     snippet:
       "NCCL provides multi-GPU and multi-node collective communication primitives.",
-    source_kind: "corpus",
+    source_kind: "knowledge_base",
     source_id: "nccl",
     score: 0.85,
     char_count: 500,
@@ -106,17 +106,17 @@ describe("CitationsPanel", () => {
     expect(screen.getByText("developer.nvidia.com")).toBeInTheDocument();
   });
 
-  it("source kind badge shows Docs for corpus citations", () => {
+  it("source kind badge shows Docs for knowledge_base citations", () => {
     render(
       <CitationsPanel
-        citations={[buildCitation({ source_kind: "corpus" })]}
+        citations={[buildCitation({ source_kind: "knowledge_base" })]}
         selectedCitationId={null}
         onSelectCitation={vi.fn()}
       />,
     );
     const badge = screen.getByText("Docs");
     expect(badge).toBeInTheDocument();
-    expect(badge).toHaveClass("corpus");
+    expect(badge).toHaveClass("knowledge-base");
   });
 
   it("source kind badge shows Web for web citations", () => {

@@ -55,14 +55,14 @@ class Settings:
     use_pinecone: bool
     use_tavily_fallback: bool
     embedder_provider: str
-    corpus_root: Path
+    knowledge_base_root: Path
     raw_html_root: Path
     raw_pdf_root: Path
     raw_md_root: Path
     raw_doc_root: Path
     normalized_doc_root: Path
-    corpus_manifest_path: Path
-    demo_corpus_path: Path
+    knowledge_base_manifest_path: Path
+    demo_knowledge_base_path: Path
     source_manifest_path: Path
     golden_questions_path: Path
     cors_origin: str
@@ -108,12 +108,12 @@ class Settings:
             errors.append("Assessment mode requires USE_PINECONE=true.")
         if not self.pinecone_api_key or not self.pinecone_index_name:
             errors.append("Assessment mode requires PINECONE_API_KEY and PINECONE_INDEX_NAME.")
-        if not self.corpus_manifest_path.exists():
-            errors.append("Assessment mode requires data/corpus/manifest.json.")
-        elif not json.loads(self.corpus_manifest_path.read_text()).get("sources"):
-            errors.append("Assessment mode requires a populated corpus manifest with bundled sources.")
+        if not self.knowledge_base_manifest_path.exists():
+            errors.append("Assessment mode requires data/knowledge_base/manifest.json.")
+        elif not json.loads(self.knowledge_base_manifest_path.read_text()).get("sources"):
+            errors.append("Assessment mode requires a populated knowledge base manifest with bundled sources.")
         if not any(self.raw_html_root.rglob("*.html")) and not any(self.raw_pdf_root.rglob("*.pdf")):
-            errors.append("Assessment mode requires a bundled local corpus under data/corpus/raw.")
+            errors.append("Assessment mode requires a bundled local knowledge base under data/knowledge_base/raw.")
         return errors
 
 
@@ -122,12 +122,12 @@ def get_settings() -> Settings:
     project_root = Path(__file__).resolve().parents[2]
     load_dotenv(project_root / ".env")
     app_mode = os.getenv("APP_MODE", "dev").strip().lower()
-    corpus_root = project_root / os.getenv("CORPUS_ROOT", "data/corpus")
-    raw_html_root = corpus_root / "raw/html"
-    raw_pdf_root = corpus_root / "raw/pdfs"
-    raw_md_root = corpus_root / "raw/markdown"
-    raw_doc_root = project_root / os.getenv("RAW_DOC_ROOT", "data/corpus/raw")
-    normalized_doc_root = project_root / os.getenv("NORMALIZED_DOC_ROOT", "data/corpus/normalized")
+    knowledge_base_root = project_root / os.getenv("KNOWLEDGE_BASE_ROOT", "data/knowledge_base")
+    raw_html_root = knowledge_base_root / "raw/html"
+    raw_pdf_root = knowledge_base_root / "raw/pdfs"
+    raw_md_root = knowledge_base_root / "raw/markdown"
+    raw_doc_root = project_root / os.getenv("RAW_DOC_ROOT", "data/knowledge_base/raw")
+    normalized_doc_root = project_root / os.getenv("NORMALIZED_DOC_ROOT", "data/knowledge_base/normalized")
     embedder_provider = os.getenv("EMBEDDER_PROVIDER", "openai" if app_mode == "assessment" else "keyword")
     use_pinecone = _as_bool(os.getenv("USE_PINECONE"), default=app_mode == "assessment")
 
@@ -152,14 +152,14 @@ def get_settings() -> Settings:
         use_pinecone=use_pinecone,
         use_tavily_fallback=_as_bool(os.getenv("USE_TAVILY_FALLBACK"), default=False),
         embedder_provider=embedder_provider,
-        corpus_root=corpus_root,
+        knowledge_base_root=knowledge_base_root,
         raw_html_root=raw_html_root,
         raw_pdf_root=raw_pdf_root,
         raw_md_root=raw_md_root,
         raw_doc_root=raw_doc_root,
         normalized_doc_root=normalized_doc_root,
-        corpus_manifest_path=project_root / os.getenv("CORPUS_MANIFEST_PATH", "data/corpus/manifest.json"),
-        demo_corpus_path=project_root / os.getenv("DEMO_CORPUS_PATH", "data/demo_chunks.json"),
+        knowledge_base_manifest_path=project_root / os.getenv("KNOWLEDGE_BASE_MANIFEST_PATH", "data/knowledge_base/manifest.json"),
+        demo_knowledge_base_path=project_root / os.getenv("DEMO_KNOWLEDGE_BASE_PATH", "data/demo_chunks.json"),
         source_manifest_path=project_root / "data/sources/nvidia_sources.json",
         golden_questions_path=project_root / "data/evals/ragas_slim_10.json",
         cors_origin=os.getenv("FRONTEND_ORIGIN", "http://127.0.0.1:5173"),

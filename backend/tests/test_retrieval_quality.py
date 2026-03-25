@@ -35,7 +35,7 @@ def test_cross_source_retrieval(retrieval_service):
 
     assert response.results, "Expected results for a broad GPU query"
     families = {r.chunk.doc_family for r in response.results}
-    # With a broad query, we expect at least 1 family (the corpus may not have
+    # With a broad query, we expect at least 1 family (the knowledge base may not have
     # perfect coverage, but we should get something)
     assert len(families) >= 1, f"Expected at least 1 doc family, got: {families}"
 

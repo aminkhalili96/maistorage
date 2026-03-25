@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.services.agent import AgentService
 from app.services.evaluation import EvaluationService
 from app.services.indexes import InMemoryHybridIndex
@@ -19,10 +19,10 @@ from app.services.retrieval import RetrievalService
 def _build_evaluation_service(settings_override=None) -> EvaluationService:
     settings = settings_override or get_settings()
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     agent = AgentService(settings, retrieval, OpenAIReasoner(settings), TavilyClient(settings))
     return EvaluationService(settings, settings.golden_questions_path, retrieval, agent)
@@ -85,7 +85,7 @@ def test_build_ragas_rows_falls_back_to_local_benchmark_agent(monkeypatch):
         answer="RAID 0 maximizes throughput without redundancy, RAID 1 mirrors data, RAID 5 and 6 add parity, and RAID 10 balances redundancy with better write performance.",
         retrieval_results=[],
         assistant_mode="doc_rag",
-        response_mode="corpus-backed",
+        response_mode="knowledge-base-backed",
         citations=[object()],
     )
     fallback_agent = SimpleNamespace(run=lambda _request: fallback_state)
@@ -123,13 +123,13 @@ def test_load_golden_questions_has_unified_50_question_benchmark():
     assert any(item["response_mode_expected"] == "insufficient-evidence" for item in rows)
 
 
-def test_load_retrieval_questions_filters_to_corpus_backed_cases():
+def test_load_retrieval_questions_filters_to_knowledge_base_backed_cases():
     evaluation = _build_evaluation_service()
 
     rows = evaluation.load_retrieval_questions()
 
     assert len(rows) == 50
-    assert all(item["response_mode_expected"] == "corpus-backed" for item in rows)
+    assert all(item["response_mode_expected"] == "knowledge-base-backed" for item in rows)
     assert all(item["assistant_mode_expected"] == "doc_rag" for item in rows)
     assert all(item["expected_sources"] for item in rows)
 

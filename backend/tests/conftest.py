@@ -13,7 +13,7 @@ os.environ["EMBEDDER_PROVIDER"] = "keyword"
 os.environ["LANGSMITH_TRACING"] = "false"
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.runtime import get_services
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -80,8 +80,10 @@ class MockOpenAIReasoner:
         if "routing agent" in lowered and "action" in lowered:
             if "after_quality" in lowered:
                 # Check if quality/grounding actually failed
-                if "quality check passed: false" in lowered and "web fallback used: false" in lowered:
-                    return '{"action": "post_gen_fallback", "reasoning": "Quality failed, try web search"}'
+                grounding_failed = "grounding check passed: false" in lowered
+                quality_failed = "quality check passed: false" in lowered
+                if (quality_failed or grounding_failed) and "web fallback used: false" in lowered:
+                    return '{"action": "post_gen_fallback", "reasoning": "Quality/grounding failed, try web search"}'
                 return '{"action": "end", "reasoning": "Quality checks passed"}'
             # after_grading: check confidence and chunk count
             if "confidence score: 0.00" in lowered or "retrieved documents: 0" in lowered:
@@ -152,7 +154,7 @@ def sources(settings):
 
 @pytest.fixture
 def demo_chunks(settings):
-    return load_demo_chunks(settings.demo_corpus_path)
+    return load_demo_chunks(settings.demo_knowledge_base_path)
 
 
 @pytest.fixture
@@ -171,31 +173,31 @@ def retrieval_service(settings, sources, demo_index):
 def agent_service(settings, sources, demo_chunks):
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     return AgentService(settings, retrieval, OpenAIReasoner(settings), TavilyClient(settings))
 
 
 @pytest.fixture
 def agent_service_with_mock(settings, sources):
-    chunks = load_demo_chunks(settings.demo_corpus_path)
+    chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     return AgentService(settings, retrieval, MockOpenAIReasoner(), TavilyClient(settings))
 
 
 @pytest.fixture
 def dev_settings(settings, tmp_path):
-    corpus_root = tmp_path / "data" / "corpus"
+    knowledge_base_root = tmp_path / "data" / "knowledge_base"
     return replace(
         settings,
         app_mode="dev",
-        corpus_root=corpus_root,
-        raw_html_root=corpus_root / "raw" / "html",
-        raw_pdf_root=corpus_root / "raw" / "pdfs",
-        raw_doc_root=corpus_root / "raw",
-        normalized_doc_root=corpus_root / "normalized",
-        corpus_manifest_path=corpus_root / "manifest.json",
+        knowledge_base_root=knowledge_base_root,
+        raw_html_root=knowledge_base_root / "raw" / "html",
+        raw_pdf_root=knowledge_base_root / "raw" / "pdfs",
+        raw_doc_root=knowledge_base_root / "raw",
+        normalized_doc_root=knowledge_base_root / "normalized",
+        knowledge_base_manifest_path=knowledge_base_root / "manifest.json",
     )

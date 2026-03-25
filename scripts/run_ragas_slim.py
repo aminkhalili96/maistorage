@@ -18,7 +18,7 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -39,11 +39,11 @@ def main() -> None:
 
     # Build local stack (keyword embedder, in-memory index)
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     embedder = KeywordEmbedder()
     index = InMemoryHybridIndex(embedder)
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     reasoner = OpenAIReasoner(settings)
     tavily = TavilyClient(settings)

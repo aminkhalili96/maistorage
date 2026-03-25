@@ -8,7 +8,7 @@ import statistics
 import time
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_normalized_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_normalized_chunks, load_sources
 from app.services.chunking import chunk_markdown_document
 from app.services.indexes import InMemoryHybridIndex
 from app.services.ingestion import IngestionService
@@ -31,7 +31,7 @@ def test_ingestion_speed():
 def test_search_latency_p95():
     """Build a full index with demo chunks, run 50 keyword searches. Assert P95 < 500ms."""
     settings = get_settings()
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     index.upsert(demo_chunks)
 
@@ -137,7 +137,7 @@ def test_chunking_throughput():
 def test_index_build_time():
     """Time building an InMemoryHybridIndex and ingesting all demo chunks. Assert < 5 seconds."""
     settings = get_settings()
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
 
     start = time.perf_counter()
     index = InMemoryHybridIndex(KeywordEmbedder())

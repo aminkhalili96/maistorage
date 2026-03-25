@@ -1,3 +1,25 @@
+"""
+Agentic RAG pipeline — the core intelligence of the system.
+
+This module implements a 12-node LangGraph state machine that orchestrates the
+full retrieve-grade-generate-verify cycle:
+
+    classify → retrieve → document_grading → multi_hop_check
+      → [LLM Router: rewrite | fallback | generate]
+      → generate → self_reflect → claim_verification → grounding_check
+      → answer_quality_check
+      → [LLM Router: end | post_gen_fallback | rewrite]
+
+Key design decisions:
+  - Every LLM-powered decision (classification, routing, grading, multi-hop)
+    has a rule-based fallback so the pipeline works without OpenAI.
+  - Progressive SSE: trace events are emitted in real-time as each graph node
+    completes, not batched at the end. Uses thread-local emit callback.
+  - 5-mode response model with fallback chain:
+    knowledge-base-backed → web-backed → llm-knowledge → insufficient-evidence → direct-chat
+  - Guard rails override LLM routing decisions when confidence >= 0.85
+    to prevent unnecessary API calls (Tavily) or rewrites.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -41,34 +63,40 @@ except ImportError:  # pragma: no cover
 
 
 class GraphState(TypedDict, total=False):
-    question: str
-    assistant_mode: str
-    plan: dict[str, Any]
-    current_query: str
-    rewritten_query: str | None
-    results: list[dict[str, Any]]
-    citations: list[dict[str, Any]]
-    trace: list[dict[str, Any]]
-    rejected_chunk_ids: list[str]
-    confidence: float
-    answer: str
-    retries: int
-    used_fallback: bool
-    fallback_reason: str | None
-    response_mode: str
-    grounding_passed: bool
-    answer_quality_passed: bool
-    model_used: str
-    generation_degraded: bool
-    self_reflect_scores: dict[str, Any]
-    sub_questions: list[str]
-    history_context: str
-    classification_method: str
-    plan_method: str
-    llm_graded: bool
-    routing_decisions: list[dict[str, Any]]
-    multi_hop_used: bool
-    follow_up_queries: list[str]
+    """Shared state threaded through every LangGraph node.
+
+    Each node reads what it needs and returns an updated copy (immutable pattern).
+    The state accumulates trace events, retrieval results, and quality signals
+    as the pipeline progresses through classify → retrieve → grade → generate → verify.
+    """
+    question: str                               # Original user question
+    assistant_mode: str                         # doc_rag | direct_chat | live_query
+    plan: dict[str, Any]                        # Serialized QueryPlan (search queries, source families, top_k)
+    current_query: str                          # Active retrieval query (may differ from question after rewrite)
+    rewritten_query: str | None                 # LLM-rewritten query for retry pass
+    results: list[dict[str, Any]]               # Serialized RetrieverResult list (graded, reranked chunks)
+    citations: list[dict[str, Any]]             # Serialized Citation list for the final answer
+    trace: list[dict[str, Any]]                 # Accumulated trace events (emitted progressively via SSE)
+    rejected_chunk_ids: list[str]               # Chunk IDs that failed document grading
+    confidence: float                           # Weighted average of top-3 rerank scores (0.0–1.0)
+    answer: str                                 # Generated answer text
+    retries: int                                # Number of rewrite+re-retrieve cycles so far
+    used_fallback: bool                         # Whether Tavily web search was invoked
+    fallback_reason: str | None                 # Why fallback was triggered
+    response_mode: str                          # Trust label: knowledge-base-backed | web-backed | llm-knowledge | insufficient-evidence
+    grounding_passed: bool                      # Did the answer pass citation grounding check?
+    answer_quality_passed: bool                 # Did the answer pass quality check?
+    model_used: str                             # OpenAI model used for synthesis
+    generation_degraded: bool                   # True if LLM synthesis failed and keyword fallback was used
+    self_reflect_scores: dict[str, Any]         # Self-RAG scores: relevance, groundedness, completeness (1-5)
+    sub_questions: list[str]                    # Decomposed sub-questions (when query decomposition is enabled)
+    history_context: str                        # Formatted conversation history for multi-turn context
+    classification_method: str                  # How classification was done: "llm" or "rule_fallback"
+    plan_method: str                            # How query plan was built: "llm" or "rule_fallback"
+    llm_graded: bool                            # Whether document grading used LLM (vs threshold filtering)
+    routing_decisions: list[dict[str, Any]]     # Log of LLM routing decisions at each decision point
+    multi_hop_used: bool                        # Whether multi-hop follow-up retrieval was triggered
+    follow_up_queries: list[str]                # Multi-hop follow-up queries issued
 
 
 def _slugify_section(section_path: str) -> str:
@@ -96,7 +124,7 @@ def _result_preview(result: RetrieverResult) -> dict[str, Any]:
 
 
 def _resolve_citation_url(chunk: ChunkRecord) -> str:
-    if chunk.source_kind != "corpus":
+    if chunk.source_kind != "knowledge_base":
         return chunk.url
     if "#" in chunk.url:
         return chunk.url
@@ -128,6 +156,10 @@ def _citation_from_result(result: RetrieverResult) -> Citation:
     )
 
 
+# Progressive SSE mechanism: each graph node calls _append_trace() which both
+# appends to the state's trace list AND immediately emits the event to the SSE
+# stream via a thread-local callback. This is what makes the agent trace appear
+# in real-time in the frontend, not after the entire pipeline completes.
 _thread_local_emit: threading.local = threading.local()
 
 
@@ -153,7 +185,13 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
 
 class SemanticCache:
-    """In-memory LRU cache keyed on query embedding similarity."""
+    """In-memory LRU cache keyed on query embedding similarity.
+
+    Instead of exact string matching, this cache embeds the query and checks
+    cosine similarity against cached entries. If similarity >= threshold (0.92),
+    the cached AgentRunState is returned, skipping the entire pipeline.
+    Disabled by default (SEMANTIC_CACHE_ENABLED=false).
+    """
 
     def __init__(self, embedder: Embedder, threshold: float = 0.92, maxsize: int = 128) -> None:
         self._embedder = embedder
@@ -186,6 +224,12 @@ class SemanticCache:
 
 
 class AgentService:
+    """Main orchestrator: owns the LangGraph pipeline and all LLM interactions.
+
+    Wired by runtime.py with all dependencies. Provides two entry points:
+      - run()    → synchronous, returns AgentRunState
+      - stream() → async SSE generator, emits trace events progressively
+    """
     def __init__(self, settings: Settings, retrieval: RetrievalService, reasoner: OpenAIReasoner, tavily: TavilyClient, embedder: Embedder | None = None) -> None:
         self.settings = settings
         self.retrieval = retrieval
@@ -199,6 +243,12 @@ class AgentService:
         self.graph = self._build_graph() if StateGraph is not None else None
 
     def _build_graph(self):  # pragma: no cover
+        """Wire the 12-node LangGraph state machine with conditional routing edges.
+
+        Two LLM-powered decision points use conditional edges:
+          1. After multi_hop_check: generate | rewrite (retry) | fallback (Tavily)
+          2. After answer_quality_check: end | rewrite | post_gen_fallback
+        """
         graph = StateGraph(GraphState)
         graph.add_node("classify", self._graph_classify)
         graph.add_node("retrieve", self._graph_retrieve)
@@ -292,6 +342,7 @@ class AgentService:
         return []
 
     def _graph_classify(self, state: GraphState) -> GraphState:
+        """Node 1: Build a query plan (LLM or rule-based) and optionally decompose multi-part questions."""
         if self.reasoner.enabled:
             plan, plan_method = llm_build_query_plan(state["question"], self.settings, self.reasoner)
         else:
@@ -312,7 +363,7 @@ class AgentService:
             "retries": 0,
             "used_fallback": False,
             "fallback_reason": None,
-            "response_mode": "corpus-backed",
+            "response_mode": "knowledge-base-backed",
             "model_used": selected_model,
             "plan_method": plan_method,
         }
@@ -329,7 +380,7 @@ class AgentService:
             "search_queries": plan.search_queries[:2],
             "model": selected_model,
             "plan_method": plan_method,
-            **_tool_payload("nvidia_docs", "NVIDIA Docs", "corpus"),
+            **_tool_payload("nvidia_docs", "NVIDIA Docs", "knowledge_base"),
         }
         if sub_questions:
             trace_payload["sub_questions"] = sub_questions
@@ -344,6 +395,11 @@ class AgentService:
         )
 
     def _graph_retrieve(self, state: GraphState) -> GraphState:
+        """Node 2: Execute retrieval — run search queries against the hybrid index.
+
+        Handles query decomposition (parallel sub-question retrieval) and HyDE
+        (hypothetical document embedding for better semantic recall on first pass).
+        """
         plan = QueryPlan.model_validate(state["plan"])
         sub_questions = state.get("sub_questions", [])
 
@@ -387,6 +443,12 @@ class AgentService:
         return next_state
 
     def _graph_document_grading(self, state: GraphState) -> GraphState:
+        """Node 3: LLM judges each retrieved chunk's relevance to the question.
+
+        Batches chunks in groups of 3 to reduce API calls (max 6 chunks graded).
+        Includes context poisoning defense — flags chunks with instruction-like content.
+        Falls back to keeping all chunks if LLM grading fails.
+        """
         results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
         rejected_ids = list(state.get("rejected_chunk_ids", []))
 
@@ -476,15 +538,21 @@ class AgentService:
                     "kept_count": accepted_count,
                     "grades": [("pass" if g.get("relevant") else "fail") for g in grades] if llm_graded else (["pass"] * accepted_count + ["fail"] * rejected_count),
                     "llm_graded": llm_graded,
-                    **_tool_payload("nvidia_docs", "NVIDIA Docs", "corpus"),
+                    **_tool_payload("nvidia_docs", "NVIDIA Docs", "knowledge_base"),
                 },
             ),
         )
 
     def _llm_route(self, state: GraphState, decision_point: str, options: list[dict[str, str]]) -> tuple[str, str]:
-        """Use LLM to decide the next action at a routing decision point.
+        """Agentic decision point: LLM chooses the next pipeline action.
 
-        Returns (action, method) where method is 'llm' or 'rule_fallback'.
+        Called at two critical junctions in the graph:
+          1. after_grading: generate | rewrite | fallback
+          2. after_quality: end | rewrite | post_gen_fallback
+
+        The LLM sees the pipeline state (confidence, retry count, grounding results)
+        and picks the best action. Returns ("", "rule_fallback") if LLM is unavailable
+        or returns an invalid action, letting the caller fall through to rule-based logic.
         """
         if not self.reasoner.enabled:
             return "", "rule_fallback"
@@ -672,24 +740,39 @@ class AgentService:
             return next_state
 
     def _route_after_grading(self, state: GraphState) -> str:
+        """Routing decision point 1: after grading + multi-hop, decide next step.
+
+        Guard rails enforce hard constraints regardless of LLM decision:
+          - Max 1 rewrite before falling back to Tavily
+          - Tavily disabled → force generate
+          - Confidence >= 0.85 → skip rewrite/fallback entirely (P20 fix)
+        """
         # Try LLM-based routing first
         action, method = self._llm_route(state, "after_grading", [
             {"action": "generate", "description": "Proceed to answer generation with the current evidence set"},
             {"action": "rewrite_if_needed", "description": "Rephrase the query and retry retrieval (low confidence in current results)"},
-            {"action": "fallback_if_needed", "description": "Try web search fallback (corpus evidence insufficient)"},
+            {"action": "fallback_if_needed", "description": "Try web search fallback (knowledge base evidence insufficient)"},
         ])
 
         if method == "llm":
             plan = QueryPlan.model_validate(state["plan"])
+            confidence = float(state.get("confidence", 0.0))
             # Guard rails: enforce constraints regardless of LLM decision
             if action == "rewrite_if_needed" and state.get("retries", 0) >= 1:
                 return "fallback_if_needed"  # max 1 rewrite before grading
             if action == "fallback_if_needed" and not plan.use_tavily_fallback:
                 return "generate"  # tavily disabled, just generate
+            # High-confidence guard: skip fallback/rewrite when KB evidence is strong
+            # But allow recency-sensitive queries through — KB may have stale content (P25 fix)
+            recency_sensitive = plan.recency_sensitive
+            if confidence >= 0.85 and action in ("fallback_if_needed", "rewrite_if_needed") and not recency_sensitive:
+                _log.info("Overriding LLM route '%s' → 'generate' (confidence=%.2f >= 0.85)", action, confidence)
+                return "generate"
             return action
 
         # Rule-based fallback (original logic)
         plan = QueryPlan.model_validate(state["plan"])
+        confidence = float(state.get("confidence", 0.0))
         results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
         if plan.recency_sensitive:
             return "fallback_if_needed"
@@ -745,6 +828,12 @@ class AgentService:
         )
 
     def _graph_fallback(self, state: GraphState) -> GraphState:
+        """Tavily web search fallback — MERGES web results with existing KB results (P19 fix).
+
+        Key design: web results supplement KB evidence, never replace it. If KB results
+        exist, response_mode stays 'knowledge-base-backed'. Only 'web-backed' when KB
+        had zero results. This preserves KB-first ordering for synthesis.
+        """
         next_state = dict(state)
         plan = QueryPlan.model_validate(state["plan"])
         if not plan.use_tavily_fallback:
@@ -798,19 +887,29 @@ class AgentService:
                     rerank_score=0.22,
                 )
             )
-        next_state["results"] = [item.model_dump() for item in pseudo_results]
+        # Merge: append web results after existing KB results (KB-first ordering)
+        existing_kb = state.get("results", [])
+        merged = existing_kb + [item.model_dump() for item in pseudo_results]
+        next_state["results"] = merged
         next_state["used_fallback"] = True
-        next_state["fallback_reason"] = "corpus_insufficiency"
-        next_state["response_mode"] = "web-backed"
+        next_state["fallback_reason"] = "knowledge_base_insufficiency"
+        # Keep knowledge-base-backed if KB results exist (web supplements, not replaces)
+        if existing_kb:
+            next_state["response_mode"] = "knowledge-base-backed"
+            trace_msg = "Supplemented knowledge base results with web search"
+        else:
+            next_state["response_mode"] = "web-backed"
+            trace_msg = "Used web search fallback (no knowledge base results)"
         return _append_trace(
             next_state,
             TraceEvent(
                 type="fallback",
-                message="Used Tavily fallback because the bundled corpus evidence stayed below confidence threshold",
+                message=trace_msg,
                 payload={
                     "stage": "tool_result",
                     "status": "result",
                     "result_count": len(pseudo_results),
+                    "kb_results_kept": len(existing_kb),
                     "accepted_docs": [_result_preview(item) for item in pseudo_results[:4]],
                     **_tool_payload("web_search", "Web Search", "web"),
                 },
@@ -823,10 +922,12 @@ class AgentService:
         return "end"
 
     def _check_user_premises(self, question: str, results: list[RetrieverResult]) -> str:
-        """Check if user's question contains incorrect factual premises.
+        """Sycophancy defense: detect incorrect premises in the user's question.
 
-        Returns a context note to prepend to the synthesis prompt if a contradiction is found,
-        or an empty string if no issues detected.
+        Example: "Since the H100 has 40GB..." (it actually has 80GB HBM3).
+        Extracts assertions via routing model, checks token overlap with source chunks,
+        and prepends a contradiction warning to the synthesis prompt so the LLM corrects
+        rather than agrees with the user's false premise.
         """
         if not self.reasoner.enabled or not results:
             return ""
@@ -881,8 +982,16 @@ class AgentService:
         return ""
 
     def _graph_generate(self, state: GraphState) -> GraphState:
+        """Node 6: Synthesize the final answer from accepted evidence chunks.
+
+        Adaptive chunk count: 2 chunks for short queries, 3 for medium, 4 for complex.
+        Supports token-level streaming (SSE answer_chunk events) when emit callback is set.
+        Falls back to keyword-based answer if LLM synthesis fails (generation_degraded=True).
+        Runs format validation after generation (word count, citation presence, code blocks).
+        """
         results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
-        citations = [_citation_from_result(result).model_dump() for result in results[:4]]
+        chunk_count = self._synthesis_chunk_count(state["question"])
+        citations = [_citation_from_result(result).model_dump() for result in results[:chunk_count]]
         model_used = str(state.get("model_used") or self.settings.generation_model)
         history_context = state.get("history_context", "")
         # S3: Check for incorrect user premises before synthesis
@@ -914,14 +1023,14 @@ class AgentService:
             payload={
                 "stage": "generation",
                 "citation_count": len(citations),
-                "response_mode": next_state.get("response_mode", "corpus-backed"),
+                "response_mode": next_state.get("response_mode", "knowledge-base-backed"),
                 "model": model_used,
                 "accepted_docs": [_result_preview(result) for result in results[:4]],
                 "degraded": generation_degraded,
             },
         ))
         # S4: Output format enforcement — validate format before grounding check
-        format_check = self._validate_format(answer, next_state.get("response_mode", "corpus-backed"))
+        format_check = self._validate_format(answer, next_state.get("response_mode", "knowledge-base-backed"))
         if format_check["issues"]:
             _log.info("Format validation issues: %s", format_check["issues"])
         events.append(TraceEvent(
@@ -998,7 +1107,12 @@ class AgentService:
         )
 
     def _verify_claims(self, state: GraphState) -> GraphState:
-        """Claim-level verification: extract factual claims and verify against sources."""
+        """Node 8: Extract factual claims from the answer and verify against source chunks.
+
+        Uses the routing model (cheap) to extract 3-5 key claims, then checks each
+        claim's token overlap against source chunks (40% threshold). If more claims
+        are ungrounded than grounded, forces grounding failure → triggers fallback chain.
+        """
         next_state = dict(state)
         answer = state.get("answer", "")
         results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
@@ -1144,6 +1258,7 @@ class AgentService:
 
         if method == "llm":
             plan = QueryPlan.model_validate(state["plan"])
+            confidence = float(state.get("confidence", 0.0))
             # Guard rails
             if action == "post_gen_fallback" and (state.get("used_fallback") or not plan.use_tavily_fallback):
                 if state.get("retries", 0) < plan.max_retries:
@@ -1151,12 +1266,22 @@ class AgentService:
                 return "end"
             if action == "rewrite_if_needed" and state.get("retries", 0) >= plan.max_retries:
                 return "end"
+            # High-confidence guard: skip post-gen fallback when KB evidence was strong
+            # BUT allow fallback if grounding failed — high retrieval confidence
+            # doesn't help when the LLM didn't ground its answer in sources (P24 fix)
+            grounding_failed = not state.get("grounding_passed", True)
+            if confidence >= 0.85 and action == "post_gen_fallback" and not grounding_failed:
+                _log.info("Overriding LLM route 'post_gen_fallback' → 'end' (confidence=%.2f >= 0.85)", confidence)
+                return "end"
             return action
 
         # Rule-based fallback (original logic)
         plan = QueryPlan.model_validate(state["plan"])
+        confidence = float(state.get("confidence", 0.0))
+        grounding_failed = not state.get("grounding_passed", True)
         quality_ok = state.get("grounding_passed", False) and state.get("answer_quality_passed", False)
-        if not quality_ok:
+        # Allow fallback when grounding failed regardless of confidence (P24 fix)
+        if not quality_ok and (confidence < 0.85 or grounding_failed):
             if not state.get("used_fallback") and plan.use_tavily_fallback:
                 return "post_gen_fallback"
             if state.get("retries", 0) < plan.max_retries:
@@ -1174,6 +1299,16 @@ class AgentService:
         return "end"
 
     def run(self, request: ChatRequest) -> AgentRunState:
+        """Main entry point: classify → route → run pipeline → apply fallback chain.
+
+        Flow: semantic cache check → classify (LLM or rules) → route to one of:
+          - direct_chat: greeting/general knowledge → LLM answer, no retrieval
+          - live_query: weather/stocks/news → Tavily open search → LLM synthesis
+          - doc_rag: NVIDIA infra question → full LangGraph pipeline
+
+        After the graph completes, applies the 5-mode fallback chain:
+        KB-backed → web-backed → llm-knowledge → insufficient-evidence → direct-chat
+        """
         cache_key = self._cache_key(request)
         if self._semantic_cache is not None:
             cached = self._semantic_cache.get(cache_key)
@@ -1258,19 +1393,19 @@ class AgentService:
         citations = [Citation.model_validate(item) for item in graph_state.get("citations", [])]
         trace = [TraceEvent.model_validate(item) for item in graph_state.get("trace", [])]
         answer = graph_state.get("answer") or self._refusal_answer()
-        response_mode = graph_state.get("response_mode", "corpus-backed")
+        response_mode = graph_state.get("response_mode", "knowledge-base-backed")
         grounding_passed = bool(graph_state.get("grounding_passed", False))
         answer_quality_passed = bool(graph_state.get("answer_quality_passed", False))
-        if not results and response_mode == "corpus-backed":
+        if not results and response_mode == "knowledge-base-backed":
             response_mode = "insufficient-evidence"
-        # For corpus answers, enforce grounding + quality; for web-backed, trust the
+        # For knowledge-base answers, enforce grounding + quality; for web-backed, trust the
         # external results regardless (citation-marker grounding doesn't apply to web).
-        if response_mode == "corpus-backed" and (not grounding_passed or not answer_quality_passed):
+        if response_mode == "knowledge-base-backed" and (not grounding_passed or not answer_quality_passed):
             response_mode = "insufficient-evidence"
             answer = self._refusal_answer()
             citations = []
 
-        # LLM general-knowledge fallback: try OpenAI when all corpus/web layers exhausted
+        # LLM general-knowledge fallback: try OpenAI when all knowledge-base/web layers exhausted
         if response_mode == "insufficient-evidence" and self.reasoner.enabled:
             llm_answer = self._llm_knowledge_answer(request.question, selected_model, history_context=history_context)
             if llm_answer and len(llm_answer.strip()) > 60:
@@ -1329,11 +1464,11 @@ class AgentService:
             payload={"stage": "tool_selection", "assistant_mode": "live_query"},
         ))
 
-        # Try Tavily search
+        # Try Tavily search (unrestricted domains for live queries like weather/stocks)
         web_results: list[dict[str, Any]] = []
         if self.tavily.enabled:
             try:
-                web_results = self.tavily.search(question)
+                web_results = self.tavily.search_open(question)
             except Exception as exc:
                 _log.warning("Tavily live query failed (%s: %s)", type(exc).__name__, str(exc)[:120])
 
@@ -1480,7 +1615,7 @@ class AgentService:
 
         return (
             "I can answer general questions when the OpenAI API is available. "
-            "For now, try asking me an NVIDIA infrastructure question — those are answered from the offline corpus and don't require a live API."
+            "For now, try asking me an NVIDIA infrastructure question — those are answered from the offline knowledge base and don't require a live API."
         )
 
     def _source_inventory_answer(self) -> str:
@@ -1508,7 +1643,7 @@ class AgentService:
         }
         preview = ", ".join(list(highlighted.values())[:8])
         return (
-            "I currently have a focused NVIDIA corpus covering Linux CUDA deployment, the NVIDIA Container Toolkit, "
+            "I currently have a focused NVIDIA knowledge base covering Linux CUDA deployment, the NVIDIA Container Toolkit, "
             "GPU Operator for Kubernetes, NCCL and NVLink fabric behavior, mixed precision and GPU performance guidance, "
             "storage throughput considerations, hardware positioning for H100/A100/L40S, large-model parallelism, "
             "AI server platform design, cluster operations, data-path/storage choices, and container plus CI/CD delivery notes. "
@@ -1531,7 +1666,7 @@ class AgentService:
         ):
             return "Doing well, ready to help. Ask me a technical question about NVIDIA infrastructure or just chat."
 
-        # Out-of-scope topics — give a polite redirect without touching the corpus
+        # Out-of-scope topics — give a polite redirect without touching the knowledge base
         # NOTE: weather/forecast/stock terms are handled by live_query route and won't reach here.
         _out_of_scope_hints = ("sports", "football", "basketball", "soccer", "cricket", "recipe",
                                "cooking", "restaurant", "flight", "airline", "hotel", "horoscope")
@@ -1608,7 +1743,9 @@ class AgentService:
         ):
             return self._source_inventory_answer()
 
-        if lowered.startswith(("can you help me", "help me with", "what should i ask", "what can you do")):
+        if lowered.startswith(("can you help me", "help me with", "what should i ask", "what can you do")) or (
+            "what can you help" in lowered or "what do you help" in lowered or "what can you assist" in lowered
+        ):
             return (
                 "I can handle normal chat, and I can switch into cited RAG mode for NVIDIA infrastructure, deployment, performance, and troubleshooting questions. "
                 "If you want grounded technical answers, ask about CUDA, drivers, containers, Kubernetes, profiling, scaling, storage, or hardware choices."
@@ -1733,30 +1870,46 @@ class AgentService:
         if not results:
             return self._refusal_answer(), False
 
-        top_results = results[:4]
+        chunk_count = self._synthesis_chunk_count(question)
+        top_results = results[:chunk_count]
         if self.reasoner.enabled:
             context_blocks = []
             for index, result in enumerate(top_results, start=1):
+                retrieved_note = f" (retrieved {result.chunk.retrieved_at[:10]})" if getattr(result.chunk, 'retrieved_at', None) else ""
                 context_blocks.append(
-                    f"[{index}] {result.chunk.title} | {result.chunk.section_path} | {result.chunk.url}"
-                    + (f" (retrieved {result.chunk.retrieved_at[:10]})" if getattr(result.chunk, 'retrieved_at', None) else "")
-                    + f"\n{result.chunk.content}"
+                    f"[{index}] {result.chunk.content}\n— Source: {result.chunk.url}{retrieved_note}"
                 )
-            prompt = (
-                "You are an NVIDIA AI infrastructure advisor. "
-                "Directly and concisely answer the user question using only the numbered context passages below.\n\n"
-                "Rules:\n"
-                "1. Open your first sentence with a direct answer to the question.\n"
-                "2. Support each factual claim with an inline citation like [1] referencing the passage number.\n"
-                "3. Do not include information not in the context.\n"
-                "4. If context is insufficient, say so explicitly.\n"
-                "5. Keep the response under 300 words.\n"
-                "6. Prioritize technical accuracy and specific numbers (bandwidth, TFLOPS, memory sizes) over general descriptions.\n"
-                "7. When comparing hardware or configurations, use a structured format (bullet points or table).\n"
-                "8. End with a practical recommendation when the question implies a choice.\n"
-                "9. If the context contradicts the user's premise, correct it directly — do not agree with incorrect assumptions.\n"
-                "10. Do not pad with filler phrases or restate the question. Lead with the answer.\n\n"
+            is_definitional = question.lower().strip().rstrip("?").strip().startswith(
+                ("what is ", "what are ", "what's ", "define ", "explain ")
             )
+            if is_definitional:
+                prompt = (
+                    "You are an NVIDIA AI infrastructure advisor.\n\n"
+                    "Output EXACTLY ONE paragraph — no line breaks between sentences, no multiple paragraphs. "
+                    "Do NOT use any headings, bold titles, bullet points, or lists. "
+                    "Merge ALL passage information into that single paragraph. "
+                    "Start with a direct definition that expands any acronym in the question to its full name. "
+                    "Cite sources inline like [1] or [2]. "
+                    "REPHRASE everything in your own words — never copy a passage sentence verbatim. "
+                    "Ignore meta-text like 'This document describes...' or release note boilerplate.\n\n"
+                )
+            else:
+                prompt = (
+                    "You are an NVIDIA AI infrastructure advisor. "
+                    "Directly and concisely answer the user question using only the numbered context passages below.\n\n"
+                    "Rules:\n"
+                    "1. Open your first sentence with a direct answer to the question.\n"
+                    "2. Support each factual claim with an inline citation like [1] referencing the passage number.\n"
+                    "3. Do not include information not in the context.\n"
+                    "4. If context is insufficient, say so explicitly.\n"
+                    "5. Keep the response under 300 words.\n"
+                    "6. Prioritize technical accuracy and specific numbers (bandwidth, TFLOPS, memory sizes) over general descriptions.\n"
+                    "7. When comparing hardware or configurations, use a structured format (bullet points or table).\n"
+                    "8. End with a practical recommendation when the question implies a choice.\n"
+                    "9. If the context contradicts the user's premise, correct it directly — do not agree with incorrect assumptions.\n"
+                    "10. Do not pad with filler phrases or restate the question. Lead with the answer.\n"
+                    "11. Synthesize all passages into one cohesive answer. Never use source titles or passage labels as headings. Write flowing paragraphs, not a section per source.\n\n"
+                )
             if premise_note:
                 prompt += premise_note
             prompt += f"Question: {question}\n\nContext:\n" + "\n\n".join(context_blocks)
@@ -1774,39 +1927,75 @@ class AgentService:
                 _log.warning("LLM synthesis failed (%s: %s), using keyword fallback", type(exc).__name__, str(exc)[:120])
 
         lines = []
+        is_def = question.lower().strip().rstrip("?").strip().startswith(
+            ("what is ", "what are ", "what's ", "define ", "explain ")
+        )
         for index, result in enumerate(top_results[:3], start=1):
-            section = result.chunk.section_path or result.chunk.title or "Source"
-            lines.append(f"**{section}**\n\n{result.chunk.content} [{index}]")
+            if is_def:
+                lines.append(f"{result.chunk.content} [{index}]")
+            else:
+                section = result.chunk.section_path or result.chunk.title or "Source"
+                lines.append(f"**{section}**\n\n{result.chunk.content} [{index}]")
         return "\n\n".join(lines), True
+
+    @staticmethod
+    def _synthesis_chunk_count(question: str) -> int:
+        """Fewer chunks for simple questions to avoid content dumping."""
+        lowered = question.lower().strip().rstrip("?").strip()
+        token_count = len(question.split())
+        # Definitional queries get 3 chunks for richer detail and source diversity
+        if lowered.startswith(("what is ", "what are ", "what's ", "define ", "explain ")):
+            return 3
+        if token_count <= 6:
+            return 2
+        if token_count <= 10:
+            return 3
+        return 4
 
     def _synthesize_answer_stream(self, question: str, results: list[RetrieverResult], model: str, *, history_context: str = "", emit=None, premise_note: str = "") -> tuple[str, bool]:
         """Stream tokens via emit callback, return (answer_text, generation_degraded)."""
         if not results:
             return self._refusal_answer(), False
 
-        top_results = results[:4]
+        chunk_count = self._synthesis_chunk_count(question)
+        top_results = results[:chunk_count]
         context_blocks = []
         for index, result in enumerate(top_results, start=1):
+            retrieved_note = f" (retrieved {result.chunk.retrieved_at[:10]})" if getattr(result.chunk, 'retrieved_at', None) else ""
             context_blocks.append(
-                f"[{index}] {result.chunk.title} | {result.chunk.section_path} | {result.chunk.url}"
-                + (f" (retrieved {result.chunk.retrieved_at[:10]})" if getattr(result.chunk, 'retrieved_at', None) else "")
-                + f"\n{result.chunk.content}"
+                f"[{index}] {result.chunk.content}\n— Source: {result.chunk.url}{retrieved_note}"
             )
-        prompt = (
-            "You are an NVIDIA AI infrastructure advisor. "
-            "Directly and concisely answer the user question using only the numbered context passages below.\n\n"
-            "Rules:\n"
-            "1. Open your first sentence with a direct answer to the question.\n"
-            "2. Support each factual claim with an inline citation like [1] referencing the passage number.\n"
-            "3. Do not include information not in the context.\n"
-            "4. If context is insufficient, say so explicitly.\n"
-            "5. Keep the response under 300 words.\n"
-            "6. Prioritize technical accuracy and specific numbers (bandwidth, TFLOPS, memory sizes) over general descriptions.\n"
-            "7. When comparing hardware or configurations, use a structured format (bullet points or table).\n"
-            "8. End with a practical recommendation when the question implies a choice.\n"
-            "9. If the context contradicts the user's premise, correct it directly — do not agree with incorrect assumptions.\n"
-            "10. Do not pad with filler phrases or restate the question. Lead with the answer.\n\n"
+        is_definitional = question.lower().strip().rstrip("?").strip().startswith(
+            ("what is ", "what are ", "what's ", "define ", "explain ")
         )
+        if is_definitional:
+            prompt = (
+                "You are an NVIDIA AI infrastructure advisor.\n\n"
+                "Output EXACTLY ONE paragraph — no line breaks between sentences, no multiple paragraphs. "
+                "Do NOT use any headings, bold titles, bullet points, or lists. "
+                "Merge ALL passage information into that single paragraph. "
+                "Start with a direct definition that expands any acronym in the question to its full name. "
+                "Cite sources inline like [1] or [2]. "
+                "REPHRASE everything in your own words — never copy a passage sentence verbatim. "
+                "Ignore meta-text like 'This document describes...' or release note boilerplate.\n\n"
+            )
+        else:
+            prompt = (
+                "You are an NVIDIA AI infrastructure advisor. "
+                "Directly and concisely answer the user question using only the numbered context passages below.\n\n"
+                "Rules:\n"
+                "1. Open your first sentence with a direct answer to the question.\n"
+                "2. Support each factual claim with an inline citation like [1] referencing the passage number.\n"
+                "3. Do not include information not in the context.\n"
+                "4. If context is insufficient, say so explicitly.\n"
+                "5. Keep the response under 300 words.\n"
+                "6. Prioritize technical accuracy and specific numbers (bandwidth, TFLOPS, memory sizes) over general descriptions.\n"
+                "7. When comparing hardware or configurations, use a structured format (bullet points or table).\n"
+                "8. End with a practical recommendation when the question implies a choice.\n"
+                "9. If the context contradicts the user's premise, correct it directly — do not agree with incorrect assumptions.\n"
+                "10. Do not pad with filler phrases or restate the question. Lead with the answer.\n"
+                "11. Synthesize all passages into one cohesive answer. Never use source titles or passage labels as headings. Write flowing paragraphs, not a section per source.\n\n"
+            )
         if premise_note:
             prompt += premise_note
         prompt += f"Question: {question}\n\nContext:\n" + "\n\n".join(context_blocks)
@@ -1841,10 +2030,10 @@ class AgentService:
         elif word_count > 350:
             issues.append(f"answer_verbose ({word_count} words)")
 
-        # Citation count check for corpus-backed answers
+        # Citation count check for knowledge-base-backed answers
         citation_count = len(re.findall(r'\[\d+\]', answer))
-        if response_mode == "corpus-backed" and citation_count == 0:
-            issues.append("no_citations_in_corpus_backed")
+        if response_mode == "knowledge-base-backed" and citation_count == 0:
+            issues.append("no_citations_in_knowledge_base_backed")
 
         # Markdown formatting issues
         if answer.count('```') % 2 != 0:
@@ -1879,22 +2068,30 @@ class AgentService:
         weak = 0
         uncited_paragraphs = 0
 
-        for paragraph in answer.split("\n\n"):
-            paragraph = paragraph.strip()
-            if not paragraph or len(paragraph) < 40:
+        # Split into units, handling structured content (tables/bullets)
+        units: list[str] = []
+        for raw_block in answer.split("\n\n"):
+            stripped = raw_block.strip()
+            if not stripped:
                 continue
+            lines = stripped.split("\n")
+            has_structured = any(AgentService._STRUCTURED_LINE_RE.match(line) for line in lines)
+            if has_structured:
+                units.extend(line.strip() for line in lines if line.strip() and len(line.strip()) >= 40)
+            elif len(stripped) >= 40:
+                units.append(stripped)
 
-            # Find citation markers in this paragraph
-            cited_indices = [int(m) - 1 for m in re.findall(r'\[(\d+)\]', paragraph)]
+        for unit in units:
+            cited_indices = [int(m) - 1 for m in re.findall(r'\[(\d+)\]', unit)]
             cited_indices = [i for i in cited_indices if 0 <= i < len(results)]
 
             if not cited_indices:
                 uncited_paragraphs += 1
                 continue
 
-            para_tokens = set(tokenize(paragraph))
+            unit_tokens = set(tokenize(unit))
             for idx in cited_indices:
-                overlap = len(para_tokens & chunk_term_sets[idx])
+                overlap = len(unit_tokens & chunk_term_sets[idx])
                 if overlap >= 3:
                     strong += 1
                 else:
@@ -1902,39 +2099,50 @@ class AgentService:
 
         return {"strong": strong, "weak": weak, "uncited_paragraphs": uncited_paragraphs}
 
+    _STRUCTURED_LINE_RE = re.compile(r"^\s*(\|.+\||[-*+]\s|\d+[.)]\s)")
+
     @staticmethod
     def _ensure_citations(answer: str, results: list[RetrieverResult], max_citations_per_para: int = 3) -> str:
         if not results:
             return answer
-        paragraphs = [paragraph.strip() for paragraph in answer.split("\n\n") if paragraph.strip()]
-        fixed: list[str] = []
         SKIP_PREFIXES = ("in summary", "to summarize", "overall,", "in conclusion")
         chunk_term_sets = [
             set(r.chunk.sparse_terms or tokenize(r.chunk.content))
             for r in results
         ]
-        for paragraph in paragraphs:
-            already_cited = bool(re.search(r"\[\d+\]", paragraph))
-            is_short = len(paragraph) < 40
-            is_structural = paragraph.lower().startswith(SKIP_PREFIXES)
+
+        def _cite_unit(unit: str) -> str:
+            already_cited = bool(re.search(r"\[\d+\]", unit))
+            is_short = len(unit) < 40
+            is_structural = unit.lower().startswith(SKIP_PREFIXES)
             if already_cited or is_short or is_structural:
-                fixed.append(paragraph)
-                continue
-            para_tokens = set(tokenize(paragraph))
-            # Collect all matching citations with sufficient overlap
-            matches: list[tuple[int, int]] = []  # (overlap, idx)
+                return unit
+            unit_tokens = set(tokenize(unit))
+            matches: list[tuple[int, int]] = []
             for idx, chunk_terms in enumerate(chunk_term_sets):
-                overlap = len(para_tokens & chunk_terms)
+                overlap = len(unit_tokens & chunk_terms)
                 if overlap >= 2:
                     matches.append((overlap, idx))
             if matches:
-                # Sort by overlap descending and take top N
                 matches.sort(reverse=True)
                 citation_markers = "".join(f" [{idx + 1}]" for _, idx in matches[:max_citations_per_para])
-                fixed.append(f"{paragraph}{citation_markers}")
+                return f"{unit}{citation_markers}"
+            return unit
+
+        # Process each \n\n block; within structured blocks, cite each line
+        output_blocks: list[str] = []
+        for raw_block in answer.split("\n\n"):
+            stripped = raw_block.strip()
+            if not stripped:
+                output_blocks.append("")
+                continue
+            lines = stripped.split("\n")
+            has_structured = any(AgentService._STRUCTURED_LINE_RE.match(line) for line in lines)
+            if has_structured:
+                output_blocks.append("\n".join(_cite_unit(line.strip()) for line in lines if line.strip()))
             else:
-                fixed.append(paragraph)
-        return "\n\n".join(fixed)
+                output_blocks.append(_cite_unit(stripped))
+        return "\n\n".join(output_blocks)
 
     _LLM_HEDGING_PHRASES = (
         "based on my knowledge",
@@ -1976,12 +2184,23 @@ class AgentService:
         invalid_refs = referenced - valid_range
         if invalid_refs:
             _log.warning("Answer contains invalid citation markers: %s (valid: 1-%d)", invalid_refs, len(citations))
-        paragraphs = [p.strip() for p in answer.split("\n\n") if p.strip() and len(p.strip()) >= 40]
-        if not paragraphs:
+        # Split into units: structured content (tables/bullets) split on \n too
+        units: list[str] = []
+        for raw_block in answer.split("\n\n"):
+            stripped = raw_block.strip()
+            if not stripped:
+                continue
+            lines = stripped.split("\n")
+            has_structured = any(AgentService._STRUCTURED_LINE_RE.match(line) for line in lines)
+            if has_structured:
+                units.extend(line.strip() for line in lines if line.strip() and len(line.strip()) >= 40)
+            elif len(stripped) >= 40:
+                units.append(stripped)
+        if not units:
             valid_cited = bool(referenced & valid_range)
             return valid_cited
-        cited = sum(1 for p in paragraphs if re.search(r"\[\d+\]", p))
-        return cited / len(paragraphs) >= 0.6
+        cited = sum(1 for u in units if re.search(r"\[\d+\]", u))
+        return cited / len(units) >= 0.6
 
     @staticmethod
     def _answer_quality_check(question: str, answer: str) -> bool:
@@ -2051,7 +2270,7 @@ class AgentService:
 
     @staticmethod
     def _refusal_answer() -> str:
-        return "I do not have enough grounded evidence in the bundled corpus to answer this confidently."
+        return "I do not have enough grounded evidence in the knowledge base to answer this confidently."
 
     def _resolve_request_model(self, requested_model: str | None) -> str:
         if requested_model and requested_model in self.settings.openai_allowed_models:

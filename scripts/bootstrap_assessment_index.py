@@ -4,7 +4,7 @@ import argparse
 from itertools import islice
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_normalized_chunks
+from app.knowledge_base import load_demo_chunks, load_normalized_chunks
 from app.services.indexes import PineconeHybridIndex
 from app.services.providers import build_embedder
 
@@ -69,7 +69,7 @@ def batched(items, size: int):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Populate Pinecone with the interview-critical NVIDIA corpus subset.")
+    parser = argparse.ArgumentParser(description="Populate Pinecone with the interview-critical NVIDIA knowledge base subset.")
     parser.add_argument(
         "--source-id",
         action="append",
@@ -77,9 +77,9 @@ def main() -> None:
         help="Specific source id to include. Can be passed multiple times. Defaults to the interview subset.",
     )
     parser.add_argument(
-        "--demo-corpus",
+        "--demo-knowledge-base",
         action="store_true",
-        help="Populate Pinecone from the bundled demo chunk set instead of the larger normalized corpus.",
+        help="Populate Pinecone from the bundled demo chunk set instead of the larger normalized knowledge base.",
     )
     parser.add_argument("--batch-size", type=int, default=25, help="Number of chunks to upsert per batch.")
     args = parser.parse_args()
@@ -87,8 +87,8 @@ def main() -> None:
     settings = get_settings()
     source_ids = args.source_ids or DEFAULT_SOURCE_IDS
 
-    if args.demo_corpus:
-        chunks = load_demo_chunks(settings.demo_corpus_path)
+    if args.demo_knowledge_base:
+        chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     else:
         chunks = [chunk for chunk in load_normalized_chunks(settings.normalized_doc_root) if chunk.source_id in set(source_ids)]
     if not chunks:
@@ -100,8 +100,8 @@ def main() -> None:
 
     total = len(chunks)
     print(f"Target namespace: {settings.pinecone_namespace}")
-    if args.demo_corpus:
-        print("Selected sources: bundled demo corpus")
+    if args.demo_knowledge_base:
+        print("Selected sources: bundled demo knowledge base")
     else:
         print(f"Selected sources: {', '.join(source_ids)}")
     print(f"Selected chunks: {total}")

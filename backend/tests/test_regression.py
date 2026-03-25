@@ -5,7 +5,7 @@ All tests use MockOpenAIReasoner or custom mock reasoners — no real API calls.
 from __future__ import annotations
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest, ChatTurn
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -51,10 +51,10 @@ class HedgingReasoner(MockOpenAIReasoner):
 def build_agent_with_demo(reasoner=None, tavily=None) -> AgentService:
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     if reasoner is None:
         reasoner = MockOpenAIReasoner()
@@ -64,7 +64,7 @@ def build_agent_with_demo(reasoner=None, tavily=None) -> AgentService:
 
 
 def build_agent_empty_index(reasoner=None, tavily=None) -> AgentService:
-    """Build an agent with an empty index (no corpus chunks)."""
+    """Build an agent with an empty index (no knowledge base chunks)."""
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
@@ -82,12 +82,12 @@ def build_agent_empty_index(reasoner=None, tavily=None) -> AgentService:
 
 
 def test_follow_up_classification_with_history():
-    """Bug #72: After a corpus-backed answer about H100, a follow-up like
+    """Bug #72: After a knowledge-base-backed answer about H100, a follow-up like
     'Tell me more about that' should be classified as doc_rag (not direct_chat)
     when history context is provided."""
     agent = build_agent_with_demo()
 
-    # Turn 1: corpus question
+    # Turn 1: knowledge base question
     state1 = agent.run(ChatRequest(question="What are the H100 GPU specifications?"))
     assert state1.assistant_mode == "doc_rag"
 
@@ -208,7 +208,7 @@ def test_classification_stock_is_live_query():
 
 
 def test_empty_index_does_not_crash():
-    """Agent with no indexed chunks, asking a corpus question, should not crash.
+    """Agent with no indexed chunks, asking a knowledge base question, should not crash.
     Should gracefully fall back to llm-knowledge or insufficient-evidence."""
     agent = build_agent_empty_index(reasoner=MockOpenAIReasoner(), tavily=EmptyTavilyClient())
     state = agent.run(ChatRequest(question="What are the H100 GPU specifications?"))
@@ -230,7 +230,7 @@ def test_response_always_has_answer():
 
     test_cases = [
         # (description, request)
-        ("corpus question", ChatRequest(question="Why is 4-GPU training scaling poorly?")),
+        ("knowledge base question", ChatRequest(question="Why is 4-GPU training scaling poorly?")),
         ("direct chat", ChatRequest(question="Hello, how are you?")),
         (
             "follow-up with history",
@@ -295,13 +295,13 @@ def test_prompt_injection_jailbreak():
 
 def test_false_premise_h100_wrong_memory():
     """Query with a false premise ('H100 has 40GB') — the pipeline should not
-    parrot the wrong value. The corpus says 80GB, so the answer should contain '80'."""
+    parrot the wrong value. The knowledge base says 80GB, so the answer should contain '80'."""
     agent = build_agent_with_demo()
     state = agent.run(ChatRequest(
         question="Since the H100 has 40GB of memory, how does it compare to the A100?"
     ))
-    # The answer should mention 80GB (the correct value from corpus), not just 40GB
-    assert state.response_mode in {"corpus-backed", "llm-knowledge"}, (
+    # The answer should mention 80GB (the correct value from knowledge base), not just 40GB
+    assert state.response_mode in {"knowledge-base-backed", "llm-knowledge"}, (
         f"H100 memory question should produce a grounded answer, got {state.response_mode}"
     )
     # Check that the answer contains substantive content (not a refusal)

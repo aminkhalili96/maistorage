@@ -1,3 +1,19 @@
+"""
+Text chunking pipeline — converts raw documents into ChunkRecords for indexing.
+
+Three entry points matching the three source types:
+  - chunk_html_document()    → BeautifulSoup section extraction → chunk_sections()
+  - chunk_markdown_document() → heading-based splitting → chunk_sections()
+  - chunk_pdf_document()      → single "Overview" section → chunk_sections()
+
+All three converge into chunk_sections() which:
+  1. Strips trailing '#' from headings (P6 fix)
+  2. Falls back to section_path when title is generic like "Overview" (P7 fix)
+  3. Splits text with overlap (900 chars, 120 char overlap)
+  4. Filters navigation/boilerplate chunks (TOC, footers, release note lists)
+  5. Generates deterministic chunk IDs: {source_id}-{section_slug}-{content_hash}
+  6. Pre-tokenizes content into sparse_terms for TF-IDF matching
+"""
 from __future__ import annotations
 
 import hashlib
@@ -171,7 +187,7 @@ def chunk_sections(
     retrieved_at: str | None = None,
     doc_version: str | None = None,
     snapshot_id: str | None = None,
-    source_kind: str = "corpus",
+    source_kind: str = "knowledge_base",
     max_chars: int = 900,
     overlap: int = 120,
 ) -> list[ChunkRecord]:

@@ -1,3 +1,10 @@
+/**
+ * Frontend TypeScript types — mirrors the Pydantic models in backend/app/models.py.
+ *
+ * These types define the JSON contracts between the backend SSE stream and the
+ * React frontend. Keep in sync with the backend models when adding new fields.
+ */
+
 export type QueryClass =
   | "training_optimization"
   | "distributed_multi_gpu"
@@ -67,7 +74,7 @@ export interface IngestionStatus {
   errors: string[];
   updated_at?: string | null;
   last_refresh_at?: string | null;
-  loaded_demo_corpus: boolean;
+  loaded_demo_knowledge_base: boolean;
 }
 
 export interface EvalRow {
@@ -86,19 +93,20 @@ export interface Conversation {
   updatedAt: number;
 }
 
+/** Final SSE "done" event payload — contains all quality signals for the MetaBar display. */
 export interface ChatDonePayload {
   answer: string;
   assistant_mode: "direct_chat" | "doc_rag" | "live_query";
-  confidence: number;
-  used_fallback: boolean;
-  response_mode: string;
+  confidence: number;                     // 0.0–1.0, weighted avg of top-3 rerank scores
+  used_fallback: boolean;                 // Whether Tavily web search was invoked
+  response_mode: string;                  // Trust label shown in the UI badge
   retry_count: number;
-  grounding_passed: boolean;
+  grounding_passed: boolean;              // Did citation grounding check pass?
   answer_quality_passed: boolean;
   rejected_chunk_count: number;
   citation_count: number;
   query_class: string;
   source_families: string[];
   model_used: string;
-  generation_degraded?: boolean;
+  generation_degraded?: boolean;          // True if LLM failed and keyword fallback was used
 }

@@ -7,7 +7,7 @@ inputs gracefully without crashing.
 from __future__ import annotations
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest, ChatTurn
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -34,13 +34,13 @@ class DisabledReasoner:
 
 
 def build_agent_with_demo(reasoner=None) -> AgentService:
-    """Build an agent with demo corpus loaded."""
+    """Build an agent with demo knowledge base loaded."""
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     if reasoner is None:
         reasoner = MockOpenAIReasoner()
@@ -48,7 +48,7 @@ def build_agent_with_demo(reasoner=None) -> AgentService:
 
 
 def build_agent_empty_index(reasoner=None) -> AgentService:
-    """Build an agent with an empty index (no corpus chunks)."""
+    """Build an agent with an empty index (no knowledge base chunks)."""
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
@@ -63,7 +63,7 @@ def build_agent_empty_index(reasoner=None) -> AgentService:
 # ---------------------------------------------------------------------------
 
 
-def test_empty_corpus_graceful_fallback():
+def test_empty_knowledge_base_graceful_fallback():
     """An empty index (no chunks) should not crash.
 
     With no retrieval results the pipeline should fall through to
@@ -75,7 +75,7 @@ def test_empty_corpus_graceful_fallback():
     assert state.response_mode in {"llm-knowledge", "insufficient-evidence"}, (
         f"Expected llm-knowledge or insufficient-evidence, got {state.response_mode}"
     )
-    assert state.answer.strip(), "Answer should not be empty even with empty corpus"
+    assert state.answer.strip(), "Answer should not be empty even with empty knowledge base"
 
 
 def test_single_char_query():
@@ -85,7 +85,7 @@ def test_single_char_query():
 
     assert isinstance(state.answer, str)
     assert state.response_mode in {
-        "corpus-backed",
+        "knowledge-base-backed",
         "llm-knowledge",
         "insufficient-evidence",
         "direct-chat",
@@ -99,7 +99,7 @@ def test_whitespace_only_query():
 
     assert isinstance(state.answer, str)
     assert state.response_mode in {
-        "corpus-backed",
+        "knowledge-base-backed",
         "llm-knowledge",
         "insufficient-evidence",
         "direct-chat",
@@ -157,7 +157,7 @@ def test_empty_history_turns():
 def test_reasoner_disabled_graceful_degradation():
     """When the reasoner is disabled, the pipeline should degrade gracefully.
 
-    With a populated corpus, retrieval still works but LLM synthesis falls
+    With a populated knowledge base, retrieval still works but LLM synthesis falls
     back to keyword-based answer assembly with generation_degraded=True.
     """
     agent = build_agent_with_demo(reasoner=DisabledReasoner())

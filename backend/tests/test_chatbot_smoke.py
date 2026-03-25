@@ -75,7 +75,7 @@ def test_api_router_follow_up_general_question_stays_out_of_rag():
     response = client.post(
         "/api/chat/stream",
         json={
-            "question": "what day is it",
+            "question": "thanks, that makes sense",
             "history": [
                 {"role": "user", "content": "hey"},
                 {"role": "assistant", "content": "I can help with general questions or NVIDIA documentation."},

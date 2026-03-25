@@ -2,7 +2,7 @@
   {
     "question": "Should I use the GPU Operator or just the NVIDIA Container Toolkit for Kubernetes GPU nodes?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["gpu-operator", "container-toolkit"],
     "expected_terms": ["gpu operator", "kubernetes", "container runtime"],
     "reference_answer": "Use the GPU Operator when you need repeatable Kubernetes cluster operations for drivers, device plugins, monitoring, and related components. The NVIDIA Container Toolkit still matters for container runtime support, but it does not replace the cluster-level operational role of the GPU Operator."
@@ -10,7 +10,7 @@
   {
     "question": "Why can storage throughput bottlenecks look like a GPU efficiency problem?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["gpudirect-storage", "infra-storage"],
     "expected_terms": ["storage", "throughput", "input pipeline"],
     "reference_answer": "Storage bottlenecks can starve the input pipeline, which makes GPU utilization unstable and lowers end-to-end throughput even if kernels are otherwise fine. The practical diagnosis is to separate compute issues from data-delivery limits."
@@ -18,7 +18,7 @@
   {
     "question": "How do RAID 5 and RAID 10 differ for AI server tradeoffs?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["infra-storage"],
     "expected_terms": ["raid 5", "raid 10", "redundancy"],
     "reference_answer": "RAID 5 uses parity to preserve usable capacity while adding redundancy, but write behavior is more complex. RAID 10 trades more capacity for stronger redundancy and better write-oriented performance, which can be attractive for high-throughput AI server workflows."
@@ -26,7 +26,7 @@
   {
     "question": "When would Slurm be more relevant than Kubernetes for AI workload scheduling?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["infra-cluster-ops"],
     "expected_terms": ["slurm", "kubernetes", "scheduling"],
     "reference_answer": "Slurm is more relevant when the environment is closer to traditional HPC job scheduling, while Kubernetes is more relevant when the team wants container orchestration and cluster services around AI workloads. The right choice depends on the surrounding operational model."
@@ -34,7 +34,7 @@
   {
     "question": "What should I compare between H100 and L40S if training throughput matters but deployment flexibility also matters?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["h100", "l40s"],
     "expected_terms": ["throughput", "deployment flexibility", "inference"],
     "reference_answer": "H100 is the stronger fit when peak large-scale training throughput is the main priority, while L40S is more attractive when mixed-use deployment flexibility, inference, or visualization also matter. The tradeoff is peak training speed versus broader deployment versatility."
@@ -42,7 +42,7 @@
   {
     "question": "What do I need to think about for server motherboards, EPYC or Xeon CPUs, RAM, and PCIe lanes in an AI server?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["infra-platforms"],
     "expected_terms": ["motherboard", "epyc", "pcie"],
     "reference_answer": "AI server design needs enough PCIe connectivity, memory bandwidth, and platform stability to support the target GPU and storage topology. Motherboard layout, EPYC or Xeon lane availability, and RAM capacity all shape how balanced and expandable the system will be."
@@ -50,7 +50,7 @@
   {
     "question": "How do I reason about model size, memory limits, and communication cost for large-model parallelism?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["megatron-core"],
     "expected_terms": ["model size", "memory limits", "communication cost"],
     "reference_answer": "Large-model parallelism has to balance model size, memory limits, and communication cost at the same time. The best design fits the model while minimizing unnecessary communication across the available topology."
@@ -58,7 +58,7 @@
   {
     "question": "Why can high GPU utilization still hide launch overhead or communication bottlenecks?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["dl-performance", "nccl"],
     "expected_terms": ["launch overhead", "communication", "throughput"],
     "reference_answer": "High utilization can still hide poor throughput if the job is paying too much launch overhead or communication cost per step. You need to distinguish real compute efficiency from work that just keeps the device busy without improving end-to-end training speed."
@@ -69,7 +69,7 @@
     "response_mode_expected": "insufficient-evidence",
     "expected_sources": [],
     "expected_terms": [],
-    "reference_answer": "The bundled corpus does not contain live Malaysia market pricing for H100 systems, so a grounded answer should refuse or require a controlled external source."
+    "reference_answer": "The knowledge base does not contain live Malaysia market pricing for H100 systems, so a grounded answer should refuse or require a controlled external source."
   },
   {
     "question": "Which NVIDIA document gives exact BIOS settings for every EPYC motherboard model?",
@@ -77,7 +77,7 @@
     "response_mode_expected": "insufficient-evidence",
     "expected_sources": [],
     "expected_terms": [],
-    "reference_answer": "The bundled corpus does not provide exact BIOS settings for every EPYC motherboard model, so the correct behavior is to avoid inventing a precise document or settings matrix."
+    "reference_answer": "The knowledge base does not provide exact BIOS settings for every EPYC motherboard model, so the correct behavior is to avoid inventing a precise document or settings matrix."
   },
   {
     "question": "What changed in the latest CUDA release this week?",
@@ -90,7 +90,7 @@
   {
     "question": "Which guide should I read first if I need both Linux GPU deployment and Kubernetes GPU operations?",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": ["cuda-install", "gpu-operator"],
     "expected_terms": ["linux", "kubernetes", "gpu operator"],
     "reference_answer": "Start with the Linux deployment path to establish the validated driver and CUDA foundation, then use the GPU Operator guidance for repeatable Kubernetes GPU operations. Those two guides cover the host-layer and cluster-layer concerns respectively."

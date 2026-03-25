@@ -7,7 +7,7 @@ import type { ChatDonePayload, Citation } from "../types";
    ================================================================ */
 
 function trustBadgeClass(mode: string): string {
-  if (mode === "corpus-backed") return "source-trust-pill corpus";
+  if (mode === "knowledge-base-backed") return "source-trust-pill knowledge-base";
   if (mode === "web-backed") return "source-trust-pill web";
   if (mode === "insufficient-evidence") return "source-trust-pill insufficient";
   if (mode === "llm-knowledge") return "source-trust-pill llm";
@@ -15,7 +15,7 @@ function trustBadgeClass(mode: string): string {
 }
 
 function trustBadgeLabel(mode: string): string {
-  if (mode === "corpus-backed") return "corpus-backed";
+  if (mode === "knowledge-base-backed") return "knowledge-base-backed";
   if (mode === "web-backed") return "web-backed";
   if (mode === "insufficient-evidence") return "insufficient evidence";
   if (mode === "llm-knowledge") return "llm knowledge";
@@ -24,7 +24,7 @@ function trustBadgeLabel(mode: string): string {
 }
 
 function trustBadgeTooltip(mode: string): string {
-  if (mode === "corpus-backed") return "Answer sourced from NVIDIA documentation corpus";
+  if (mode === "knowledge-base-backed") return "Answer sourced from NVIDIA knowledge base";
   if (mode === "web-backed") return "Answer sourced from live web search";
   if (mode === "llm-knowledge") return "Answer from AI general knowledge (not grounded in docs)";
   if (mode === "insufficient-evidence") return "Could not find sufficient evidence to answer";
@@ -148,7 +148,18 @@ export const SourceChips = React.memo(function SourceChips({
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
                     <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
                   </svg>
-                  <span className="source-panel-filename">{expandedCitation.title}</span>
+                  {expandedCitation.url ? (
+                    <a
+                      href={expandedCitation.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="source-panel-filename source-panel-link"
+                    >
+                      {expandedCitation.title}
+                    </a>
+                  ) : (
+                    <span className="source-panel-filename">{expandedCitation.title}</span>
+                  )}
                 </div>
                 <span className="source-panel-chunk-label">
                   {(() => {
@@ -173,9 +184,20 @@ export const SourceChips = React.memo(function SourceChips({
                     {expandedCitation.char_count.toLocaleString()} chars
                   </span>
                 )}
-                <span className="source-panel-meta">
-                  {expandedCitation.page != null ? `Page ${expandedCitation.page}` : expandedCitation.domain}
-                </span>
+                {expandedCitation.url ? (
+                  <a
+                    href={expandedCitation.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="source-panel-meta source-panel-link"
+                  >
+                    {expandedCitation.page != null ? `Page ${expandedCitation.page}` : expandedCitation.domain}
+                  </a>
+                ) : (
+                  <span className="source-panel-meta">
+                    {expandedCitation.page != null ? `Page ${expandedCitation.page}` : expandedCitation.domain}
+                  </span>
+                )}
               </div>
             </div>
           </motion.div>

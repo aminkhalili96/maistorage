@@ -80,7 +80,7 @@ def test_end_to_end_known_question_contains_expected_keywords():
 
     assert "driver" in answer or "container" in answer or "cuda" in answer
     assert done_payload["assistant_mode"] == "doc_rag"
-    assert done_payload["response_mode"] in {"corpus-backed", "web-backed", "insufficient-evidence"}
+    assert done_payload["response_mode"] in {"knowledge-base-backed", "web-backed", "insufficient-evidence"}
     assert isinstance(done_payload["citation_count"], int)
 
 

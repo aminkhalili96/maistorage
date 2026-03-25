@@ -1,3 +1,15 @@
+"""
+External service providers: OpenAI (reasoning + embedding), Tavily (web search), and tokenization.
+
+Three provider classes:
+  - OpenAIReasoner: LLM calls for synthesis, routing, grading (4-tier model strategy)
+  - OpenAIEmbedder: text-embedding-3-large at 3072 dimensions (assessment mode)
+  - TavilyClient: web search fallback with domain filtering
+
+Two embedder implementations (swappable via EMBEDDER_PROVIDER):
+  - KeywordEmbedder: hashed TF-IDF vectors (dev mode, no API needed)
+  - OpenAIEmbedder: real dense vectors (assessment mode)
+"""
 from __future__ import annotations
 
 import hashlib
@@ -39,6 +51,9 @@ class Embedder(Protocol):
 
 
 class KeywordEmbedder:
+    """Zero-dependency embedder for dev mode: hashes tokens into a fixed-size sparse vector.
+    Uses MD5 hash of each token to deterministically assign it a dimension, then normalizes.
+    No API calls needed — fast, free, and good enough for keyword-based retrieval."""
     def __init__(self, dimensions: int = 2048) -> None:
         self.dimensions = dimensions
 
@@ -76,6 +91,16 @@ class OpenAIEmbedder:
 
 
 class OpenAIReasoner:
+    """OpenAI chat completions client for all LLM calls in the pipeline.
+
+    Supports the 4-tier model strategy:
+      - Routing (gpt-5.4-nano): classification, query planning, claim extraction (~50x cheaper)
+      - Pipeline (gpt-5-mini): document grading, multi-hop, rewriting, self-reflection
+      - Synthesis (gpt-5.4): user-facing answer generation (most expensive)
+
+    The `enabled` property lets the entire pipeline gracefully degrade when
+    OPENAI_API_KEY is not set — every LLM call site checks reasoner.enabled first.
+    """
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._client = None
@@ -126,6 +151,13 @@ class OpenAIReasoner:
 
 
 class TavilyClient:
+    """Web search client with two modes:
+      - search(): domain-restricted to NVIDIA/tech sites (for doc_rag fallback)
+      - search_open(): unrestricted web search (for live_query: weather, stocks, news)
+
+    The domain restriction prevents garbage results when the knowledge base is
+    insufficient — only trusted technical sources are accepted (P21 fix).
+    """
     def __init__(self, settings: Settings) -> None:
         self.api_key = settings.tavily_api_key
         self.enabled = bool(settings.use_tavily_fallback and self.api_key)
@@ -196,6 +228,38 @@ class TavilyClient:
                     }
                 )
         return results
+
+    def search_open(self, query: str) -> list[dict[str, str]]:
+        """Unrestricted web search for live_query route (weather, stocks, news).
+
+        Unlike search(), this does NOT restrict to NVIDIA/tech domains.
+        """
+        if not self.enabled:
+            return []
+        response = self.client.post(
+            "https://api.tavily.com/search",
+            json={
+                "api_key": self.api_key,
+                "query": query,
+                "search_depth": "basic",
+                "max_results": 5,
+            },
+        )
+        response.raise_for_status()
+        try:
+            payload = response.json()
+        except ValueError:
+            return []
+        raw_results = payload.get("results") or []
+        return [
+            {
+                "title": item.get("title", "Web result"),
+                "url": item.get("url", ""),
+                "content": item.get("content", ""),
+            }
+            for item in raw_results
+            if item.get("content", "").strip()
+        ]
 
 
 def build_embedder(settings: Settings) -> Embedder:

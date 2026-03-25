@@ -55,14 +55,23 @@ Artifact:
 
 - [retrieval_benchmark.json](/Users/amin/dev/maistorage/data/evals/results/20260315-181658/retrieval_benchmark.json)
 
-### RAGAS — Current: 10-question slim set (OpenAI, March 18 2026)
+### RAGAS — Current: 10-question slim set (OpenAI, March 25 2026)
+
+- `faithfulness = 0.7507`
+- `answer_relevancy = 0.7979`
+- `context_precision = 0.6250`
+- `context_recall = 0.7000`
+
+Generation model: `gpt-5.4`. Judge model: `gpt-4.1`. 10-question curated slim set covering 9 categories (including sycophancy detection and recency fallback), all response modes, and 18 sources.
+
+Artifact: `data/evals/results/20260325-215244/ragas_slim_10.json`
+
+### RAGAS — Previous: 10-question slim set (OpenAI, March 18 2026)
 
 - `faithfulness = 0.6943`
 - `answer_relevancy = 0.7350`
 - `context_precision = 0.6833`
 - `context_recall = 0.6750`
-
-Generation model: `gpt-5.4`. Judge model: `gpt-4.1`. 10-question curated slim set covering 7 categories, all 4 response modes, and 18 sources.
 
 Artifact: `data/evals/results/20260318-070241/ragas_slim_10.json`
 

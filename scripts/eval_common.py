@@ -15,7 +15,7 @@ from pinecone import Pinecone
 from pypdf import PdfReader
 
 from app.config import Settings, get_settings
-from app.corpus import load_corpus_manifest, load_normalized_chunks, load_sources
+from app.knowledge_base import load_knowledge_base_manifest, load_normalized_chunks, load_sources
 from app.models import ChatRequest, ChunkRecord, Citation, DocumentSource, RetrieverResult
 from app.services.agent import AgentService
 from app.services.chunking import chunk_html_document, chunk_pdf_document
@@ -86,7 +86,7 @@ def load_benchmark_bundle(
     selected_sources = [source_map[source_id] for source_id in selected_source_ids if source_id in source_map]
     chunks = [chunk for chunk in load_normalized_chunks(settings.normalized_doc_root) if chunk.source_id in set(selected_source_ids)]
     chunks = sample_chunks_per_source(chunks, max_chunks_per_source)
-    manifest = load_corpus_manifest(settings.corpus_manifest_path)
+    manifest = load_knowledge_base_manifest(settings.knowledge_base_manifest_path)
     return BenchmarkBundle(
         settings=settings,
         sources=selected_sources,
@@ -486,7 +486,7 @@ def run_manual_pipeline_mode(stack: ExperimentStack, question: str, mode: str) -
     started = time.perf_counter()
     rewritten_query = None
     used_fallback = False
-    response_mode = "corpus-backed"
+    response_mode = "knowledge-base-backed"
     rejected_chunk_ids: list[str] = []
     confidence = 0.0
 
@@ -543,7 +543,7 @@ def run_manual_pipeline_mode(stack: ExperimentStack, question: str, mode: str) -
 def load_rechunked_chunks(settings: Settings, source_ids: list[str], max_chars: int, overlap: int) -> tuple[list[DocumentSource], list[ChunkRecord]]:
     source_map = {source.id: source for source in load_sources(settings.source_manifest_path)}
     selected_sources = [source_map[source_id] for source_id in source_ids if source_id in source_map]
-    manifest = load_corpus_manifest(settings.corpus_manifest_path)
+    manifest = load_knowledge_base_manifest(settings.knowledge_base_manifest_path)
     all_chunks: list[ChunkRecord] = []
 
     for source in selected_sources:

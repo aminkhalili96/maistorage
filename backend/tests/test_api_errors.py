@@ -161,7 +161,7 @@ def test_chat_stream_model_null_succeeds():
 
 
 def test_health_returns_expected_fields():
-    """GET /health should return status, mode, corpus_loaded, indexed_chunks."""
+    """GET /health should return status, mode, knowledge_base_loaded, indexed_chunks."""
     response = client.get("/health")
     assert response.status_code == 200
     body = response.json()
@@ -169,8 +169,8 @@ def test_health_returns_expected_fields():
     assert body["status"] in {"ok", "degraded"}
     assert "mode" in body
     assert body["mode"] == "dev"
-    assert "corpus_loaded" in body
-    assert isinstance(body["corpus_loaded"], bool)
+    assert "knowledge_base_loaded" in body
+    assert isinstance(body["knowledge_base_loaded"], bool)
     assert "indexed_chunks" in body
     assert isinstance(body["indexed_chunks"], int)
 

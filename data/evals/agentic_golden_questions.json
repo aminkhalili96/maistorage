@@ -4,7 +4,7 @@
     "question": "Why is 4-GPU training scaling poorly?",
     "category": "distributed_multi_gpu",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nccl",
       "fabric-manager"
@@ -27,7 +27,7 @@
     "question": "What makes collective communication overhead hurt multi-GPU scaling?",
     "category": "distributed_multi_gpu",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nccl"
     ],
@@ -49,7 +49,7 @@
     "question": "How do NVLink and NVSwitch affect tightly coupled multi-GPU workloads?",
     "category": "distributed_multi_gpu",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "fabric-manager"
     ],
@@ -71,7 +71,7 @@
     "question": "Why can fabric management issues degrade scaling even when kernels are efficient?",
     "category": "distributed_multi_gpu",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "fabric-manager"
     ],
@@ -93,7 +93,7 @@
     "question": "Why does the ratio between compute work and synchronization matter as GPU count increases?",
     "category": "distributed_multi_gpu",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nccl"
     ],
@@ -115,7 +115,7 @@
     "question": "When should I use mixed precision training?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "dl-performance"
     ],
@@ -137,7 +137,7 @@
     "question": "What is the main tradeoff when enabling mixed precision?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "dl-performance"
     ],
@@ -159,7 +159,7 @@
     "question": "Why can GPU utilization be high while training throughput stays low?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "dl-performance",
       "gpudirect-storage"
@@ -182,7 +182,7 @@
     "question": "How do I tell whether a workload is compute-bound, memory-bound, or blocked outside the GPU?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "dl-performance"
     ],
@@ -204,7 +204,7 @@
     "question": "Why does insufficient data feeding make utilization look unstable?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "gpudirect-storage"
     ],
@@ -226,7 +226,7 @@
     "question": "Why does the storage path matter for training throughput on large datasets?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "gpudirect-storage"
     ],
@@ -248,7 +248,7 @@
     "question": "What NVIDIA stack is needed to deploy training workloads on Linux?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "cuda-install",
       "container-toolkit"
@@ -271,7 +271,7 @@
     "question": "Why are driver and CUDA mismatches a common source of runtime failure?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "cuda-install"
     ],
@@ -293,7 +293,7 @@
     "question": "What do GPU-enabled containers require on the host?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "container-toolkit"
     ],
@@ -315,7 +315,7 @@
     "question": "Why can containerized AI stacks make cluster deployment more repeatable?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "container-toolkit"
     ],
@@ -337,7 +337,7 @@
     "question": "When should I use the GPU Operator on Kubernetes?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "gpu-operator"
     ],
@@ -359,7 +359,7 @@
     "question": "Why is the GPU Operator better than manual host-by-host setup for clusters?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "gpu-operator"
     ],
@@ -381,7 +381,7 @@
     "question": "For a client fine-tuning a 7B model on-prem, what hardware should we consider?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "h100",
       "a100",
@@ -405,7 +405,7 @@
     "question": "When is an H100-class system the strongest fit?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "h100"
     ],
@@ -427,7 +427,7 @@
     "question": "Why are H100-class systems attractive but expensive?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "h100"
     ],
@@ -449,7 +449,7 @@
     "question": "When is A100 still a reasonable platform choice?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "a100"
     ],
@@ -471,7 +471,7 @@
     "question": "When is L40S more attractive than a pure large-scale training GPU?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "l40s"
     ],
@@ -493,7 +493,7 @@
     "question": "How should I think about throughput versus deployment flexibility when comparing H100, A100, and L40S?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "h100",
       "a100",
@@ -517,7 +517,7 @@
     "question": "Why does large-model training often need data, tensor, and pipeline parallelism together?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "megatron-core"
     ],
@@ -539,7 +539,7 @@
     "question": "How do memory limits and communication cost shape large-model parallelism strategy?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "megatron-core"
     ],
@@ -561,7 +561,7 @@
     "question": "What should I look at when choosing a parallelism strategy for a large model?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "megatron-core"
     ],
@@ -583,7 +583,7 @@
     "question": "Why do topology and collective performance matter in large-model training design?",
     "category": "distributed_multi_gpu",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "megatron-core",
       "nccl"
@@ -606,7 +606,7 @@
     "question": "How should I explain cluster networking and storage throughput concerns for AI training infrastructure?",
     "category": "distributed_multi_gpu",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nccl",
       "fabric-manager",
@@ -630,7 +630,7 @@
     "question": "What server components matter for AI server design, including motherboards, EPYC or Xeon CPUs, RAM, PCIe, and NVLink?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "infra-platforms"
     ],
@@ -654,7 +654,7 @@
     "question": "How do you troubleshoot hardware performance or software compatibility bottlenecks on GPU servers?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "infra-cluster-ops",
       "cuda-install",
@@ -678,7 +678,7 @@
     "question": "What should I know about multi-GPU configurations for AI workloads?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nccl",
       "megatron-core",
@@ -702,7 +702,7 @@
     "question": "When should I use an HPC scheduler like Slurm versus Kubernetes for AI workloads?",
     "category": "cluster_operations",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "infra-cluster-ops",
       "gpu-operator",
@@ -727,7 +727,7 @@
     "question": "What Linux skills matter for AI servers, including driver installation and CUDA toolkit compatibility?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "cuda-install",
       "infra-cluster-ops"
@@ -751,7 +751,7 @@
     "question": "When is S3-compatible object storage useful for AI datasets and checkpoints?",
     "category": "storage_data_path",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "infra-storage",
       "minio-object-storage"
@@ -775,7 +775,7 @@
     "question": "Why does Docker-style containerization matter for deploying AI containers?",
     "category": "deployment_runtime",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "infra-mlops",
       "container-toolkit"
@@ -799,7 +799,7 @@
     "question": "Why do CI/CD pipelines matter for model deployment and MLOps?",
     "category": "mlops_delivery",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "infra-mlops",
       "docker-build-cicd"
@@ -823,7 +823,7 @@
     "question": "Which Kubernetes workload primitives matter for AI infrastructure components?",
     "category": "cluster_operations",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "kubernetes-workloads",
       "gpu-operator"
@@ -847,7 +847,7 @@
     "question": "Why would an AI platform choose BeeGFS for shared training data?",
     "category": "storage_data_path",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "beegfs",
       "infra-storage"
@@ -871,7 +871,7 @@
     "question": "What does Lustre add for large training clusters?",
     "category": "storage_data_path",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "lustre",
       "infra-storage"
@@ -895,7 +895,7 @@
     "question": "How should I think about Linux mdraid and RAID levels on AI servers?",
     "category": "storage_data_path",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "linux-mdraid",
       "infra-storage"
@@ -919,7 +919,7 @@
     "question": "When should you use NVIDIA NIM versus Triton for deploying LLM inference?",
     "category": "inference_deployment",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nvidia-nim",
       "triton-inference-server"
@@ -945,7 +945,7 @@
     "question": "What is NVIDIA AI Enterprise and how does it relate to NGC containers?",
     "category": "inference_deployment",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nvidia-ai-enterprise"
     ],
@@ -970,7 +970,7 @@
     "question": "Describe the end-to-end pipeline from training a model to serving it in production on an NVIDIA GPU cluster.",
     "category": "inference_deployment",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "megatron-core",
       "tensorrt",
@@ -999,7 +999,7 @@
     "question": "What storage architecture would you recommend for serving multiple large language models with fast model loading?",
     "category": "inference_deployment",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "gpudirect-storage",
       "minio-object-storage",
@@ -1026,7 +1026,7 @@
     "question": "How do you monitor GPU health and inference performance in a production deployment?",
     "category": "inference_deployment",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "dcgm",
       "triton-inference-server"
@@ -1053,7 +1053,7 @@
     "question": "What are the key specifications of the H200 GPU and how does it improve on the H100 for large model inference?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "h200",
       "h100"
@@ -1079,7 +1079,7 @@
     "question": "How does NVIDIA Transformer Engine enable FP8 training and what are the performance benefits compared to BF16?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "transformer-engine"
     ],
@@ -1104,7 +1104,7 @@
     "question": "What is a DGX BasePOD and when would you deploy one versus a custom GPU cluster?",
     "category": "hardware_topology",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "dgx-basepod"
     ],
@@ -1129,7 +1129,7 @@
     "question": "How does Nsight Compute help identify performance bottlenecks in CUDA kernels?",
     "category": "training_optimization",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "nsight-compute"
     ],
@@ -1154,7 +1154,7 @@
     "question": "How does Slurm handle GPU-aware batch scheduling for distributed AI training jobs?",
     "category": "cluster_operations",
     "assistant_mode_expected": "doc_rag",
-    "response_mode_expected": "corpus-backed",
+    "response_mode_expected": "knowledge-base-backed",
     "expected_sources": [
       "slurm-workload-manager"
     ],
@@ -1222,7 +1222,7 @@
     "response_mode_expected": "insufficient-evidence",
     "expected_sources": [],
     "expected_terms": [],
-    "reference_answer": "The bundled corpus does not provide exact BIOS settings for every EPYC motherboard model, so the correct behavior is to avoid inventing a precise document or settings matrix.",
+    "reference_answer": "The knowledge base does not provide exact BIOS settings for every EPYC motherboard model, so the correct behavior is to avoid inventing a precise document or settings matrix.",
     "expected_tool_path": [
       "nvidia_docs"
     ],

@@ -14,7 +14,7 @@ function buildPayload(overrides: Partial<ChatDonePayload> = {}): ChatDonePayload
     assistant_mode: "doc_rag",
     confidence: 0.85,
     used_fallback: false,
-    response_mode: "corpus-backed",
+    response_mode: "knowledge-base-backed",
     retry_count: 0,
     grounding_passed: true,
     answer_quality_passed: true,
@@ -44,9 +44,9 @@ describe("MetaBar", () => {
     expect(container.querySelector(".meta-bar")).not.toBeInTheDocument();
   });
 
-  test("corpus-backed shows Corpus-backed badge", () => {
-    render(<MetaBar payload={buildPayload({ response_mode: "corpus-backed" })} />);
-    expect(screen.getByText("Corpus-backed")).toBeInTheDocument();
+  test("knowledge-base-backed shows Knowledge-base-backed badge", () => {
+    render(<MetaBar payload={buildPayload({ response_mode: "knowledge-base-backed" })} />);
+    expect(screen.getByText("Knowledge-base-backed")).toBeInTheDocument();
   });
 
   test("web-backed shows Web-backed badge", () => {
@@ -70,7 +70,7 @@ describe("MetaBar", () => {
     expect(screen.getByText("Insufficient evidence")).toBeInTheDocument();
   });
 
-  test("confidence display for corpus-backed", () => {
+  test("confidence display for knowledge-base-backed", () => {
     render(<MetaBar payload={buildPayload({ confidence: 0.857 })} />);
     // Math.round(0.857 * 100) = 86
     expect(screen.getByText("86% confidence")).toBeInTheDocument();
@@ -131,10 +131,10 @@ describe("MetaBar", () => {
     expect(screen.queryByText(/rejected/)).not.toBeInTheDocument();
   });
 
-  test("trust badge has correct CSS class for corpus-backed", () => {
-    render(<MetaBar payload={buildPayload({ response_mode: "corpus-backed" })} />);
-    const badge = screen.getByText("Corpus-backed");
-    expect(badge).toHaveClass("trust-badge", "corpus");
+  test("trust badge has correct CSS class for knowledge-base-backed", () => {
+    render(<MetaBar payload={buildPayload({ response_mode: "knowledge-base-backed" })} />);
+    const badge = screen.getByText("Knowledge-base-backed");
+    expect(badge).toHaveClass("trust-badge", "knowledge-base");
   });
 
   test("trust badge has correct CSS class for web-backed", () => {

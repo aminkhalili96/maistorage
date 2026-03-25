@@ -22,7 +22,7 @@ const CitationCard = React.memo(function CitationCard({
     >
       <div className="citation-card-top">
         <div className="citation-num">{index + 1}</div>
-        <span className={`citation-kind-badge ${isWeb ? "web" : "corpus"}`}>
+        <span className={`citation-kind-badge ${isWeb ? "web" : "knowledge-base"}`}>
           {isWeb ? "Web" : "Docs"}
         </span>
       </div>

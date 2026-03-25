@@ -6,7 +6,7 @@ import pytest
 from dataclasses import replace
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest, ChatTurn
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -39,10 +39,10 @@ class EmptyTavilyClient:
 def build_agent_with_demo(reasoner=None) -> AgentService:
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     if reasoner is None:
         reasoner = MockOpenAIReasoner()
@@ -73,7 +73,7 @@ def test_multi_turn_conversation_flow():
 
     # Turn 1: standalone question
     state1 = agent.run(ChatRequest(question="What are the key tuning parameters for NCCL?"))
-    assert state1.response_mode in {"corpus-backed", "llm-knowledge", "web-backed"}
+    assert state1.response_mode in {"knowledge-base-backed", "llm-knowledge", "web-backed"}
     assert state1.answer.strip()
 
     # Turn 2: follow-up with history
@@ -83,7 +83,7 @@ def test_multi_turn_conversation_flow():
         ChatTurn(role="user", content="How does it affect bandwidth?"),
     ]
     state2 = agent.run(ChatRequest(question="How does it affect bandwidth?", history=history2))
-    assert state2.response_mode in {"corpus-backed", "llm-knowledge", "web-backed", "direct-chat"}
+    assert state2.response_mode in {"knowledge-base-backed", "llm-knowledge", "web-backed", "direct-chat"}
     assert state2.answer.strip()
     # Follow-up should trigger reformulation
     reformulation_events = [e for e in state2.trace if e.type == "query_reformulation"]
@@ -96,7 +96,7 @@ def test_multi_turn_conversation_flow():
         ChatTurn(role="user", content="What about NVLink?"),
     ]
     state3 = agent.run(ChatRequest(question="What about NVLink?", history=history3))
-    assert state3.response_mode in {"corpus-backed", "llm-knowledge", "web-backed", "direct-chat"}
+    assert state3.response_mode in {"knowledge-base-backed", "llm-knowledge", "web-backed", "direct-chat"}
     assert state3.answer.strip()
     reformulation_events3 = [e for e in state3.trace if e.type == "query_reformulation"]
     assert len(reformulation_events3) == 1
@@ -123,14 +123,14 @@ def test_fallback_chain_exhaustion():
 
 
 def test_sse_event_ordering():
-    """Run a corpus-backed query, collect all trace events. Verify events
+    """Run a knowledge-base-backed query, collect all trace events. Verify events
     appear in the expected order."""
     agent = build_agent_with_demo()
     state = agent.run(ChatRequest(question="Why is 4-GPU training scaling poorly?"))
 
-    # Only check corpus-backed path ordering
-    if state.response_mode != "corpus-backed":
-        pytest.skip("Pipeline did not produce corpus-backed response for this run")
+    # Only check knowledge-base-backed path ordering
+    if state.response_mode != "knowledge-base-backed":
+        pytest.skip("Pipeline did not produce knowledge-base-backed response for this run")
 
     event_types = [e.type for e in state.trace]
 
@@ -275,7 +275,7 @@ def test_rewrite_cycle():
 
     # With empty index, confidence stays below floor, should trigger at least 1 rewrite
     rewrite_events = [e for e in state.trace if e.type == "rewrite"]
-    assert len(rewrite_events) >= 1, "Expected at least one rewrite event when corpus returns low confidence"
+    assert len(rewrite_events) >= 1, "Expected at least one rewrite event when knowledge base returns low confidence"
     assert state.retry_count >= 1
 
 
@@ -310,16 +310,16 @@ def test_graph_state_populated():
     # Core fields must be present
     assert state.answer.strip(), "Answer should be non-empty"
     assert state.response_mode in {
-        "corpus-backed", "web-backed", "llm-knowledge", "insufficient-evidence", "direct-chat"
+        "knowledge-base-backed", "web-backed", "llm-knowledge", "insufficient-evidence", "direct-chat"
     }
     assert isinstance(state.confidence, float)
     assert isinstance(state.trace, list)
     assert isinstance(state.grounding_passed, bool)
     assert isinstance(state.answer_quality_passed, bool)
 
-    # For corpus-backed responses, citations should be present
-    if state.response_mode == "corpus-backed":
-        assert state.citations, "Corpus-backed response should have citations"
+    # For knowledge-base-backed responses, citations should be present
+    if state.response_mode == "knowledge-base-backed":
+        assert state.citations, "Knowledge-base-backed response should have citations"
         assert state.query_plan is not None
         assert state.retrieval_results
 

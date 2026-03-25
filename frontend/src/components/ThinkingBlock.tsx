@@ -80,7 +80,7 @@ function buildSteps(trace: TraceEvent[]): TraceStep[] {
           null;
         const confStr = confidence != null ? ` (confidence ${Number(confidence).toFixed(2)})` : "";
         const detail = count != null
-          ? `Corpus query, ${count} chunks returned${confStr}`
+          ? `Knowledge base query, ${count} chunks returned${confStr}`
           : "Searching NVIDIA documentation";
         steps.push({
           id: "retrieve",
@@ -96,7 +96,7 @@ function buildSteps(trace: TraceEvent[]): TraceStep[] {
         const confidence = (ev.payload as any)?.confidence ?? null;
         const confStr = confidence != null ? ` (confidence ${Number(confidence).toFixed(2)})` : "";
         const detail = count != null
-          ? `Corpus query, ${count} chunks returned${confStr}`
+          ? `Knowledge base query, ${count} chunks returned${confStr}`
           : "Reranked results";
         steps.push({
           id: "retrieve",   // same id → dedup keeps this last one
@@ -238,8 +238,8 @@ export const ThinkingBlock = React.memo(function ThinkingBlock({
   if (steps.length === 0 && !isProcessing) return null;
 
   const headerText = isProcessing
-    ? "Searching NVIDIA AI infrastructure corpus"
-    : "Searched NVIDIA AI infrastructure corpus";
+    ? "Searching NVIDIA AI knowledge base"
+    : "Searched NVIDIA AI knowledge base";
 
   const timeDisplay = !isProcessing && totalTimeSec != null
     ? `${totalTimeSec}s`

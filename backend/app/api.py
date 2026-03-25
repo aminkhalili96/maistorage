@@ -1,3 +1,16 @@
+"""
+FastAPI router — all API endpoints for the agentic RAG system.
+
+Endpoints:
+  GET  /health           → system health + indexed chunk count
+  GET  /api/sources      → knowledge base source registry grouped by family
+  GET  /api/ingest/status → ingestion job status
+  POST /api/ingest/start  → trigger background ingestion job
+  POST /api/search/debug  → debug retrieval without generation (returns raw results)
+  GET  /api/evals/retrieval → run retrieval benchmark against golden questions
+  GET  /api/evals/ragas    → run RAGAS evaluation (costs API credits!)
+  POST /api/chat/stream    → main chat endpoint — returns SSE stream of trace + answer
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -5,7 +18,7 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import StreamingResponse
 
-from app.corpus import group_sources_by_family
+from app.knowledge_base import group_sources_by_family
 from app.models import ChatRequest, IngestRequest, SearchDebugRequest
 from app.runtime import get_services
 
@@ -21,7 +34,7 @@ def health() -> dict[str, Any]:
     return {
         "status": "ok" if chunk_count > 0 else "degraded",
         "mode": s.app_mode,
-        "corpus_loaded": chunk_count > 0,
+        "knowledge_base_loaded": chunk_count > 0,
         "indexed_chunks": chunk_count,
     }
 

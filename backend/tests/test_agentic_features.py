@@ -245,7 +245,7 @@ class TestLLMDocumentGrading:
         from app.services.retrieval import RetrievalService
         from app.services.indexes import InMemoryHybridIndex
         from app.services.providers import KeywordEmbedder, TavilyClient
-        from app.corpus import load_sources
+        from app.knowledge_base import load_sources
         from app.services.agent import AgentService
 
         sources = load_sources(settings.source_manifest_path)
@@ -292,7 +292,7 @@ class TestLLMDocumentGrading:
         from app.services.retrieval import RetrievalService
         from app.services.indexes import InMemoryHybridIndex
         from app.services.providers import KeywordEmbedder, TavilyClient
-        from app.corpus import load_sources
+        from app.knowledge_base import load_sources
         from app.services.agent import AgentService
 
         sources = load_sources(settings.source_manifest_path)
@@ -382,7 +382,7 @@ class TestLLMRouter:
         from app.services.retrieval import RetrievalService
         from app.services.indexes import InMemoryHybridIndex
         from app.services.providers import KeywordEmbedder, TavilyClient
-        from app.corpus import load_sources
+        from app.knowledge_base import load_sources
         from app.services.agent import AgentService
 
         sources = load_sources(settings.source_manifest_path)
@@ -440,14 +440,14 @@ class TestMultiHopRetrieval:
         from app.services.indexes import InMemoryHybridIndex
         from app.services.providers import KeywordEmbedder, TavilyClient
         from app.services.ingestion import IngestionService
-        from app.corpus import load_sources, load_demo_chunks
+        from app.knowledge_base import load_sources, load_demo_chunks
         from app.services.agent import AgentService
 
         sources = load_sources(settings.source_manifest_path)
-        chunks = load_demo_chunks(settings.demo_corpus_path)
+        chunks = load_demo_chunks(settings.demo_knowledge_base_path)
         index = InMemoryHybridIndex(KeywordEmbedder())
         ingestion = IngestionService(settings, index, sources, chunks)
-        ingestion.bootstrap_demo_corpus()
+        ingestion.bootstrap_demo_knowledge_base()
         retrieval = RetrievalService(settings, sources, index)
         agent = AgentService(settings, retrieval, InsufficientReasoner(), TavilyClient(settings))
 
@@ -480,7 +480,7 @@ class TestMultiHopRetrieval:
         from app.services.retrieval import RetrievalService
         from app.services.indexes import InMemoryHybridIndex
         from app.services.providers import KeywordEmbedder, TavilyClient
-        from app.corpus import load_sources
+        from app.knowledge_base import load_sources
         from app.services.agent import AgentService
 
         sources = load_sources(settings.source_manifest_path)
@@ -513,7 +513,7 @@ class TestMultiHopRetrieval:
         from app.services.retrieval import RetrievalService
         from app.services.indexes import InMemoryHybridIndex
         from app.services.providers import KeywordEmbedder, TavilyClient
-        from app.corpus import load_sources
+        from app.knowledge_base import load_sources
         from app.services.agent import AgentService
 
         sources = load_sources(settings.source_manifest_path)
@@ -544,7 +544,7 @@ class TestAgenticIntegration:
 
         result = agent_service_with_mock.run(ChatRequest(question="How do I configure NCCL for multi-GPU training?"))
         assert result.answer
-        assert result.response_mode in ("corpus-backed", "llm-knowledge", "web-backed")
+        assert result.response_mode in ("knowledge-base-backed", "llm-knowledge", "web-backed")
 
     def test_full_pipeline_direct_chat(self, agent_service_with_mock):
         from app.models import ChatRequest
@@ -565,15 +565,15 @@ class TestAgenticIntegration:
         from app.services.indexes import InMemoryHybridIndex
         from app.services.providers import KeywordEmbedder, TavilyClient
         from app.services.ingestion import IngestionService
-        from app.corpus import load_sources, load_demo_chunks
+        from app.knowledge_base import load_sources, load_demo_chunks
         from app.services.agent import AgentService
         from app.models import ChatRequest
 
         sources = load_sources(settings.source_manifest_path)
-        chunks = load_demo_chunks(settings.demo_corpus_path)
+        chunks = load_demo_chunks(settings.demo_knowledge_base_path)
         index = InMemoryHybridIndex(KeywordEmbedder())
         ingestion = IngestionService(settings, index, sources, chunks)
-        ingestion.bootstrap_demo_corpus()
+        ingestion.bootstrap_demo_knowledge_base()
         retrieval = RetrievalService(settings, sources, index)
         agent = AgentService(settings, retrieval, AlwaysFailReasoner(), TavilyClient(settings))
         result = agent.run(ChatRequest(question="What is the NVIDIA H100 GPU memory?"))

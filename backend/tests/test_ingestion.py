@@ -56,7 +56,7 @@ def test_ingestion_fixture_produces_expected_chunk_count_and_metadata(dev_settin
     </body></html>
     """
     (html_root / "root.html").write_text(html)
-    _write_fixture_manifest(dev_settings.corpus_manifest_path, source.id)
+    _write_fixture_manifest(dev_settings.knowledge_base_manifest_path, source.id)
 
     service = IngestionService(dev_settings, InMemoryHybridIndex(KeywordEmbedder()), [source], [])
     chunks = service._normalize_local_source(source)

@@ -13,6 +13,18 @@ import { SourceChips } from "./components/SourceChips";
 
 /* ================================================================
    Main App — 2-column layout (sidebar + chat)
+
+   Architecture: App.tsx is the state owner. All 10 child components are
+   React.memo'd and receive only the props they need. Key state flows:
+
+   User types question → handleSubmit() → streamChat() SSE →
+     onTrace: updates trace[] → ThinkingBlock renders steps in real-time
+     onAnswerChunk: appends to draftAnswer → AnswerContent renders incrementally
+     onCitation: appends to citations[] → CitationsPanel shows clickable chips
+     onDone: receives final payload → MetaBar shows trust badge + quality signals
+
+   Multi-conversation: useConversations hook manages localStorage persistence,
+   CRUD, and conversation switching with proper state cleanup.
    ================================================================ */
 
 export default function App() {

@@ -94,7 +94,10 @@ export function useConversations() {
             createdAt: Date.now(),
             updatedAt: Date.now(),
           };
-          // We need to set activeId — do it via setTimeout to avoid state update during render
+          // Immediately update the ref so subsequent setHistory calls see the new ID
+          // (prevents SSE callbacks from creating duplicate conversations)
+          activeIdRef.current = newConv.id;
+          // Also update React state (deferred to avoid state update during render)
           setTimeout(() => setActiveId(newConv.id), 0);
           return [newConv, ...prev];
         }

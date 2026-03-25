@@ -13,7 +13,7 @@ function buildCitation(overrides: Partial<Citation> = {}): Citation {
     domain: "docs.nvidia.com",
     section_path: "Linux Install",
     snippet: "Install the NVIDIA driver and the CUDA toolkit before running containers.",
-    source_kind: "corpus",
+    source_kind: "knowledge_base",
     ...overrides,
   };
 }

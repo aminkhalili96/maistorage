@@ -33,7 +33,7 @@ function buildDonePayload(overrides: Partial<ChatDonePayload> = {}): ChatDonePay
     answer: "The H100 uses HBM3 memory.",
     confidence: 0.85,
     used_fallback: false,
-    response_mode: "corpus-backed",
+    response_mode: "knowledge-base-backed",
     retry_count: 0,
     grounding_passed: true,
     answer_quality_passed: true,
@@ -55,7 +55,7 @@ function buildCitation(overrides: Partial<Citation> = {}): Citation {
     domain: "docs.nvidia.com",
     section_path: "Memory Subsystem",
     snippet: "The H100 features 80 GB of HBM3 memory.",
-    source_kind: "corpus",
+    source_kind: "knowledge_base",
     ...overrides,
   };
 }
@@ -124,7 +124,7 @@ describe("api module", () => {
             doc_type: "html",
             crawl_prefix: "https://docs.nvidia.com/nccl/",
             product_tags: ["nccl", "multi-gpu"],
-            source_kind: "corpus",
+            source_kind: "knowledge_base",
           },
         ],
         families: { networking: 1 },
@@ -156,7 +156,7 @@ describe("api module", () => {
         changed_sources: [],
         errors: [],
         updated_at: "2026-03-20T10:00:00Z",
-        loaded_demo_corpus: true,
+        loaded_demo_knowledge_base: true,
       };
       mockFetch.mockResolvedValue(makeJsonResponse(statusPayload));
 
@@ -164,7 +164,7 @@ describe("api module", () => {
 
       expect(result).toEqual(statusPayload);
       expect(result.active).toBe(false);
-      expect(result.loaded_demo_corpus).toBe(true);
+      expect(result.loaded_demo_knowledge_base).toBe(true);
       expect(result.source_counts).toHaveProperty("nccl", 12);
       expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("/api/ingest/status"));
     });
@@ -212,7 +212,7 @@ describe("api module", () => {
 
       // Done
       expect(handlers.onDone).toHaveBeenCalledTimes(1);
-      expect(handlers.onDone).toHaveBeenCalledWith(expect.objectContaining({ response_mode: "corpus-backed" }));
+      expect(handlers.onDone).toHaveBeenCalledWith(expect.objectContaining({ response_mode: "knowledge-base-backed" }));
 
       // No errors
       expect(handlers.onError).not.toHaveBeenCalled();

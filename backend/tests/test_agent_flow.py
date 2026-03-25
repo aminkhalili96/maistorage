@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from app.config import get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import ChatRequest, ChatTurn
 from app.services.agent import AgentService
 from app.services.indexes import InMemoryHybridIndex
@@ -27,10 +27,10 @@ class StubTavilyClient:
 def build_agent_with_demo(reasoner=None) -> AgentService:
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_demo_corpus()
+    ingestion.bootstrap_demo_knowledge_base()
     retrieval = RetrievalService(settings, sources, index)
     if reasoner is None:
         reasoner = MockOpenAIReasoner()
@@ -47,7 +47,7 @@ def test_agent_returns_citations_for_distributed_question():
     assert state.query_plan.query_class.value == "distributed_multi_gpu"
     assert "communication" in state.answer.lower() or "scaling" in state.answer.lower()
     assert any(event.type == "document_grading" for event in state.trace)
-    assert state.response_mode == "corpus-backed"
+    assert state.response_mode == "knowledge-base-backed"
     assert state.grounding_passed is True
     assert state.answer_quality_passed is True
 
@@ -184,7 +184,7 @@ class LLMKnowledgeReasoner:
         return (
             "NCCL is NVIDIA Collective Communications Library used for multi-GPU training. "
             "It handles all-reduce, broadcast, and other collective operations efficiently. "
-            "This is general LLM knowledge since no corpus context was available."
+            "This is general LLM knowledge since no knowledge base context was available."
         )
 
 
@@ -203,7 +203,7 @@ class EmptyTavilyClient:
 
 
 def build_agent_empty_index(reasoner=None, tavily=None) -> AgentService:
-    """Build an agent with an empty index (no corpus chunks)."""
+    """Build an agent with an empty index (no knowledge base chunks)."""
     settings = get_settings()
     sources = load_sources(settings.source_manifest_path)
     index = InMemoryHybridIndex(KeywordEmbedder())
@@ -251,7 +251,7 @@ def test_insufficient_evidence_when_all_layers_fail():
     assert "not have enough" in state.answer.lower() or "insufficient" in state.answer.lower() or "cannot" in state.answer.lower()
 
 
-def test_llm_knowledge_fallback_when_corpus_and_web_exhausted():
+def test_llm_knowledge_fallback_when_knowledge_base_and_web_exhausted():
     """Empty index + disabled Tavily + enabled reasoner → llm-knowledge fallback."""
     reasoner = LLMKnowledgeReasoner()
     agent = build_agent_empty_index(reasoner=reasoner, tavily=EmptyTavilyClient())

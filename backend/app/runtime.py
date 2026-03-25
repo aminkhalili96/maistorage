@@ -1,3 +1,19 @@
+"""
+Service wiring and dependency injection — the composition root.
+
+get_services() is the single entry point for the entire backend. It builds all
+services in the correct order and returns a thread-safe singleton AppServices.
+Uses double-checked locking (not @lru_cache) for safe concurrent first-request handling.
+
+Boot sequence:
+  1. Load settings from .env (get_settings)
+  2. Validate runtime config (assessment mode requires OpenAI + Pinecone)
+  3. Load source registry + demo chunks from JSON files
+  4. Build embedder (keyword for dev, OpenAI for assessment)
+  5. Build search index (InMemory for dev, Pinecone for assessment)
+  6. Build RetrievalService → IngestionService → bootstrap knowledge base into index
+  7. Build OpenAIReasoner, TavilyClient, AgentService, EvaluationService
+"""
 from __future__ import annotations
 
 import logging
@@ -5,7 +21,7 @@ import threading
 from dataclasses import dataclass
 
 from app.config import Settings, get_settings
-from app.corpus import load_demo_chunks, load_sources
+from app.knowledge_base import load_demo_chunks, load_sources
 from app.models import DocumentSource
 from app.services.agent import AgentService
 from app.services.evaluation import EvaluationService
@@ -68,7 +84,7 @@ def _build_services() -> AppServices:
         raise RuntimeError(" | ".join(validation_errors))
     settings = _validate_langsmith(settings)  # warn loudly if the key is bad/expired
     sources = load_sources(settings.source_manifest_path)
-    demo_chunks = load_demo_chunks(settings.demo_corpus_path)
+    demo_chunks = load_demo_chunks(settings.demo_knowledge_base_path)
     embedder = build_embedder(settings)
     index: SearchIndex
 
@@ -84,7 +100,7 @@ def _build_services() -> AppServices:
 
     retrieval = RetrievalService(settings, sources, index)
     ingestion = IngestionService(settings, index, sources, demo_chunks)
-    ingestion.bootstrap_local_corpus()
+    ingestion.bootstrap_local_knowledge_base()
     reasoner = OpenAIReasoner(settings)
     tavily = TavilyClient(settings)
     agent = AgentService(settings, retrieval, reasoner, tavily, embedder=embedder)

@@ -1,3 +1,17 @@
+/**
+ * API client — handles all backend communication including SSE streaming.
+ *
+ * The main function is streamChat() which opens a POST SSE connection to
+ * /api/chat/stream and dispatches typed events to handler callbacks:
+ *   - onTrace:       agent pipeline events (classification, retrieval, grading, etc.)
+ *   - onCitation:    citation chips as they're created
+ *   - onAnswerChunk: token-level streaming of the generated answer
+ *   - onDone:        final payload with quality signals (confidence, response_mode, etc.)
+ *   - onError:       recoverable/non-recoverable error events
+ *
+ * In dev mode, API_BASE_URL is empty (Vite proxies /api and /health to the backend).
+ * In production, it's set via VITE_API_BASE_URL environment variable.
+ */
 import type { ChatDonePayload, ChatTurn, EvalRow, IngestionStatus, SourcesResponse, TraceEvent, Citation } from "./types";
 
 const API_BASE_URL = import.meta.env.DEV ? "" : import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
@@ -51,6 +65,14 @@ interface StreamHandlers {
   onError?: (error: { message: string; recoverable: boolean }) => void;
 }
 
+/**
+ * Open an SSE stream to the backend chat endpoint.
+ *
+ * Uses fetch + ReadableStream (not EventSource) because we need POST with a JSON body.
+ * Manually parses the SSE frame format: "event: <type>\ndata: <json>\n\n".
+ * Buffers partial frames across read() calls to handle chunked transfer encoding.
+ * 120s timeout auto-aborts the request if the backend hangs.
+ */
 export async function streamChat(
   question: string,
   history: ChatTurn[],
@@ -60,8 +82,8 @@ export async function streamChat(
   const controller = externalController ?? new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-    handlers.onError?.({ message: "Request timed out after 45 seconds", recoverable: true });
-  }, 45000);
+    handlers.onError?.({ message: "Request timed out after 120 seconds", recoverable: true });
+  }, 120000);
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {

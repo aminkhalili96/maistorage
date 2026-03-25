@@ -1,4 +1,4 @@
-"""Corpus data integrity tests — validate JSONL chunk files and source manifest."""
+"""Knowledge base data integrity tests — validate JSONL chunk files and source manifest."""
 from __future__ import annotations
 
 import json
@@ -79,13 +79,13 @@ class TestJsonlFiles:
 
         The ingestion pipeline deduplicates at both file-level (identical HTML
         content hash) and chunk-level (duplicate chunk IDs). If this test fails,
-        the normalize_corpus.py script needs to be re-run.
+        the normalize_knowledge_base.py script needs to be re-run.
         """
         ids = [c["id"] for c in all_chunks]
         unique_ids = set(ids)
         assert len(ids) == len(unique_ids), (
             f"{len(ids) - len(unique_ids)} duplicate chunk_ids found "
-            f"({len(unique_ids)}/{len(ids)} unique). Run normalize_corpus.py."
+            f"({len(unique_ids)}/{len(ids)} unique). Run normalize_knowledge_base.py."
         )
 
     def test_content_hashes_are_nonempty(self, all_chunks):
