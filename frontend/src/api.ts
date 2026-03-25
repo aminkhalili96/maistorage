@@ -51,8 +51,13 @@ interface StreamHandlers {
   onError?: (error: { message: string; recoverable: boolean }) => void;
 }
 
-export async function streamChat(question: string, history: ChatTurn[], handlers: StreamHandlers) {
-  const controller = new AbortController();
+export async function streamChat(
+  question: string,
+  history: ChatTurn[],
+  handlers: StreamHandlers,
+  externalController?: AbortController,
+) {
+  const controller = externalController ?? new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
     handlers.onError?.({ message: "Request timed out after 45 seconds", recoverable: true });
@@ -62,7 +67,10 @@ export async function streamChat(question: string, history: ChatTurn[], handlers
     const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, history }),
+      body: JSON.stringify({
+        question,
+        history: history.map(({ role, content }) => ({ role, content })),
+      }),
       signal: controller.signal,
     });
 

@@ -74,3 +74,57 @@ BeeGFS is significantly easier to deploy: no kernel patching (DKMS client module
 ## Common Deployment Pattern
 
 A typical AI cluster uses NVMe-backed storage servers (8-12 SSDs per server), ext4 or XFS on each target, InfiniBand HDR/NDR networking, and 2-4 metadata servers on separate NVMe nodes. Training data lives on a high-stripe-count directory, checkpoints go to a buddy-mirrored directory, and compute nodes mount BeeGFS via the kernel client with RDMA enabled.
+
+## Advanced AI-Specific Tuning
+
+### Chunk Size for Checkpoints vs Data Loading
+
+Checkpoint I/O and data loading have fundamentally different access patterns that require separate tuning:
+
+**Checkpoint writes** are large sequential operations (tens to hundreds of GB per save). Optimal chunk size is 1-2 MB to reduce metadata overhead and maximize sequential throughput. Use `tuneChunkSize=2M` with high stripe count (`tuneNumTargets=8` or more) for checkpoint directories. Enable `O_DIRECT` in the training framework to bypass page cache and avoid memory pressure on storage servers.
+
+**Data loading** involves many small random reads (individual images, text chunks, or tensor slices). Lower chunk sizes (256-512 KB) and lower stripe counts (1-2) reduce the number of servers contacted per read. For random-access datasets, use `tuneNumTargets=1` to keep each file on a single server, eliminating cross-server coordination overhead. For sequential-access formats (WebDataset, FFCV, TFRecord), higher stripe counts are beneficial.
+
+Per-directory configuration enables both patterns on the same filesystem:
+
+```bash
+# Checkpoint directory: large sequential writes
+beegfs-ctl --setpattern --numtargets=8 --chunksize=2M /mnt/beegfs/checkpoints
+
+# Training data: random reads from many small files
+beegfs-ctl --setpattern --numtargets=1 --chunksize=256K /mnt/beegfs/datasets/imagenet
+
+# Shared preprocessed data: sequential reads from large archives
+beegfs-ctl --setpattern --numtargets=4 --chunksize=1M /mnt/beegfs/datasets/webdataset
+```
+
+### RDMA Transport Optimization
+
+For maximum RDMA throughput, tune these parameters on both client and server:
+
+- **`connRDMABufSize`** — RDMA buffer size per connection. Default 8192 bytes; increase to 65536 for large transfers. Higher values consume more NIC memory but reduce transfer overhead.
+- **`connRDMABufNum`** — number of RDMA buffers. Default 70; increase to 128-256 for high-concurrency workloads.
+- **`connMaxInternodeNum`** — maximum number of connections to each server. Default 10; increase to 24-32 for 8-GPU nodes where each GPU's data loader runs independently.
+- **`connRDMATypeOfService`** — set to match InfiniBand traffic class for QoS isolation between storage and compute traffic.
+
+Verify RDMA is active: `beegfs-ctl --conntest --nodetype=storage` should show `RDMA` transport, not `TCP`.
+
+### Client-Side Caching Configuration
+
+BeeGFS client caching can significantly impact AI workload performance:
+
+- **`tuneFileCacheType=buffered`** — enables read-ahead caching on the client. Essential for training data that is read multiple times per epoch. Client caches recently read chunks in kernel page cache, avoiding repeated network round-trips.
+- **`tuneFileCacheBufSize`** — per-file cache buffer size. Default 512 KB; increase to 2-4 MB for large sequential reads.
+- **`tuneCoherentBuffers=false`** — disables cache coherency checks when only one writer exists (common in checkpoint scenarios where each rank writes its own file). Reduces metadata RPCs.
+- **`tuneRemoteFSync=false`** — skips fsync propagation to storage servers. Safe when the training framework handles data integrity (e.g., writing a completion marker after checkpoint is fully written). Improves write throughput by 20-40%.
+
+For multi-epoch training where the full dataset fits in client memory: set `tuneFileCacheType=buffered` with large `tuneFileCacheBufSize`. After the first epoch reads the data from storage, subsequent epochs serve from client cache. Monitor client cache hit rates via `cat /proc/fs/beegfs/<clientID>/storage_bench`.
+
+### Monitoring for AI Workloads
+
+Beyond basic health checks, monitor these metrics for AI cluster BeeGFS deployments:
+
+- **Throughput per storage server**: `beegfs-ctl --iostat --nodetype=storage --interval=5` shows real-time read/write MB/s per server. During checkpoint storms, all servers should show roughly equal write throughput (balanced striping).
+- **Client connection count**: `beegfs-ctl --clientstats --nodetype=storage` shows active connections. Spike detection indicates job startup/teardown.
+- **Metadata load**: `beegfs-ctl --clientstats --nodetype=meta` shows operations per second. High create/stat rates during data loading indicate small-file bottlenecks (consider tar-based formats).
+- **Prometheus integration** (BeeGFS 7.3+): `beegfs-mon` service exports metrics at `http://<mgmtd>:8000/metrics`. Key Prometheus metrics: `beegfs_storage_read_bytes_total`, `beegfs_storage_write_bytes_total`, `beegfs_meta_ops_total`, `beegfs_client_connections`.

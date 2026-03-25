@@ -77,3 +77,97 @@ LNet supports TCP (`tcp`), InfiniBand RDMA (`o2ib`), multi-rail for bandwidth ag
 ## Scale and Deployments
 
 The largest deployments exceed 1 exabyte and 1 TB/s aggregate bandwidth (Frontier, El Capitan). Commercial appliances from DDN (EXAScaler), HPE (ClusterStor), and NetApp provide integrated hardware, distribution, and support. DDN AI400X appliances deliver 90 GB/s per unit with NVMe-backed OSTs and GPUDirect Storage support.
+
+## GPU Node Client Configuration
+
+Lustre clients on GPU compute nodes require specific tuning for AI workloads. Key client-side parameters:
+
+**Read-ahead tuning** — GPU data loaders typically read large sequential files (datasets, model weights). Increase read-ahead for sequential patterns:
+
+```bash
+lctl set_param llite.*.max_read_ahead_mb=512
+lctl set_param llite.*.max_read_ahead_whole_mb=64
+```
+
+**Client cache sizing** — GPU nodes typically have 256-1024 GB system RAM. Allocate a significant portion to Lustre client cache for re-read workloads (multi-epoch training):
+
+```bash
+lctl set_param llite.*.max_cached_mb=8192    # 8 GB for nodes with 512+ GB RAM
+```
+
+For streaming workloads (one-pass data loading), reduce cache to avoid eviction overhead:
+
+```bash
+lctl set_param llite.*.max_cached_mb=512
+```
+
+**Statahead** — pre-fetches metadata for directory listings, critical for readdir-heavy data loading:
+
+```bash
+lctl set_param llite.*.statahead_max=256
+lctl set_param llite.*.statahead_agl=1        # async glimpse lock for size info
+```
+
+**Write-back cache** — for checkpoint writes, enable write-back caching to buffer small writes:
+
+```bash
+lctl set_param llite.*.max_dirty_mb=256
+```
+
+**NUMA awareness** — on multi-socket servers, pin the Lustre client's LNet threads to the NUMA node closest to the InfiniBand HCA for lower-latency I/O:
+
+```bash
+lctl set_param lnet.numa_range=0              # strict NUMA binding
+```
+
+## Progressive File Layout (PFL) for AI
+
+PFL dynamically adjusts stripe parameters as files grow, which is ideal for AI workloads where file sizes vary dramatically:
+
+```bash
+# Small files (metadata, configs) stay on 1 OST; medium files stripe across 4;
+# large files (checkpoints, datasets) stripe across all OSTs
+lfs setstripe -E 1M -c 1 -S 256K \
+              -E 1G -c 4 -S 1M \
+              -E -1 -c -1 -S 4M \
+              /mnt/lustre/training/
+```
+
+This eliminates the need for separate directories with different stripe configs. Small configuration files don't waste OST capacity; large checkpoint files automatically stripe for maximum bandwidth.
+
+## DNE for Metadata Scaling
+
+For datasets with millions of small files (ImageNet: 14M images, Common Crawl: billions of documents), metadata operations become the bottleneck. DNE2 striped directories distribute metadata across MDTs:
+
+```bash
+# Stripe the dataset directory across 4 MDTs
+lfs mkdir -c 4 /mnt/lustre/datasets/imagenet/train
+
+# Verify metadata distribution
+lfs getdirstripe /mnt/lustre/datasets/imagenet/train
+```
+
+DNE2 parallelizes `readdir`, `stat`, and `create` operations across MDTs. A 4-MDT configuration provides roughly 3.5x the metadata throughput of a single MDT (scaling is near-linear with slight coordination overhead).
+
+For AI training pipelines that generate many output files (per-rank checkpoints, per-step logs), create output directories with DNE striping before the job starts to avoid metadata hotspots.
+
+## Monitoring with Lustre Jobstats
+
+Jobstats provides per-job I/O accounting, essential for understanding which training jobs are consuming storage bandwidth:
+
+```bash
+# Enable jobstats (set on OSS and MDS)
+lctl set_param jobid_var=procname_uid
+
+# View per-job statistics
+lctl get_param obdfilter.*.job_stats
+
+# Reset statistics
+lctl set_param obdfilter.*.job_stats=clear
+```
+
+Jobstats output includes read/write bytes, operations, and latency histograms per job. Integrate with monitoring:
+
+- **Prometheus**: `lustre_exporter` scrapes `lctl get_param` and exports as Prometheus metrics. Key metrics: `lustre_ost_read_bytes_total`, `lustre_ost_write_bytes_total`, `lustre_mdt_open_total`, `lustre_mdt_mkdir_total`.
+- **Grafana dashboards**: Per-OST throughput heatmap, MDS operations/second, client-side cache hit rate, per-job bandwidth allocation.
+- **Capacity alerts**: Monitor `lfs df` output for OST imbalance (>20% variance indicates striping misconfiguration) and approaching capacity limits (trigger cleanup of old checkpoints at 80% full).

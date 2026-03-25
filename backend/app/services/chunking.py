@@ -10,6 +10,11 @@ from app.models import ChunkRecord, DocumentSource
 from app.services.providers import tokenize
 
 # ---------------------------------------------------------------------------
+# Generic page titles that should fall back to section_path
+# ---------------------------------------------------------------------------
+GENERIC_TITLES = {"Overview", "Documentation", "Home", "Index", "Contents"}
+
+# ---------------------------------------------------------------------------
 # Navigation / boilerplate chunk filter
 # ---------------------------------------------------------------------------
 
@@ -172,6 +177,12 @@ def chunk_sections(
 ) -> list[ChunkRecord]:
     records: list[ChunkRecord] = []
     for section_path, content in sections:
+        # P6: strip trailing '#' and whitespace from section headings
+        section_path = section_path.rstrip("# ").strip()
+        # P7: fall back to last segment of section_path when title is generic
+        effective_title = title
+        if title in GENERIC_TITLES and section_path:
+            effective_title = section_path.split(" > ")[-1].strip() if " > " in section_path else section_path.strip()
         for chunk_text in split_with_overlap(content, max_chars=max_chars, overlap=overlap):
             if _is_navigation_chunk(chunk_text):
                 continue  # skip TOC / release-note lists / footer boilerplate
@@ -180,7 +191,7 @@ def chunk_sections(
                 ChunkRecord(
                     id=chunk_id,
                     source_id=source.id,
-                    title=title,
+                    title=effective_title,
                     url=url,
                     section_path=section_path,
                     doc_family=source.doc_family,
@@ -193,7 +204,7 @@ def chunk_sections(
                     snapshot_id=snapshot_id or source.snapshot_id,
                     source_kind=source_kind,
                     content=chunk_text,
-                    sparse_terms=list(dict.fromkeys(tokenize(f"{title} {section_path} {chunk_text}"))),
+                    sparse_terms=list(dict.fromkeys(tokenize(f"{effective_title} {section_path} {chunk_text}"))),
                 )
             )
     return records

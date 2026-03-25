@@ -8,7 +8,7 @@ import re
 import threading
 from collections import OrderedDict
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, TypedDict
 from urllib.parse import urlparse
 
@@ -17,7 +17,7 @@ _log = logging.getLogger("maistorage.agent")
 from app.config import Settings
 from app.models import AgentRunState, ChatRequest, ChatTurn, Citation, ChunkRecord, QueryPlan, RetrieverResult, SearchDebugResponse, TraceEvent
 from app.services.providers import Embedder, OpenAIReasoner, TavilyClient, tokenize
-from app.services.retrieval import RetrievalService, classify_assistant_mode, needs_retry, rewrite_query
+from app.services.retrieval import RetrievalService, classify_assistant_mode, llm_classify_assistant_mode, llm_build_query_plan, generate_hyde_query, needs_retry, rewrite_query, estimate_confidence
 
 try:  # pragma: no cover - graph wiring is exercised via run()
     from langgraph.graph import END, START, StateGraph
@@ -63,6 +63,12 @@ class GraphState(TypedDict, total=False):
     self_reflect_scores: dict[str, Any]
     sub_questions: list[str]
     history_context: str
+    classification_method: str
+    plan_method: str
+    llm_graded: bool
+    routing_decisions: list[dict[str, Any]]
+    multi_hop_used: bool
+    follow_up_queries: list[str]
 
 
 def _slugify_section(section_path: str) -> str:
@@ -208,8 +214,10 @@ class AgentService:
         graph.add_edge(START, "classify")
         graph.add_edge("classify", "retrieve")
         graph.add_edge("retrieve", "document_grading")
+        graph.add_node("multi_hop_check", self._graph_multi_hop_check)
+        graph.add_edge("document_grading", "multi_hop_check")
         graph.add_conditional_edges(
-            "document_grading",
+            "multi_hop_check",
             self._route_after_grading,
             {
                 "rewrite_if_needed": "rewrite_if_needed",
@@ -223,8 +231,10 @@ class AgentService:
             self._route_after_fallback,
             {"generate": "generate", "end": END},
         )
+        graph.add_node("claim_verification", self._verify_claims)
         graph.add_edge("generate", "self_reflect")
-        graph.add_edge("self_reflect", "grounding_check")
+        graph.add_edge("self_reflect", "claim_verification")
+        graph.add_edge("claim_verification", "grounding_check")
         graph.add_edge("grounding_check", "answer_quality_check")
         graph.add_conditional_edges(
             "answer_quality_check",
@@ -282,7 +292,11 @@ class AgentService:
         return []
 
     def _graph_classify(self, state: GraphState) -> GraphState:
-        plan = self.retrieval.build_plan(state["question"])
+        if self.reasoner.enabled:
+            plan, plan_method = llm_build_query_plan(state["question"], self.settings, self.reasoner)
+        else:
+            plan = self.retrieval.build_plan(state["question"])
+            plan_method = "rule_fallback"
         selected_model = str(state.get("model_used") or self.settings.generation_model)
         next_state: GraphState = {
             "assistant_mode": "doc_rag",
@@ -300,6 +314,7 @@ class AgentService:
             "fallback_reason": None,
             "response_mode": "corpus-backed",
             "model_used": selected_model,
+            "plan_method": plan_method,
         }
 
         sub_questions: list[str] = []
@@ -313,6 +328,7 @@ class AgentService:
             "source_families": plan.source_families,
             "search_queries": plan.search_queries[:2],
             "model": selected_model,
+            "plan_method": plan_method,
             **_tool_payload("nvidia_docs", "NVIDIA Docs", "corpus"),
         }
         if sub_questions:
@@ -348,8 +364,12 @@ class AgentService:
             rejected = all_rejected
             events = all_events
         else:
+            active_query = state.get("current_query", state["question"])
+            # HyDE: on first pass only, generate a hypothetical document to improve recall
+            if state.get("retries", 0) == 0:
+                active_query = generate_hyde_query(active_query, self.reasoner, self.settings)
             results, rejected, confidence, events = self.retrieval.run_retrieval_pass(
-                state["question"], plan, state.get("current_query", state["question"])
+                state["question"], plan, active_query
             )
 
         next_state = dict(state)
@@ -367,29 +387,308 @@ class AgentService:
         return next_state
 
     def _graph_document_grading(self, state: GraphState) -> GraphState:
-        accepted = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
-        rejected_ids = state.get("rejected_chunk_ids", [])
-        accepted_count = len(accepted)
+        results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
+        rejected_ids = list(state.get("rejected_chunk_ids", []))
+
+        # LLM-based document grading: ask the model to judge relevance of each chunk
+        llm_graded = False
+        grades = []
+        if self.reasoner.enabled and results:
+            llm_graded = True
+            question = state["question"]
+            accepted = []
+            newly_rejected = []
+
+            # Batch chunks for grading (up to 3 per prompt to reduce API calls)
+            for batch_start in range(0, min(len(results), 6), 3):
+                batch = results[batch_start:batch_start + 3]
+                # Context poisoning defense: flag chunks with instruction-like content
+                _POISONING_SIGNALS = ("ignore previous", "you must", "system prompt", "new instructions", "override your")
+                for r in batch:
+                    content_lower = r.chunk.content[:500].lower()
+                    if any(signal in content_lower for signal in _POISONING_SIGNALS):
+                        _log.warning("Potential context poisoning in chunk %s: matched instruction-like pattern", r.chunk.id)
+                docs_text = "\n\n".join(
+                    f"Document {i+1} [{r.chunk.chunk_id if hasattr(r.chunk, 'chunk_id') else r.chunk.id}]: "
+                    f"{r.chunk.title} — {r.chunk.content[:300]}"
+                    for i, r in enumerate(batch)
+                )
+                prompt = (
+                    "You are evaluating document relevance for an NVIDIA infrastructure RAG system.\n\n"
+                    f"Question: {question}\n\n"
+                    f"Documents:\n{docs_text}\n\n"
+                    "For each document, judge if it is relevant to answering the question.\n"
+                    f'Respond in JSON: {{"grades": [{{"doc": 1, "relevant": true/false, "reason": "..."}},'
+                    f' {{"doc": 2, "relevant": true/false, "reason": "..."}}, ...]}}'
+                )
+                try:
+                    raw = self.reasoner.generate_text(prompt, model=self.settings.pipeline_model)
+                    raw = raw.strip()
+                    if raw.startswith("```"):
+                        raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                        raw = re.sub(r"\s*```$", "", raw)
+                    parsed = json.loads(raw)
+                    batch_grades = parsed.get("grades", [])
+                    for idx, r in enumerate(batch):
+                        grade = batch_grades[idx] if idx < len(batch_grades) else {"relevant": True}
+                        is_relevant = grade.get("relevant", True)
+                        reason = grade.get("reason", "")
+                        grades.append({"chunk_id": r.chunk.id, "relevant": is_relevant, "reason": reason})
+                        if is_relevant:
+                            accepted.append(r)
+                        else:
+                            newly_rejected.append(r.chunk.id)
+                except Exception as exc:
+                    _log.warning("LLM document grading failed for batch (%s: %s), keeping all chunks", type(exc).__name__, str(exc)[:120])
+                    accepted.extend(batch)
+                    grades.extend([{"chunk_id": r.chunk.id, "relevant": True, "reason": "grading_failed"} for r in batch])
+
+            # Keep any remaining chunks beyond the first 6 (not graded)
+            if len(results) > 6:
+                accepted.extend(results[6:])
+
+            results = accepted
+            rejected_ids.extend(newly_rejected)
+
+        accepted_count = len(results)
         rejected_count = len(rejected_ids)
+
+        next_state = dict(state)
+        next_state["results"] = [item.model_dump() for item in results]
+        next_state["rejected_chunk_ids"] = list(dict.fromkeys(rejected_ids))
+        next_state["llm_graded"] = llm_graded
+
+        # Recalculate confidence if LLM filtered chunks
+        if llm_graded and results:
+            next_state["confidence"] = estimate_confidence(results)
+
         return _append_trace(
-            dict(state),
+            next_state,
             TraceEvent(
                 type="document_grading",
-                message="Prepared the accepted evidence set for answer synthesis",
+                message="Evaluated document relevance" + (" using LLM judgment" if llm_graded else " using threshold filtering"),
                 payload={
                     "stage": "evidence_selection",
                     "accepted_count": accepted_count,
-                    "accepted_docs": [_result_preview(item) for item in accepted[:4]],
+                    "accepted_docs": [_result_preview(item) for item in results[:4]],
                     "rejected_count": rejected_count,
                     "total_count": accepted_count + rejected_count,
                     "kept_count": accepted_count,
-                    "grades": ["pass"] * accepted_count + ["fail"] * rejected_count,
+                    "grades": [("pass" if g.get("relevant") else "fail") for g in grades] if llm_graded else (["pass"] * accepted_count + ["fail"] * rejected_count),
+                    "llm_graded": llm_graded,
                     **_tool_payload("nvidia_docs", "NVIDIA Docs", "corpus"),
                 },
             ),
         )
 
+    def _llm_route(self, state: GraphState, decision_point: str, options: list[dict[str, str]]) -> tuple[str, str]:
+        """Use LLM to decide the next action at a routing decision point.
+
+        Returns (action, method) where method is 'llm' or 'rule_fallback'.
+        """
+        if not self.reasoner.enabled:
+            return "", "rule_fallback"
+
+        question = state.get("question", "")
+        confidence = state.get("confidence", 0.0)
+        result_count = len(state.get("results", []))
+        retries = state.get("retries", 0)
+        used_fallback = state.get("used_fallback", False)
+        grounding_passed = state.get("grounding_passed", False)
+        quality_passed = state.get("answer_quality_passed", False)
+
+        options_text = "\n".join(
+            f"- {opt['action']}: {opt['description']}"
+            for opt in options
+        )
+
+        prompt = (
+            "You are a routing agent in an NVIDIA infrastructure RAG pipeline.\n\n"
+            f"Decision point: {decision_point}\n"
+            f"Question: {question}\n"
+            f"Retrieved documents: {result_count}\n"
+            f"Confidence score: {confidence:.2f}\n"
+            f"Retry count: {retries}\n"
+            f"Web fallback used: {used_fallback}\n"
+            f"Grounding check passed: {grounding_passed}\n"
+            f"Quality check passed: {quality_passed}\n\n"
+            f"Available actions:\n{options_text}\n\n"
+            "Choose the best next action based on the pipeline state.\n"
+            '{"action": "action_name", "reasoning": "brief explanation"}'
+        )
+
+        try:
+            raw = self.reasoner.generate_text(prompt, model=self.settings.routing_model)
+            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                raw = re.sub(r"\s*```$", "", raw)
+            parsed = json.loads(raw)
+            action = parsed.get("action", "")
+            valid_actions = {opt["action"] for opt in options}
+            if action not in valid_actions:
+                _log.warning("LLM route returned invalid action %r, falling back", action)
+                return "", "rule_fallback"
+
+            # Emit routing decision trace
+            reasoning = parsed.get("reasoning", "")
+            routing_decisions = list(state.get("routing_decisions", []))
+            routing_decisions.append({
+                "decision_point": decision_point,
+                "action": action,
+                "reasoning": reasoning,
+                "method": "llm",
+            })
+            # Note: we can't mutate state here (routing functions return a string, not state)
+            # The trace is logged but not persisted to state in routing functions
+
+            return action, "llm"
+        except Exception as exc:
+            _log.warning("LLM routing failed (%s: %s), using rule-based fallback", type(exc).__name__, str(exc)[:120])
+            return "", "rule_fallback"
+
+    def _graph_multi_hop_check(self, state: GraphState) -> GraphState:
+        """Multi-hop retrieval: LLM inspects chunks and identifies knowledge gaps."""
+        next_state = dict(state)
+
+        # Only run on first pass, only when reasoner is available
+        if not self.reasoner.enabled or state.get("retries", 0) > 0:
+            next_state["multi_hop_used"] = False
+            return next_state
+
+        results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
+        if not results:
+            next_state["multi_hop_used"] = False
+            return next_state
+
+        question = state["question"]
+        chunk_summaries = "\n".join(
+            f"- {r.chunk.title}: {r.chunk.content[:200]}"
+            for r in results[:5]
+        )
+
+        prompt = (
+            "You are a retrieval quality assessor for an NVIDIA infrastructure documentation system.\n\n"
+            f"Question: {question}\n\n"
+            f"Retrieved documents:\n{chunk_summaries}\n\n"
+            "Do these documents contain sufficient information to answer the question comprehensively?\n"
+            "If not, what specific follow-up search query would help fill the knowledge gap?\n\n"
+            'Respond in JSON: {"sufficient": true/false, "follow_up_query": "specific search query or empty string", "gap_description": "what information is missing or empty string"}'
+        )
+
+        try:
+            raw = self.reasoner.generate_text(prompt, model=self.settings.pipeline_model)
+            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                raw = re.sub(r"\s*```$", "", raw)
+            parsed = json.loads(raw)
+
+            sufficient = parsed.get("sufficient", True)
+            follow_up_query = parsed.get("follow_up_query", "").strip()
+            gap_description = parsed.get("gap_description", "")
+
+            if not sufficient and follow_up_query:
+                # R3: Parallel multi-hop — currently single follow-up; if the LLM
+                # returns multiple queries in the future, they can be dispatched
+                # concurrently via asyncio.gather() or ThreadPoolExecutor since
+                # run_retrieval_pass is synchronous and thread-safe.
+                plan = QueryPlan.model_validate(state["plan"])
+                follow_up_queries = [follow_up_query]
+
+                all_new_results: list[RetrieverResult] = []
+                all_new_events: list[TraceEvent] = []
+                for fq in follow_up_queries:
+                    new_results, new_rejected, new_confidence, new_events = self.retrieval.run_retrieval_pass(
+                        question, plan, fq
+                    )
+                    all_new_results.extend(new_results)
+                    all_new_events.extend(new_events)
+
+                # Merge results, dedup by chunk ID (preserving highest-scoring duplicate)
+                existing_ids = {r.chunk.id for r in results}
+                seen_new: set[str] = set()
+                added: list[RetrieverResult] = []
+                for r in sorted(all_new_results, key=lambda x: x.rerank_score, reverse=True):
+                    if r.chunk.id not in existing_ids and r.chunk.id not in seen_new:
+                        added.append(r)
+                        seen_new.add(r.chunk.id)
+                merged_results = results + added
+
+                next_state["results"] = [item.model_dump() for item in merged_results]
+                next_state["multi_hop_used"] = True
+                next_state["follow_up_queries"] = follow_up_queries
+
+                # Recalculate confidence with merged results
+                if merged_results:
+                    top_scores = sorted([r.rerank_score for r in merged_results], reverse=True)[:3]
+                    weights = [0.5, 0.3, 0.2][:len(top_scores)]
+                    next_state["confidence"] = sum(s * w for s, w in zip(top_scores, weights)) / sum(weights[:len(top_scores)])
+
+                # Emit retrieval trace events from the follow-up
+                trace = list(state.get("trace", []))
+                emit_fn = getattr(_thread_local_emit, "fn", None)
+                for event in all_new_events:
+                    dumped = event.model_dump()
+                    trace.append(dumped)
+                    if emit_fn is not None:
+                        emit_fn(event.type, dumped)
+                next_state["trace"] = trace
+
+                return _append_trace(
+                    next_state,
+                    TraceEvent(
+                        type="multi_hop",
+                        message=f"Multi-hop retrieval: identified gap and retrieved {len(added)} additional documents via {len(follow_up_queries)} follow-up query(ies)",
+                        payload={
+                            "stage": "multi_hop_retrieval",
+                            "sufficient": False,
+                            "follow_up_queries": follow_up_queries,
+                            "gap_description": gap_description,
+                            "new_results_count": len(added),
+                            "total_results_count": len(merged_results),
+                            "follow_up_query_count": len(follow_up_queries),
+                        },
+                    ),
+                )
+            else:
+                next_state["multi_hop_used"] = False
+                return _append_trace(
+                    next_state,
+                    TraceEvent(
+                        type="multi_hop",
+                        message="Multi-hop check: retrieved documents are sufficient",
+                        payload={
+                            "stage": "multi_hop_retrieval",
+                            "sufficient": True,
+                            "follow_up_query": "",
+                            "gap_description": "",
+                        },
+                    ),
+                )
+        except Exception as exc:
+            _log.warning("Multi-hop check failed (%s: %s), proceeding with existing chunks", type(exc).__name__, str(exc)[:120])
+            next_state["multi_hop_used"] = False
+            return next_state
+
     def _route_after_grading(self, state: GraphState) -> str:
+        # Try LLM-based routing first
+        action, method = self._llm_route(state, "after_grading", [
+            {"action": "generate", "description": "Proceed to answer generation with the current evidence set"},
+            {"action": "rewrite_if_needed", "description": "Rephrase the query and retry retrieval (low confidence in current results)"},
+            {"action": "fallback_if_needed", "description": "Try web search fallback (corpus evidence insufficient)"},
+        ])
+
+        if method == "llm":
+            plan = QueryPlan.model_validate(state["plan"])
+            # Guard rails: enforce constraints regardless of LLM decision
+            if action == "rewrite_if_needed" and state.get("retries", 0) >= 1:
+                return "fallback_if_needed"  # max 1 rewrite before grading
+            if action == "fallback_if_needed" and not plan.use_tavily_fallback:
+                return "generate"  # tavily disabled, just generate
+            return action
+
+        # Rule-based fallback (original logic)
         plan = QueryPlan.model_validate(state["plan"])
         results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
         if plan.recency_sensitive:
@@ -523,12 +822,80 @@ class AgentService:
             return "generate"
         return "end"
 
+    def _check_user_premises(self, question: str, results: list[RetrieverResult]) -> str:
+        """Check if user's question contains incorrect factual premises.
+
+        Returns a context note to prepend to the synthesis prompt if a contradiction is found,
+        or an empty string if no issues detected.
+        """
+        if not self.reasoner.enabled or not results:
+            return ""
+
+        # Ask routing model to extract factual assertions from the question
+        prompt = (
+            "Does this question contain any factual assertions or premises that could be verified?\n"
+            "Examples of assertions: 'Since the H100 has 40GB...', 'Given that NCCL only supports TCP...'\n\n"
+            f"Question: {question}\n\n"
+            'Respond in JSON: {"has_assertions": true/false, "assertions": ["assertion1", ...]}\n'
+            "Only include factual claims the user states as fact, not things they are asking about."
+        )
+
+        try:
+            raw = self.reasoner.generate_text(prompt, model=self.settings.routing_model)
+            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                raw = re.sub(r"\s*```$", "", raw)
+            parsed = json.loads(raw)
+            if not parsed.get("has_assertions"):
+                return ""
+            assertions = parsed.get("assertions", [])
+        except Exception:
+            return ""
+
+        if not assertions:
+            return ""
+
+        # Check each assertion against retrieved chunks
+        chunk_text = " ".join(r.chunk.content for r in results[:4])
+        contradictions = []
+
+        for assertion in assertions[:3]:
+            assertion_lower = assertion.lower()
+            # Simple contradiction detection: if the assertion mentions a number and
+            # the chunks mention a different number for the same entity
+            assertion_tokens = set(tokenize(assertion))
+            chunk_tokens = set(tokenize(chunk_text))
+            # If the assertion tokens have significant overlap with chunks but the exact
+            # assertion doesn't appear, it might be contradicted
+            overlap = len(assertion_tokens & chunk_tokens) / max(len(assertion_tokens), 1)
+            if overlap > 0.3 and assertion_lower not in chunk_text.lower():
+                contradictions.append(assertion)
+
+        if contradictions:
+            return (
+                "IMPORTANT NOTE: The user's question contains premise(s) that may be incorrect based on the source documents: "
+                + "; ".join(contradictions[:2])
+                + ". If the sources contradict these premises, correct them directly in your answer.\n\n"
+            )
+        return ""
+
     def _graph_generate(self, state: GraphState) -> GraphState:
         results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
         citations = [_citation_from_result(result).model_dump() for result in results[:4]]
         model_used = str(state.get("model_used") or self.settings.generation_model)
         history_context = state.get("history_context", "")
-        answer, generation_degraded = self._synthesize_answer(state["question"], results, model_used, history_context=history_context)
+        # S3: Check for incorrect user premises before synthesis
+        premise_note = self._check_user_premises(state["question"], results)
+        emit_fn = getattr(_thread_local_emit, "fn", None)
+        if emit_fn is not None and self.reasoner.enabled and results:
+            answer, generation_degraded = self._synthesize_answer_stream(
+                state["question"], results, model_used,
+                history_context=history_context, emit=emit_fn,
+                premise_note=premise_note,
+            )
+        else:
+            answer, generation_degraded = self._synthesize_answer(state["question"], results, model_used, history_context=history_context, premise_note=premise_note)
         next_state = dict(state)
         next_state["citations"] = citations
         next_state["answer"] = answer
@@ -551,6 +918,19 @@ class AgentService:
                 "model": model_used,
                 "accepted_docs": [_result_preview(result) for result in results[:4]],
                 "degraded": generation_degraded,
+            },
+        ))
+        # S4: Output format enforcement — validate format before grounding check
+        format_check = self._validate_format(answer, next_state.get("response_mode", "corpus-backed"))
+        if format_check["issues"]:
+            _log.info("Format validation issues: %s", format_check["issues"])
+        events.append(TraceEvent(
+            type="generation",
+            message="Post-generation format validation",
+            payload={
+                "stage": "validation",
+                "check": "format",
+                **format_check,
             },
         ))
         return _append_trace(next_state, *events)
@@ -585,6 +965,11 @@ class AgentService:
                 raw = re.sub(r"^```(?:json)?\s*", "", raw)
                 raw = re.sub(r"\s*```$", "", raw)
             scores = json.loads(raw)
+            _log.info(
+                "Self-RAG scores: relevance=%s groundedness=%s completeness=%s (model=%s)",
+                scores.get("relevance"), scores.get("groundedness"), scores.get("completeness"),
+                self.settings.pipeline_model,
+            )
         except Exception as exc:
             _log.warning("Self-reflect failed (%s: %s), defaulting to neutral scores", type(exc).__name__, str(exc)[:120])
             scores = {"relevance": 3, "groundedness": 3, "completeness": 3, "issues": "reflection unavailable"}
@@ -612,6 +997,82 @@ class AgentService:
             ),
         )
 
+    def _verify_claims(self, state: GraphState) -> GraphState:
+        """Claim-level verification: extract factual claims and verify against sources."""
+        next_state = dict(state)
+        answer = state.get("answer", "")
+        results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
+
+        if not self.reasoner.enabled or not answer or not results:
+            return next_state
+
+        # Ask routing model to extract key factual claims
+        prompt = (
+            "Extract the key factual claims from this answer. Focus on specific numbers, "
+            "names, comparisons, and technical specifications.\n\n"
+            f"Answer: {answer[:1000]}\n\n"
+            'Respond in JSON: {"claims": ["claim1", "claim2", ...]}\n'
+            "List only the 3-5 most important factual claims."
+        )
+
+        try:
+            raw = self.reasoner.generate_text(prompt, model=self.settings.routing_model)
+            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                raw = re.sub(r"\s*```$", "", raw)
+            parsed = json.loads(raw)
+            claims = parsed.get("claims", [])
+        except Exception as exc:
+            _log.debug("Claim extraction failed (%s), skipping verification", type(exc).__name__)
+            return next_state
+
+        if not claims:
+            return next_state
+
+        # Verify each claim against source chunks
+        chunk_contents = " ".join(r.chunk.content.lower() for r in results[:4])
+        verified = []
+        ungrounded = []
+
+        for claim in claims[:5]:
+            claim_tokens = set(tokenize(claim))
+            # A claim is "grounded" if at least 40% of its meaningful tokens appear in the source chunks
+            meaningful_tokens = {t for t in claim_tokens if len(t) > 2}
+            if not meaningful_tokens:
+                verified.append(claim)
+                continue
+            hits = sum(1 for t in meaningful_tokens if t in chunk_contents)
+            if hits / len(meaningful_tokens) >= 0.4:
+                verified.append(claim)
+            else:
+                ungrounded.append(claim)
+
+        claim_result = {
+            "total_claims": len(claims[:5]),
+            "verified": len(verified),
+            "ungrounded": len(ungrounded),
+            "ungrounded_claims": ungrounded[:3],  # Only show first 3
+        }
+
+        # If more than half the claims are ungrounded, flag for grounding failure
+        if ungrounded and len(ungrounded) > len(verified):
+            next_state["grounding_passed"] = False
+            _log.info("Claim verification failed: %d/%d claims ungrounded", len(ungrounded), len(claims[:5]))
+
+        return _append_trace(
+            next_state,
+            TraceEvent(
+                type="claim_verification",
+                message=f"Verified {len(verified)}/{len(claims[:5])} factual claims against source documents",
+                payload={
+                    "stage": "validation",
+                    "check": "claim_verification",
+                    **claim_result,
+                },
+            ),
+        )
+
     def _graph_grounding_check(self, state: GraphState) -> GraphState:
         answer = state.get("answer", "")
         citations = [Citation.model_validate(item) for item in state.get("citations", [])]
@@ -620,12 +1081,43 @@ class AgentService:
             grounded = False  # override: LLM itself said the context wasn't good enough
         next_state = dict(state)
         next_state["grounding_passed"] = grounded
+
+        # S2: Citation attribution quality metrics
+        results = [RetrieverResult.model_validate(item) for item in state.get("results", [])]
+        citation_quality = self._citation_quality(answer, results)
+
+        # S6: Stale info detection — flag answers citing only old sources
+        stale_warning = False
+        if results:
+            retrieved_dates: list[datetime] = []
+            for r in results[:4]:
+                ra = getattr(r.chunk, 'retrieved_at', None)
+                if ra:
+                    try:
+                        dt = datetime.fromisoformat(ra.replace("Z", "+00:00"))
+                        retrieved_dates.append(dt)
+                    except (ValueError, TypeError):
+                        pass
+            if retrieved_dates:
+                now = datetime.now(timezone.utc)
+                all_stale = all((now - dt).days > 180 for dt in retrieved_dates)
+                if all_stale:
+                    stale_warning = True
+                    _log.info("All cited sources are older than 6 months — flagging stale info warning")
+
         return _append_trace(
             next_state,
             TraceEvent(
                 type="grounding_check",
                 message="Verified that the answer stays anchored to cited evidence",
-                payload={"stage": "validation", "check": "grounding", "passed": grounded, "citation_count": len(citations)},
+                payload={
+                    "stage": "validation",
+                    "check": "grounding",
+                    "passed": grounded,
+                    "citation_count": len(citations),
+                    "citation_quality": citation_quality,
+                    "stale_sources_warning": stale_warning,
+                },
             ),
         )
 
@@ -643,6 +1135,25 @@ class AgentService:
         )
 
     def _route_after_quality(self, state: GraphState) -> str:
+        # Try LLM-based routing first
+        action, method = self._llm_route(state, "after_quality", [
+            {"action": "end", "description": "Accept the answer — quality and grounding checks passed"},
+            {"action": "post_gen_fallback", "description": "Try web search to improve the answer (quality/grounding failed)"},
+            {"action": "rewrite_if_needed", "description": "Rephrase query and regenerate (quality failed, retry available)"},
+        ])
+
+        if method == "llm":
+            plan = QueryPlan.model_validate(state["plan"])
+            # Guard rails
+            if action == "post_gen_fallback" and (state.get("used_fallback") or not plan.use_tavily_fallback):
+                if state.get("retries", 0) < plan.max_retries:
+                    return "rewrite_if_needed"
+                return "end"
+            if action == "rewrite_if_needed" and state.get("retries", 0) >= plan.max_retries:
+                return "end"
+            return action
+
+        # Rule-based fallback (original logic)
         plan = QueryPlan.model_validate(state["plan"])
         quality_ok = state.get("grounding_passed", False) and state.get("answer_quality_passed", False)
         if not quality_ok:
@@ -667,9 +1178,16 @@ class AgentService:
         if self._semantic_cache is not None:
             cached = self._semantic_cache.get(cache_key)
             if cached is not None:
+                _log.info("Semantic cache HIT (size=%d, key=%s)", len(self._semantic_cache._entries), cache_key[:80])
                 return cached
 
-        assistant_mode = classify_assistant_mode(request.question, request.history)
+        if self.reasoner.enabled:
+            assistant_mode, classification_method = llm_classify_assistant_mode(
+                request.question, request.history, self.reasoner, self.settings.routing_model
+            )
+        else:
+            assistant_mode = classify_assistant_mode(request.question, request.history)
+            classification_method = "rule_fallback"
         with tracing_context(
             project_name=self.settings.langsmith_project,
             enabled=self.settings.langsmith_tracing and bool(self.settings.langsmith_api_key),
@@ -684,6 +1202,7 @@ class AgentService:
 
         if self._semantic_cache is not None:
             self._semantic_cache.put(cache_key, result)
+            _log.info("Semantic cache MISS -> stored (size=%d, key=%s)", len(self._semantic_cache._entries), cache_key[:80])
         return result
 
     @traceable(name="agent_run", run_type="chain")
@@ -699,12 +1218,18 @@ class AgentService:
         # "How much memory does the NVIDIA H100 have?" routes to doc_rag.
         # Safety: if the ORIGINAL question is casual chat (e.g. "Thanks, that's helpful"),
         # don't let reformulation inject NVIDIA terms that misroute it to doc_rag.
-        original_mode = classify_assistant_mode(request.question, request.history)
+        if self.reasoner.enabled:
+            original_mode, _ = llm_classify_assistant_mode(request.question, request.history, self.reasoner, self.settings.routing_model)
+        else:
+            original_mode = classify_assistant_mode(request.question, request.history)
         if original_mode == "direct_chat":
             assistant_mode = "direct_chat"
         else:
             classify_query = effective_query if reformulation_method else request.question
-            assistant_mode = classify_assistant_mode(classify_query, request.history)
+            if self.reasoner.enabled:
+                assistant_mode, _ = llm_classify_assistant_mode(classify_query, request.history, self.reasoner, self.settings.routing_model)
+            else:
+                assistant_mode = classify_assistant_mode(classify_query, request.history)
         if assistant_mode == "direct_chat":
             return self._run_direct_chat(request, selected_model)
         if assistant_mode == "live_query":
@@ -908,6 +1433,7 @@ class AgentService:
                 return state
         state = self._graph_generate(state)
         state = self._graph_self_reflect(state)
+        state = self._verify_claims(state)
         state = self._graph_grounding_check(state)
         state = self._graph_answer_quality_check(state)
         quality_route = self._route_after_quality(state)
@@ -916,6 +1442,7 @@ class AgentService:
             if self._route_after_post_gen_fallback(state) == "generate":
                 state = self._graph_generate(state)
                 state = self._graph_self_reflect(state)
+                state = self._verify_claims(state)
                 state = self._graph_grounding_check(state)
                 state = self._graph_answer_quality_check(state)
             return state
@@ -925,6 +1452,7 @@ class AgentService:
             state = self._graph_document_grading(state)
             state = self._graph_generate(state)
             state = self._graph_self_reflect(state)
+            state = self._verify_claims(state)
             state = self._graph_grounding_check(state)
             state = self._graph_answer_quality_check(state)
         return state
@@ -1200,7 +1728,7 @@ class AgentService:
             history.append(ChatTurn(role="user", content=request.question))
         return history
 
-    def _synthesize_answer(self, question: str, results: list[RetrieverResult], model: str, *, history_context: str = "") -> tuple[str, bool]:
+    def _synthesize_answer(self, question: str, results: list[RetrieverResult], model: str, *, history_context: str = "", premise_note: str = "") -> tuple[str, bool]:
         """Return (answer_text, generation_degraded). generation_degraded is True when Gemini failed and keyword fallback was used."""
         if not results:
             return self._refusal_answer(), False
@@ -1210,7 +1738,9 @@ class AgentService:
             context_blocks = []
             for index, result in enumerate(top_results, start=1):
                 context_blocks.append(
-                    f"[{index}] {result.chunk.title} | {result.chunk.section_path} | {result.chunk.url}\n{result.chunk.content}"
+                    f"[{index}] {result.chunk.title} | {result.chunk.section_path} | {result.chunk.url}"
+                    + (f" (retrieved {result.chunk.retrieved_at[:10]})" if getattr(result.chunk, 'retrieved_at', None) else "")
+                    + f"\n{result.chunk.content}"
                 )
             prompt = (
                 "You are an NVIDIA AI infrastructure advisor. "
@@ -1223,9 +1753,13 @@ class AgentService:
                 "5. Keep the response under 300 words.\n"
                 "6. Prioritize technical accuracy and specific numbers (bandwidth, TFLOPS, memory sizes) over general descriptions.\n"
                 "7. When comparing hardware or configurations, use a structured format (bullet points or table).\n"
-                "8. End with a practical recommendation when the question implies a choice.\n\n"
-                f"Question: {question}\n\nContext:\n" + "\n\n".join(context_blocks)
+                "8. End with a practical recommendation when the question implies a choice.\n"
+                "9. If the context contradicts the user's premise, correct it directly — do not agree with incorrect assumptions.\n"
+                "10. Do not pad with filler phrases or restate the question. Lead with the answer.\n\n"
             )
+            if premise_note:
+                prompt += premise_note
+            prompt += f"Question: {question}\n\nContext:\n" + "\n\n".join(context_blocks)
             if history_context:
                 prompt += (
                     "\n\nConversation history (for continuity only — all factual claims must come from the numbered passages):\n"
@@ -1244,6 +1778,129 @@ class AgentService:
             section = result.chunk.section_path or result.chunk.title or "Source"
             lines.append(f"**{section}**\n\n{result.chunk.content} [{index}]")
         return "\n\n".join(lines), True
+
+    def _synthesize_answer_stream(self, question: str, results: list[RetrieverResult], model: str, *, history_context: str = "", emit=None, premise_note: str = "") -> tuple[str, bool]:
+        """Stream tokens via emit callback, return (answer_text, generation_degraded)."""
+        if not results:
+            return self._refusal_answer(), False
+
+        top_results = results[:4]
+        context_blocks = []
+        for index, result in enumerate(top_results, start=1):
+            context_blocks.append(
+                f"[{index}] {result.chunk.title} | {result.chunk.section_path} | {result.chunk.url}"
+                + (f" (retrieved {result.chunk.retrieved_at[:10]})" if getattr(result.chunk, 'retrieved_at', None) else "")
+                + f"\n{result.chunk.content}"
+            )
+        prompt = (
+            "You are an NVIDIA AI infrastructure advisor. "
+            "Directly and concisely answer the user question using only the numbered context passages below.\n\n"
+            "Rules:\n"
+            "1. Open your first sentence with a direct answer to the question.\n"
+            "2. Support each factual claim with an inline citation like [1] referencing the passage number.\n"
+            "3. Do not include information not in the context.\n"
+            "4. If context is insufficient, say so explicitly.\n"
+            "5. Keep the response under 300 words.\n"
+            "6. Prioritize technical accuracy and specific numbers (bandwidth, TFLOPS, memory sizes) over general descriptions.\n"
+            "7. When comparing hardware or configurations, use a structured format (bullet points or table).\n"
+            "8. End with a practical recommendation when the question implies a choice.\n"
+            "9. If the context contradicts the user's premise, correct it directly — do not agree with incorrect assumptions.\n"
+            "10. Do not pad with filler phrases or restate the question. Lead with the answer.\n\n"
+        )
+        if premise_note:
+            prompt += premise_note
+        prompt += f"Question: {question}\n\nContext:\n" + "\n\n".join(context_blocks)
+        if history_context:
+            prompt += (
+                "\n\nConversation history (for continuity only — all factual claims must come from the numbered passages):\n"
+                + history_context
+            )
+        try:
+            accumulated: list[str] = []
+            for token in self.reasoner.generate_text_stream(prompt, model=model):
+                accumulated.append(token)
+                if emit:
+                    emit("answer_chunk", {"text": token})
+            raw_answer = "".join(accumulated)
+            answer = self._ensure_citations(raw_answer, top_results)
+            answer = self._strip_invalid_citations(answer, len(top_results))
+            return answer, False
+        except Exception as exc:
+            _log.warning("Streaming synthesis failed (%s: %s), falling back to non-streaming", type(exc).__name__, str(exc)[:120])
+            return self._synthesize_answer(question, results, model, history_context=history_context, premise_note=premise_note)
+
+    @staticmethod
+    def _validate_format(answer: str, response_mode: str) -> dict[str, Any]:
+        """Post-generation format validation. Returns a dict with validation results."""
+        issues: list[str] = []
+        word_count = len(answer.split())
+
+        # Word count check
+        if word_count > 500:
+            issues.append(f"answer_too_long ({word_count} words)")
+        elif word_count > 350:
+            issues.append(f"answer_verbose ({word_count} words)")
+
+        # Citation count check for corpus-backed answers
+        citation_count = len(re.findall(r'\[\d+\]', answer))
+        if response_mode == "corpus-backed" and citation_count == 0:
+            issues.append("no_citations_in_corpus_backed")
+
+        # Markdown formatting issues
+        if answer.count('```') % 2 != 0:
+            issues.append("unclosed_code_block")
+        if answer.count('|') > 3:
+            # Check if table rows have consistent column counts
+            table_rows = [line for line in answer.split('\n') if '|' in line and line.strip().startswith('|')]
+            if table_rows:
+                col_counts = [line.count('|') for line in table_rows]
+                if len(set(col_counts)) > 1:
+                    issues.append("inconsistent_table_columns")
+
+        return {
+            "valid": len(issues) == 0,
+            "issues": issues,
+            "word_count": word_count,
+            "citation_count": citation_count,
+        }
+
+    @staticmethod
+    def _citation_quality(answer: str, results: list[RetrieverResult]) -> dict[str, Any]:
+        """Compute citation attribution quality: strong vs weak citations."""
+        if not results or not answer:
+            return {"strong": 0, "weak": 0, "uncited_paragraphs": 0}
+
+        chunk_term_sets = [
+            set(r.chunk.sparse_terms or tokenize(r.chunk.content))
+            for r in results
+        ]
+
+        strong = 0
+        weak = 0
+        uncited_paragraphs = 0
+
+        for paragraph in answer.split("\n\n"):
+            paragraph = paragraph.strip()
+            if not paragraph or len(paragraph) < 40:
+                continue
+
+            # Find citation markers in this paragraph
+            cited_indices = [int(m) - 1 for m in re.findall(r'\[(\d+)\]', paragraph)]
+            cited_indices = [i for i in cited_indices if 0 <= i < len(results)]
+
+            if not cited_indices:
+                uncited_paragraphs += 1
+                continue
+
+            para_tokens = set(tokenize(paragraph))
+            for idx in cited_indices:
+                overlap = len(para_tokens & chunk_term_sets[idx])
+                if overlap >= 3:
+                    strong += 1
+                else:
+                    weak += 1
+
+        return {"strong": strong, "weak": weak, "uncited_paragraphs": uncited_paragraphs}
 
     @staticmethod
     def _ensure_citations(answer: str, results: list[RetrieverResult], max_citations_per_para: int = 3) -> str:
@@ -1380,7 +2037,8 @@ class AgentService:
             return None
         prompt = (
             "You are an AI infrastructure expert. Answer the following question from your general knowledge. "
-            "Be concise (under 200 words). If you truly do not know, say so plainly.\n\n"
+            "Be concise (under 200 words). If you truly do not know, say so plainly. "
+            "If the question contains an incorrect premise, correct it directly.\n\n"
             f"Question: {question}"
         )
         if history_context:
@@ -1404,9 +2062,13 @@ class AgentService:
         loop = asyncio.get_event_loop()
         queue: asyncio.Queue[str | None] = asyncio.Queue()
 
+        answer_streamed = [False]
+
         def _emit_to_queue(event_type: str, payload: dict[str, Any]) -> None:
             sse = self._format_sse(event_type, payload)
             loop.call_soon_threadsafe(queue.put_nowait, sse)
+            if event_type == "answer_chunk":
+                answer_streamed[0] = True
 
         def _sync_run() -> AgentRunState:
             _thread_local_emit.fn = _emit_to_queue
@@ -1420,9 +2082,10 @@ class AgentService:
                 state = await asyncio.to_thread(_sync_run)
                 for citation in state.citations:
                     await queue.put(self._format_sse("citation", citation.model_dump()))
-                for paragraph in state.answer.split("\n\n"):
-                    if paragraph.strip():
-                        await queue.put(self._format_sse("answer_chunk", {"text": paragraph + "\n\n"}))
+                if not answer_streamed[0]:
+                    for paragraph in state.answer.split("\n\n"):
+                        if paragraph.strip():
+                            await queue.put(self._format_sse("answer_chunk", {"text": paragraph + "\n\n"}))
                 await queue.put(self._format_sse(
                     "done",
                     {

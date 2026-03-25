@@ -1,11 +1,55 @@
-import React, { useEffect, useRef } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
 import type { Citation } from "../types";
 
 function transformCitations(text: string): string {
   return text.replace(/\[(\d+)\]/g, '<span class="citation-ref" data-idx="$1">$1</span>');
+}
+
+/** Recursively extract text content from React element tree */
+function extractText(node: ReactNode): string {
+  if (typeof node === "string") return node;
+  if (typeof node === "number") return String(node);
+  if (!node) return "";
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (typeof node === "object" && "props" in node) {
+    return extractText(node.props.children);
+  }
+  return "";
+}
+
+const CodeBlockCopyButton = React.memo(function CodeBlockCopyButton({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* clipboard unavailable */ }
+  };
+  return (
+    <button
+      type="button"
+      className="code-copy-btn"
+      onClick={handleCopy}
+      aria-label="Copy code"
+    >
+      {copied ? "✓ Copied" : "Copy"}
+    </button>
+  );
+});
+
+function CodeBlockWrapper({ children, ...props }: React.HTMLAttributes<HTMLDivElement> & { children?: ReactNode }) {
+  const code = extractText(children);
+  return (
+    <div className="code-block-wrapper">
+      <pre {...props}>{children}</pre>
+      <CodeBlockCopyButton code={code} />
+    </div>
+  );
 }
 
 export const AnswerContent = React.memo(function AnswerContent({
@@ -44,7 +88,11 @@ export const AnswerContent = React.memo(function AnswerContent({
 
   return (
     <div className="answer-content" ref={contentRef}>
-      <ReactMarkdown rehypePlugins={[rehypeHighlight, rehypeRaw]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHighlight, rehypeRaw]}
+        components={{ pre: CodeBlockWrapper }}
+      >
         {transformCitations(text)}
       </ReactMarkdown>
       {isStreaming && <span className="streaming-cursor" />}

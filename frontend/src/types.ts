@@ -8,6 +8,10 @@ export type QueryClass =
 export interface ChatTurn {
   role: "user" | "assistant";
   content: string;
+  /** Per-message metadata (only on assistant turns, saved when answer completes) */
+  citations?: Citation[];
+  trace?: TraceEvent[];
+  donePayload?: ChatDonePayload;
 }
 
 export interface Citation {
@@ -72,6 +76,14 @@ export interface EvalRow {
   expected_sources: string[];
   retrieved_sources: string[];
   metrics: Record<string, number | string | boolean>;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  history: ChatTurn[];
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface ChatDonePayload {

@@ -78,9 +78,9 @@ function buildSteps(trace: TraceEvent[]): TraceStep[] {
           (ev as any).confidence ??
           (ev.payload as any)?.confidence ??
           null;
-        const confStr = confidence != null ? ` (cosine > ${Number(confidence).toFixed(2)})` : "";
+        const confStr = confidence != null ? ` (confidence ${Number(confidence).toFixed(2)})` : "";
         const detail = count != null
-          ? `Pinecone query, ${count} chunks returned${confStr}`
+          ? `Corpus query, ${count} chunks returned${confStr}`
           : "Searching NVIDIA documentation";
         steps.push({
           id: "retrieve",
@@ -94,9 +94,9 @@ function buildSteps(trace: TraceEvent[]): TraceStep[] {
       case "rerank": {
         const count = (ev.payload as any)?.retrieved_total ?? null;
         const confidence = (ev.payload as any)?.confidence ?? null;
-        const confStr = confidence != null ? ` (cosine > ${Number(confidence).toFixed(2)})` : "";
+        const confStr = confidence != null ? ` (confidence ${Number(confidence).toFixed(2)})` : "";
         const detail = count != null
-          ? `Pinecone query, ${count} chunks returned${confStr}`
+          ? `Corpus query, ${count} chunks returned${confStr}`
           : "Reranked results";
         steps.push({
           id: "retrieve",   // same id → dedup keeps this last one

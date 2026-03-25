@@ -31,6 +31,9 @@ frontend/frontend_logs.txt
 # Eval results (generated artifacts)
 data/evals/results/
 
+# Claude Code working files
+.remember/
+
 # Personal / working docs
 CLAUDE.md
 docs/PROJECT-TRACKER.md

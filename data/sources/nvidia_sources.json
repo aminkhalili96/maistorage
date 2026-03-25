@@ -360,5 +360,95 @@
     "doc_type": "markdown",
     "crawl_prefix": "https://docs.nvidia.com/nim/",
     "product_tags": ["nim", "inference", "microservices", "deployment", "containerized-inference", "model-serving"]
+  },
+  {
+    "id": "b200",
+    "title": "NVIDIA B200 Tensor Core GPU",
+    "url": "https://www.nvidia.com/en-us/data-center/b200/",
+    "doc_family": "hardware",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://www.nvidia.com/en-us/data-center/b200/",
+    "product_tags": ["b200", "hardware", "sizing", "blackwell", "nvlink5", "hbm3e", "fp4"]
+  },
+  {
+    "id": "gh200",
+    "title": "NVIDIA Grace Hopper Superchip (GH200)",
+    "url": "https://www.nvidia.com/en-us/data-center/grace-hopper-superchip/",
+    "doc_family": "hardware",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://www.nvidia.com/en-us/data-center/grace-hopper-superchip/",
+    "product_tags": ["gh200", "grace-hopper", "hardware", "sizing", "arm", "nvlink-c2c", "inference", "hpc"]
+  },
+  {
+    "id": "base-command",
+    "title": "NVIDIA Base Command Platform — Enterprise AI Cluster Management",
+    "url": "https://docs.nvidia.com/base-command-platform/",
+    "doc_family": "enterprise-platform",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://docs.nvidia.com/base-command-platform/",
+    "product_tags": ["base-command", "cluster-management", "scheduling", "ngc", "multi-tenancy", "enterprise"]
+  },
+  {
+    "id": "advanced-k8s-gpu",
+    "title": "Advanced Kubernetes Patterns for GPU Clusters",
+    "url": "/resources/advanced-k8s-gpu",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/advanced-k8s-gpu",
+    "product_tags": ["kubernetes", "gpu", "gang-scheduling", "topology-aware", "mig", "mps", "distributed-training", "volcano"]
+  },
+  {
+    "id": "inference-pipeline",
+    "title": "End-to-End AI Inference Pipeline Guide",
+    "url": "/resources/inference-pipeline",
+    "doc_family": "inference-optimization",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/inference-pipeline",
+    "product_tags": ["inference", "tensorrt", "triton", "onnx", "batching", "optimization", "deployment", "model-serving"]
+  },
+  {
+    "id": "gpu-monitoring",
+    "title": "GPU Cluster Monitoring and Observability",
+    "url": "/resources/gpu-monitoring",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/gpu-monitoring",
+    "product_tags": ["monitoring", "prometheus", "grafana", "dcgm", "alerting", "capacity-planning", "observability"]
+  },
+  {
+    "id": "nvme-of",
+    "title": "NVMe over Fabrics (NVMe-oF) for AI Storage",
+    "url": "/resources/nvme-of",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/nvme-of",
+    "product_tags": ["nvme", "nvme-of", "rdma", "storage", "gpudirect-storage", "disaggregated"]
+  },
+  {
+    "id": "rapids",
+    "title": "NVIDIA RAPIDS — GPU-Accelerated Data Science",
+    "url": "https://docs.rapids.ai/",
+    "doc_family": "advanced",
+    "doc_type": "markdown",
+    "crawl_prefix": "https://docs.rapids.ai/",
+    "product_tags": ["rapids", "cudf", "cuml", "data-science", "etl", "preprocessing", "gpu-analytics"]
+  },
+  {
+    "id": "mig-vgpu",
+    "title": "NVIDIA MIG and vGPU — GPU Virtualization and Partitioning",
+    "url": "/resources/mig-vgpu",
+    "doc_family": "infrastructure",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/mig-vgpu",
+    "product_tags": ["mig", "vgpu", "multi-instance-gpu", "virtualization", "multi-tenancy", "partitioning", "a100", "h100"]
+  },
+  {
+    "id": "speculative-decoding",
+    "title": "Speculative Decoding for LLM Inference Optimization",
+    "url": "/resources/speculative-decoding",
+    "doc_family": "inference-optimization",
+    "doc_type": "markdown",
+    "crawl_prefix": "/resources/speculative-decoding",
+    "product_tags": ["speculative-decoding", "inference", "llm", "optimization", "tensorrt-llm", "medusa", "latency"]
   }
 ]

@@ -28,8 +28,37 @@ export const CopyButton = React.memo(function CopyButton({ text }: { text: strin
   );
 });
 
-export const FeedbackButtons = React.memo(function FeedbackButtons({ messageIndex }: { messageIndex: number }) {
-  const storageKey = `${FEEDBACK_STORAGE_KEY}-${messageIndex}`;
+export const RegenerateButton = React.memo(function RegenerateButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className="copy-btn regenerate-btn"
+      onClick={onClick}
+      disabled={disabled}
+      title="Regenerate response"
+      aria-label="Regenerate response"
+    >
+      ↻ Regenerate
+    </button>
+  );
+});
+
+export const FeedbackButtons = React.memo(function FeedbackButtons({
+  messageIndex,
+  conversationId,
+}: {
+  messageIndex: number;
+  conversationId?: string;
+}) {
+  const storageKey = conversationId
+    ? `maistorage-feedback-${conversationId}-${messageIndex}`
+    : `${FEEDBACK_STORAGE_KEY}-${messageIndex}`;
   const [feedback, setFeedback] = useState<"up" | "down" | null>(() => {
     try {
       return (localStorage.getItem(storageKey) as "up" | "down" | null) ?? null;

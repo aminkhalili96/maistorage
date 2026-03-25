@@ -70,6 +70,8 @@ class Settings:
     semantic_cache_enabled: bool
     semantic_cache_threshold: float
     decomposition_enabled: bool
+    use_cross_encoder: bool
+    use_hyde: bool
     openai_temperature: float
     openai_timeout: float
     tavily_timeout: float
@@ -165,6 +167,8 @@ def get_settings() -> Settings:
         semantic_cache_enabled=_as_bool(os.getenv("SEMANTIC_CACHE_ENABLED"), default=False),
         semantic_cache_threshold=float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.92")),
         decomposition_enabled=_as_bool(os.getenv("QUERY_DECOMPOSITION_ENABLED"), default=False),
+        use_cross_encoder=_as_bool(os.getenv("USE_CROSS_ENCODER"), default=False),
+        use_hyde=_as_bool(os.getenv("USE_HYDE"), default=False),
         openai_temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.2")),
         openai_timeout=float(os.getenv("OPENAI_TIMEOUT", "60.0")),
         tavily_timeout=float(os.getenv("TAVILY_TIMEOUT", "30.0")),

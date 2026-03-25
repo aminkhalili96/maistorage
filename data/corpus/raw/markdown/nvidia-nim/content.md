@@ -45,3 +45,38 @@ In practice, NIM uses Triton internally as its serving backend for some model ty
 ## Integration and API Compatibility
 
 NIM exposes an OpenAI-compatible REST API, making it a drop-in replacement for OpenAI API calls in existing applications. The `/v1/chat/completions` endpoint supports streaming responses, function calling, and structured output. The `/v1/embeddings` endpoint serves embedding models. This API compatibility means applications built against the OpenAI SDK can switch to NIM by changing the base URL, enabling on-premises or private cloud deployment of models that were previously accessed via cloud APIs.
+
+## Production Scaling Patterns
+
+Scaling NIM in production requires attention to GPU utilization, request routing, and resource management. Horizontal scaling deploys multiple NIM replicas behind a load balancer, with each replica serving a copy of the model on its own GPU(s). Kubernetes HPA (Horizontal Pod Autoscaler) can scale replicas based on GPU utilization metrics from DCGM or request queue depth from the NIM health endpoint.
+
+For multi-model deployments, each model runs as a separate NIM container with its own GPU allocation. A routing layer (NGINX, Envoy, or Kubernetes Ingress) directs requests to the appropriate NIM instance based on the model name in the API path. This avoids GPU memory fragmentation from loading multiple models into a single process.
+
+Autoscaling considerations: NIM containers have significant startup time (30-120 seconds for model loading depending on model size and storage speed). Scale-to-zero is possible but introduces cold-start latency. For latency-sensitive deployments, maintain a minimum replica count and pre-warm instances. GPU node autoscaling in Kubernetes (Karpenter, Cluster Autoscaler) should account for GPU provisioning time (2-5 minutes for cloud GPU instances).
+
+## Cost Modeling
+
+Inference cost is dominated by GPU-hours. Key factors: GPU type (H200 for memory-bound LLMs, L40S for cost-effective medium models, T4 for budget inference), utilization rate (continuous batching pushes utilization to 60-80% vs 10-30% without batching), and model size (smaller quantized models serve more requests per GPU).
+
+Cost comparison for serving a 70B-parameter LLM at 100 requests/second:
+- 8× H200 with FP8 quantization: highest throughput per GPU, fewest nodes
+- 16× L40S with INT4 quantization: lower per-GPU cost but more nodes to manage
+- NIM handles quantization profile selection automatically based on detected GPU hardware
+
+Total cost of ownership includes GPU hardware/cloud rental, power and cooling, network bandwidth (for multi-node tensor parallelism), storage (model weights and KV cache overflow), and engineering time for operations.
+
+## Multi-Model Orchestration
+
+Production environments often serve dozens of models simultaneously. NIM supports this through separate container instances, but orchestration requires additional tooling. NVIDIA NIM Operator for Kubernetes provides CRDs (`NIMService`, `NIMCache`) that manage model lifecycle: pull weights from NGC, cache on persistent volumes, schedule on appropriate GPU nodes, and handle version transitions.
+
+Model versioning enables canary deployments: route 5% of traffic to a new model version while monitoring latency and quality metrics. Kubernetes service mesh (Istio) or weighted backend configurations in the NIM Operator handle traffic splitting.
+
+## LoRA Adapter Hot-Swap
+
+NIM supports loading LoRA adapters at runtime without container restart. Mount adapter weights via a shared volume, and the NIM runtime merges them with the base model on the next request targeting that adapter. This enables serving hundreds of fine-tuned model variants from a single base model deployment, dramatically reducing GPU memory requirements compared to deploying each variant as a separate model.
+
+Adapter management: store adapters in a versioned artifact registry (NGC, S3, MLflow). A sidecar container or init container pulls the latest adapter weights to the shared volume. Health checks verify adapter compatibility with the base model version.
+
+## Health Monitoring
+
+NIM exposes health endpoints (`/v1/health/ready`, `/v1/health/live`) for Kubernetes liveness and readiness probes. Key metrics to monitor: request latency (p50, p95, p99), tokens per second (throughput), time to first token (TTFT), GPU memory utilization, KV cache hit rate, and request queue depth. These metrics are available via the `/metrics` Prometheus endpoint. Alert on: latency SLA breaches, GPU memory exhaustion (causes OOM and container restart), and sustained queue depth growth (indicates under-provisioning).

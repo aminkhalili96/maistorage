@@ -94,6 +94,9 @@ class TraceEventType(str, Enum):
     query_reformulation = "query_reformulation"
     error = "error"
     done = "done"
+    multi_hop = "multi_hop"
+    routing_decision = "routing_decision"
+    claim_verification = "claim_verification"
 
 
 class TraceEvent(BaseModel):

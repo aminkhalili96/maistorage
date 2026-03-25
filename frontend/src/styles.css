@@ -179,7 +179,7 @@ a:hover { text-decoration: underline; }
    ================================================================ */
 
 .sidebar {
-  width: 208px;
+  width: 240px;
   background: var(--bg-sidebar);
   border-right: 0.5px solid var(--border-subtle);
   display: flex;
@@ -220,7 +220,7 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar-section-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -240,7 +240,7 @@ a:hover { text-decoration: underline; }
   border: 0.5px solid var(--border-medium);
   background: #2a2a2a;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
@@ -292,7 +292,7 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar-chat-title {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--text-secondary);
   flex: 1;
   min-width: 0;
@@ -308,14 +308,14 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar-chat-time {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text-tertiary);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .sidebar-chat-empty {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   padding: 4px 8px;
   font-style: italic;
@@ -337,6 +337,30 @@ a:hover { text-decoration: underline; }
   height: 0.5px;
   background: var(--border-subtle);
   margin: 4px 0 8px;
+}
+
+.sidebar-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.sidebar-section-toggle:hover {
+  opacity: 0.8;
+}
+.sidebar-toggle-chevron {
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+}
+.sidebar-toggle-chevron.collapsed {
+  transform: rotate(-90deg);
 }
 
 /* ── Knowledge base items ── */
@@ -370,7 +394,7 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar-kb-title {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-secondary);
   flex: 1;
   min-width: 0;
@@ -381,7 +405,7 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar-kb-chunks {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text-tertiary);
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
@@ -390,7 +414,7 @@ a:hover { text-decoration: underline; }
 /* ── Sidebar footer ── */
 .sidebar-kb-footer {
   padding: 10px 6px 4px;
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text-tertiary);
 }
 
@@ -959,16 +983,20 @@ a:hover { text-decoration: underline; }
 .assistant-content:hover .answer-actions { opacity: 1; }
 
 .copy-btn {
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid var(--border-subtle);
   background: transparent;
   color: var(--text-tertiary);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
 }
 .copy-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+.copy-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* F1: Regenerate button */
+.regenerate-btn { /* inherits .copy-btn base */ }
 
 .feedback-buttons {
   display: flex;
@@ -976,14 +1004,14 @@ a:hover { text-decoration: underline; }
 }
 
 .feedback-btn {
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
   border: 1px solid var(--border-subtle);
   background: transparent;
   font-size: 13px;
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 .feedback-btn:hover { opacity: 1; background: rgba(255,255,255,0.05); }
 .feedback-btn.active-up {
@@ -1118,36 +1146,196 @@ a:hover { text-decoration: underline; }
 
 
 /* ================================================================
-   18. Mobile responsiveness
+   18. Code block copy button (F2)
+   ================================================================ */
+
+.code-block-wrapper {
+  position: relative;
+}
+.code-block-wrapper .code-copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.12s, color 0.12s;
+}
+.code-block-wrapper:hover .code-copy-btn { opacity: 1; }
+.code-block-wrapper .code-copy-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-secondary);
+}
+
+/* ================================================================
+   19. Stop generation button (F3)
+   ================================================================ */
+
+.stop-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.stop-button:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--border-hover);
+}
+
+/* ================================================================
+   20. Header action buttons (F4: Export)
+   ================================================================ */
+
+.header-action-btn {
+  position: absolute;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.header-action-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary);
+}
+
+/* ================================================================
+   21. Edit & Resend (F5)
+   ================================================================ */
+
+.user-bubble-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  position: relative;
+}
+
+.user-edit-icon {
+  padding: 2px 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.12s;
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+.user-bubble-wrapper:hover .user-edit-icon { opacity: 1; }
+.user-edit-icon:hover { color: var(--text-secondary); }
+
+.user-edit-container {
+  max-width: 75%;
+  width: 100%;
+  margin-left: auto;
+}
+
+.user-edit-textarea {
+  width: 100%;
+  background: var(--bg-user-bubble);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.55;
+  font-family: var(--font-sans);
+  resize: vertical;
+  min-height: 60px;
+  outline: none;
+}
+.user-edit-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.user-edit-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  justify-content: flex-end;
+}
+
+.user-edit-send {
+  padding: 4px 14px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.user-edit-send:hover { background: var(--accent-hover); }
+
+.user-edit-cancel {
+  padding: 4px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.user-edit-cancel:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary);
+}
+
+/* ================================================================
+   22. Sidebar conversation delete button (F7)
+   ================================================================ */
+
+.sidebar-chat-delete {
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.12s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.sidebar-chat-item:hover .sidebar-chat-delete { opacity: 1; }
+.sidebar-chat-delete:hover { color: var(--red); }
+
+/* ================================================================
+   23. Mobile responsiveness
    ================================================================ */
 
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
-
-  .conversation-column {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .message-wrapper {
-    padding: 0 16px;
-  }
-
-  .composer-area {
-    padding: 10px 16px 18px;
-  }
-
-  .composer-box {
-    border-radius: 18px;
-    padding: 8px 10px 8px 16px;
-  }
-
-  .user-bubble {
-    max-width: 90%;
-  }
-
+  .sidebar { display: none; }
+  .conversation-column { max-width: 100%; width: 100%; }
+  .message-wrapper { padding: 0 16px; }
+  .composer-area { padding: 10px 16px 18px; }
+  .composer-box { border-radius: 18px; padding: 8px 10px 8px 16px; }
+  .user-bubble { max-width: 90%; }
 }
 
 @media (max-width: 480px) {

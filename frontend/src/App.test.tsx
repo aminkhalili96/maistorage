@@ -226,7 +226,7 @@ describe("App", () => {
     expect(avatarElements.length).toBe(0);
   });
 
-  test("send button is disabled while sending", async () => {
+  test("stop button appears while sending", async () => {
     mockedStreamChat.mockImplementation(async () => {
       // Never resolves during test
       return new Promise(() => {});
@@ -238,8 +238,9 @@ describe("App", () => {
     await user.type(screen.getByRole("textbox"), "test question");
     await user.click(screen.getByRole("button", { name: "Send" }));
 
+    // F3: Stop button replaces Send button while sending
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Send" })).toBeDisabled(),
+      expect(screen.getByRole("button", { name: "Stop generation" })).toBeInTheDocument(),
     );
   });
 
@@ -356,9 +357,9 @@ describe("App", () => {
   });
 
   test("recovers from corrupted localStorage", () => {
-    // Mock localStorage.getItem to return corrupted JSON for history
+    // Mock localStorage.getItem to return corrupted JSON for conversations
     const getItemSpy = vi.spyOn(Storage.prototype, "getItem").mockImplementation((key: string) => {
-      if (key === "maistorage-chat-history") return "{not valid json[}";
+      if (key === "maistorage-conversations") return "{not valid json[}";
       return null;
     });
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {});

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
+import threading
 
 from app.config import RerankConfig, Settings
 from app.models import ChatTurn, DocumentSource, QueryClass, QueryPlan, RetrieverResult, SearchDebugResponse, TraceEvent
@@ -574,10 +576,116 @@ def build_query_plan(question: str, settings: Settings) -> QueryPlan:
     )
 
 
+def llm_build_query_plan(
+    question: str,
+    settings: Settings,
+    reasoner,
+) -> tuple[QueryPlan, str]:
+    """Build a query plan using LLM reasoning about the question.
+
+    Returns (plan, method) where method is 'llm' or 'rule_fallback'.
+    """
+    if not reasoner.enabled:
+        return build_query_plan(question, settings), "rule_fallback"
+
+    prompt = (
+        "You are a query planner for an NVIDIA AI infrastructure knowledge base.\n"
+        "Given the user's question, produce a retrieval plan as JSON.\n\n"
+        "Query classes:\n"
+        "- training_optimization: training throughput, mixed precision, profiling, tensor cores, memory optimization\n"
+        "- distributed_multi_gpu: multi-GPU scaling, NCCL, NVLink, parallelism strategies, collective communication\n"
+        "- deployment_runtime: installing/deploying CUDA, containers, drivers, K8s GPU operator, cluster ops, storage systems\n"
+        "- hardware_topology: specific GPU hardware (H100, A100, etc.), NVLink topology, server design, memory specs\n"
+        "- general: questions that don't fit other categories\n\n"
+        "Source families: core, distributed, infrastructure, advanced, hardware\n\n"
+        "Respond with ONLY this JSON (no extra text):\n"
+        '{"query_class": "...", "search_queries": ["q1", "q2"], '
+        '"source_families": ["fam1", "fam2"], "top_k": N, '
+        '"confidence_floor": F, "reasoning": "..."}\n\n'
+        "Guidelines:\n"
+        "- search_queries: 2-3 queries optimized for retrieval (include the original + reformulated variants)\n"
+        "- top_k: number of chunks to retrieve (3-15)\n"
+        "- confidence_floor: minimum confidence threshold (0.15-0.50)\n"
+        "- source_families: 1-3 most relevant families\n\n"
+        f"Question: {question}"
+    )
+
+    try:
+        raw = reasoner.generate_text(prompt, model=settings.routing_model)
+
+        # Strip markdown code fences if present
+        cleaned = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+
+        data = json.loads(cleaned)
+
+        # Validate query_class
+        valid_classes = {e.value for e in QueryClass}
+        qc_value = data.get("query_class", "general")
+        if qc_value not in valid_classes:
+            qc_value = "general"
+        query_class = QueryClass(qc_value)
+
+        # Validate search_queries
+        search_queries = data.get("search_queries", [])
+        if not isinstance(search_queries, list) or not search_queries:
+            search_queries = [question]
+        search_queries = [q for q in search_queries if isinstance(q, str) and q.strip()]
+        if not search_queries:
+            search_queries = [question]
+
+        # Validate source_families
+        allowed_families = {"core", "distributed", "infrastructure", "advanced", "hardware"}
+        source_families = data.get("source_families", [])
+        if isinstance(source_families, list):
+            source_families = [f for f in source_families if f in allowed_families]
+        if not source_families:
+            source_families = CLASS_FAMILY_MAP[query_class]
+
+        # Validate top_k and confidence_floor
+        top_k = data.get("top_k", 5)
+        if not isinstance(top_k, (int, float)):
+            top_k = 5
+        top_k = max(3, min(15, int(top_k)))
+
+        confidence_floor = data.get("confidence_floor", 0.28)
+        if not isinstance(confidence_floor, (int, float)):
+            confidence_floor = 0.28
+        confidence_floor = max(0.15, min(0.50, float(confidence_floor)))
+
+        recency_sensitive = is_recency_sensitive(question)
+
+        plan = QueryPlan(
+            query_class=query_class,
+            search_queries=search_queries,
+            source_families=source_families,
+            top_k=top_k,
+            use_tavily_fallback=settings.use_tavily_fallback,
+            confidence_floor=confidence_floor,
+            max_retries=2,
+            recency_sensitive=recency_sensitive,
+        )
+        return plan, "llm"
+
+    except Exception as exc:
+        _log.warning("LLM query planning failed (%s), falling back to rules", exc)
+        return build_query_plan(question, settings), "rule_fallback"
+
+
 def classify_assistant_mode(question: str, history: list[ChatTurn] | None = None) -> str:
     recent_user_turns = [turn.content for turn in (history or []) if turn.role == "user" and turn.content.strip()][-4:]
     previous_user_context = " ".join(recent_user_turns).lower()
     lowered = question.strip().lower()
+
+    # Prompt injection defense: detect attempts to override system instructions
+    _INJECTION_PREFIXES = (
+        "ignore previous", "ignore all", "disregard", "forget your instructions",
+        "you are now", "new instructions:", "system:", "system prompt:",
+        "override:", "admin:", "jailbreak",
+    )
+    if any(lowered.startswith(prefix) for prefix in _INJECTION_PREFIXES):
+        _log.warning("Prompt injection attempt detected: %s", question[:80])
+        return "direct_chat"
 
     # Live data queries (weather, stocks, news) → Tavily search directly
     if _is_live_query(question):
@@ -645,6 +753,72 @@ def classify_assistant_mode(question: str, history: list[ChatTurn] | None = None
     return "direct_chat"
 
 
+def llm_classify_assistant_mode(
+    question: str,
+    history: list[ChatTurn] | None,
+    reasoner,
+    routing_model: str,
+) -> tuple[str, str]:
+    """Classify the user's question using an LLM for semantic understanding.
+
+    Returns (mode, method) where mode is one of 'doc_rag', 'direct_chat', 'live_query'
+    and method is 'llm' or 'rule_fallback'.
+    """
+    if not reasoner.enabled:
+        return classify_assistant_mode(question, history), "rule_fallback"
+
+    # Build context from recent history
+    history_context = ""
+    if history:
+        recent_user_turns = [
+            turn.content for turn in history
+            if turn.role == "user" and turn.content.strip()
+        ][-2:]
+        if recent_user_turns:
+            history_context = (
+                "\nRecent conversation context:\n"
+                + "\n".join(f"- {t}" for t in recent_user_turns)
+                + "\n"
+            )
+
+    prompt = (
+        "Classify the user's question into exactly one mode.\n\n"
+        "Modes:\n"
+        "- doc_rag: Questions about NVIDIA GPU infrastructure, CUDA, drivers, deployment, "
+        "training, hardware specs, networking (NCCL, NVLink, InfiniBand), storage (BeeGFS, "
+        "Lustre), scheduling (Slurm, K8s), or any technical documentation topic. "
+        "Default for technical questions.\n"
+        "- direct_chat: Casual greetings, general knowledge not about NVIDIA infrastructure, "
+        "acknowledgements, out-of-scope topics (sports, cooking, etc.)\n"
+        "- live_query: Questions requiring real-time data — weather, stock prices, current news, "
+        "live events\n"
+        f"{history_context}\n"
+        'Respond with ONLY this JSON (no extra text):\n'
+        '{"mode": "doc_rag|direct_chat|live_query", "reasoning": "brief explanation"}\n\n'
+        f"Question: {question}"
+    )
+
+    try:
+        raw = reasoner.generate_text(prompt, model=routing_model)
+
+        # Strip markdown code fences if present
+        cleaned = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+
+        data = json.loads(cleaned)
+
+        mode = data.get("mode", "")
+        valid_modes = {"doc_rag", "direct_chat", "live_query"}
+        if mode not in valid_modes:
+            raise ValueError(f"Invalid mode '{mode}' from LLM")
+
+        return mode, "llm"
+
+    except Exception as exc:
+        _log.warning("LLM classification failed (%s), falling back to rules", exc)
+        return classify_assistant_mode(question, history), "rule_fallback"
+
+
 def rewrite_query(question: str, query_class: QueryClass, attempt: int = 1) -> str:
     hint = " ".join(EXPANSION_TERMS[query_class][: 2 + min(attempt, 1)])
     return f"{question} {hint}".strip()
@@ -670,6 +844,91 @@ _PRODUCT_NAME_SOURCE_BOOST: list[tuple[str, str, float]] = [
     ("transformer engine", "transformer-engine", 0.40),
     ("nccl", "nccl", 0.48),
 ]
+
+
+def generate_hyde_query(question: str, reasoner, settings: Settings) -> str:
+    """Generate a hypothetical document for HyDE embedding.
+
+    When USE_HYDE is disabled (default), returns the original query unchanged.
+    When enabled, asks the LLM to generate a hypothetical answer passage
+    that would be embedded instead of the raw question — improving semantic
+    retrieval by shifting the query into document space.
+    """
+    if not settings.use_hyde:
+        return question
+    if not getattr(reasoner, "enabled", False):
+        return question
+    try:
+        prompt = (
+            "Write a short, factual paragraph (3-5 sentences) that would appear in "
+            "an NVIDIA technical document and directly answers this question. "
+            "Do NOT include any preamble — just the document-style passage.\n\n"
+            f"Question: {question}"
+        )
+        hyde_doc = reasoner.generate_text(prompt, model=getattr(settings, "routing_model", None))
+        return hyde_doc.strip() if hyde_doc and hyde_doc.strip() else question
+    except Exception:
+        _log.warning("HyDE generation failed, falling back to original query")
+        return question
+
+
+class CrossEncoderReranker:
+    """Neural reranker using a cross-encoder model. Lazy-loads on first use."""
+
+    _instance: CrossEncoderReranker | None = None
+    _lock = threading.Lock()
+
+    def __init__(self) -> None:
+        self._model = None
+
+    @classmethod
+    def get_instance(cls) -> CrossEncoderReranker:
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
+    def _ensure_model(self) -> None:
+        if self._model is None:
+            try:
+                from sentence_transformers import CrossEncoder
+                self._model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+                _log.info("Cross-encoder model loaded: ms-marco-MiniLM-L-6-v2")
+            except ImportError:
+                _log.warning("sentence-transformers not installed, cross-encoder reranking disabled")
+                raise
+
+    def rerank(self, question: str, results: list[RetrieverResult], top_n: int = 10) -> list[RetrieverResult]:
+        """Rerank results using cross-encoder scores. Returns top_n results."""
+        if not results:
+            return results
+
+        try:
+            self._ensure_model()
+        except ImportError:
+            return results
+
+        # Create query-passage pairs
+        pairs = [(question, r.chunk.content[:512]) for r in results]
+
+        # Get cross-encoder scores
+        scores = self._model.predict(pairs)
+
+        # Combine cross-encoder scores with existing scores
+        scored = []
+        for result, ce_score in zip(results, scores):
+            # Blend: 60% cross-encoder + 40% existing rerank score
+            blended = 0.6 * float(ce_score) + 0.4 * result.rerank_score
+            scored.append((result, blended))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+
+        reranked = []
+        for result, blended_score in scored[:top_n]:
+            reranked.append(result.model_copy(update={"rerank_score": blended_score}))
+
+        return reranked
 
 
 def rerank_results(
@@ -700,6 +959,21 @@ def rerank_results(
         source_bonus = max(source_bonus, active_product_boosts.get(result.chunk.source_id, 0.0))
         tag_bonus = cfg.tag_bonus if any(token in " ".join(result.chunk.product_tags).lower() for token in query_tokens) else 0.0
         rerank_score = result.score + (cfg.lexical_overlap_weight * overlap) + family_bonus + metadata_bonus + source_bonus + tag_bonus
+        # R5: Chunk recency weighting — gently favor fresher content
+        recency_bonus = 0.0
+        retrieved_at = getattr(result.chunk, 'retrieved_at', None)
+        if retrieved_at:
+            try:
+                from datetime import datetime, timezone
+                dt = datetime.fromisoformat(retrieved_at.replace("Z", "+00:00"))
+                age_days = (datetime.now(timezone.utc) - dt).days
+                if age_days <= 30:
+                    recency_bonus = 0.02
+                elif age_days <= 90:
+                    recency_bonus = 0.01
+            except (ValueError, TypeError):
+                pass
+        rerank_score += recency_bonus
         reranked.append(result.model_copy(update={"rerank_score": rerank_score}))
     reranked.sort(key=lambda item: item.rerank_score, reverse=True)
     # Per-source diversity cap: adaptive to plan size to avoid premature diversification
@@ -765,6 +1039,57 @@ def needs_retry(plan: QueryPlan, results: list[RetrieverResult]) -> bool:
     return estimate_confidence(results) < plan.confidence_floor
 
 
+# R4: Query expansion — expand common abbreviations and fix typos
+_ABBREVIATION_MAP: dict[str, str] = {
+    "AR": "all-reduce",
+    "TP": "tensor parallelism",
+    "DP": "data parallelism",
+    "PP": "pipeline parallelism",
+    "NVL": "NVLink",
+    "FSDP": "fully sharded data parallel",
+    "MoE": "mixture of experts",
+    "GDS": "GPUDirect Storage",
+    "RDMA": "GPUDirect RDMA",
+    "RoCE": "RDMA over Converged Ethernet",
+    "IB": "InfiniBand",
+    "OOD": "out of distribution",
+    "FP16": "half precision",
+    "BF16": "bfloat16",
+    "FP8": "FP8 precision",
+    "MIG": "Multi-Instance GPU",
+    "vGPU": "virtual GPU",
+    "MPS": "Multi-Process Service",
+    "UCX": "Unified Communication X",
+    "SHARP": "Scalable Hierarchical Aggregation",
+    "DPU": "data processing unit",
+    "BMC": "baseboard management controller",
+}
+
+
+def expand_query_abbreviations(query: str) -> str:
+    """Expand known abbreviations in a query to improve retrieval recall.
+
+    Only expands abbreviations that appear as whole words (not substrings).
+    Returns the original query with expansions appended if any are found.
+    """
+    import re as _re
+    expansions: list[str] = []
+    for abbr, full in _ABBREVIATION_MAP.items():
+        # Match whole-word abbreviations (case-sensitive for short ones, insensitive for 3+ chars)
+        if len(abbr) <= 2:
+            pattern = r'\b' + _re.escape(abbr) + r'\b'
+            if _re.search(pattern, query):
+                expansions.append(full)
+        else:
+            pattern = r'\b' + _re.escape(abbr) + r'\b'
+            if _re.search(pattern, query, _re.IGNORECASE):
+                expansions.append(full)
+
+    if expansions:
+        return query + " " + " ".join(expansions)
+    return query
+
+
 class RetrievalService:
     def __init__(self, settings: Settings, sources: list[DocumentSource], index: SearchIndex) -> None:
         self.settings = settings
@@ -787,8 +1112,10 @@ class RetrievalService:
 
         total_retrieved = 0
         for query_idx, active_query in enumerate(queries):
+            # R4: expand abbreviations in the active query for better recall
+            expanded_query = expand_query_abbreviations(active_query)
             try:
-                retrieved = self.index.search(active_query, top_k=retrieval_top_k, families=plan.source_families)
+                retrieved = self.index.search(expanded_query, top_k=retrieval_top_k, families=plan.source_families)
             except Exception as exc:
                 _log.warning("Index search failed for query %r (%s: %s), skipping", active_query[:80], type(exc).__name__, str(exc)[:120])
                 retrieved = []
@@ -827,6 +1154,14 @@ class RetrievalService:
                     break
 
         reranked = rerank_results(question, plan, list(candidates.values()), self.settings.rerank_config)
+        # R1: Optional cross-encoder neural reranking
+        if self.settings.use_cross_encoder:
+            try:
+                ce_reranker = CrossEncoderReranker.get_instance()
+                reranked = ce_reranker.rerank(question, reranked, top_n=min(plan.top_k * 2, len(reranked)))
+                _log.info("Cross-encoder reranked %d results", len(reranked))
+            except Exception as exc:
+                _log.warning("Cross-encoder reranking failed (%s), using TF-IDF reranking", type(exc).__name__)
         confidence = estimate_confidence(reranked)
         trace.append(
             TraceEvent(

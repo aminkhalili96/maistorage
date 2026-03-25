@@ -106,6 +106,24 @@ class OpenAIReasoner:
             raise RuntimeError("OpenAI response did not include text content.")
         return text.strip()
 
+    def generate_text_stream(self, prompt: str, model: str | None = None):
+        """Yield token chunks as they arrive from OpenAI."""
+        if not self.enabled:
+            raise RuntimeError("OpenAI is not configured.")
+        target_model = model or self.settings.generation_model
+        kwargs: dict[str, Any] = {
+            "model": target_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": True,
+        }
+        if target_model not in self._DEFAULT_TEMP_ONLY_MODELS:
+            kwargs["temperature"] = self.settings.openai_temperature
+        stream = self._client.chat.completions.create(**kwargs)
+        for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield delta
+
 
 class TavilyClient:
     def __init__(self, settings: Settings) -> None:
